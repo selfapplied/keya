@@ -1,0 +1,60 @@
+\documentclass[10pt]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{textgreek}
+\usepackage{autoaligne}
+\usepackage[T1]{fontenc}e
+\usepackage[utf8]{inputenc}
+
+\theoremstyle{definition}
+\newtheorem{principle}{Principle}
+
+\geometry{margin=0.5in}
+\definecolor{deepblue}{RGB}{0,30,100}
+\definecolor{deepred}{RGB}{150,0,50}
+
+% --- Custom Commands ---
+\newcommand{\op}[1]{\mathbf{\color{deepblue} #1}}
+\newcommand{\att}[1]{\boldsymbol{\color{deepred} #1}}
+\newcommand{\sym}[1]{\mathsf{\color{black} #1}}
+
+% Operator shortcuts
+\newcommand{\lha}{\op{\ell}} % Descent operator
+\newcommand{\fuse}{\op{\oplus}} % Fusion operator
+\newcommand{\grow}{\op{\uparrow}} % Growth operator
+\newcommand{\reflec}{\op{\sim}} % Reflection operator
+\newcommand{\rotate}{\op{\circlearrowright}} % Rotation / \pi-torsion
+\newcommand{\tensor}{\op{\otimes}} % Structural tensor
+\newcommand{\repflow}{\op{\uparrow\downarrow}} % Bidirectional growth
+
+% Attractors
+\newcommand{\gold}{\att{\varphi}} % Golden ratio attractor
+\newcommand{\pirot}{\att{\pi}} % Rotational attractor
+\newcommand{\void}{\att{\emptyset}} % Void attractor
+
+\title{\bfseries Symbolic Operator Thermodynamics\\ \large 
+The Unified Calculus of Dynamic Equilibrium in kéya}
+\author{Joel Stover \\ \small \textgreek{μετὰ λόγου, μετὰ ἁρμονίας}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present k\'{e}ya, a framework for symbolic computation that reframes operator dynamics as a form of \textbf{Symbolic Homotopy Algebra}. This approach models infinities and divergent processes not as analytical problems to be solved, but as non-trivial topological loops in symbolic space. We demonstrate that regularization is equivalent to a homotopic folding of these loops toward a basepoint, and that cancellation is the fusion of these paths with their duals, collapsing them into the zero class. The core result is the formulation of a symbolic eigenvector equation whose fixed-point attractor is zero---not as a void, but as a state of perfect topological interference. This recasts the foundations of physics and mathematics, unifying renormalization, biological stability, and computational equilibrium into a single, dynamic principle of curvature collapse.
+\end{abstract}
+
+\input{foundations.tex}
+\input{theorems.tex}
+\input{homology.tex}
+\input{results.tex}
+\input{conclusion.tex}
+\input{appendix.tex}
+
+\end{document} 

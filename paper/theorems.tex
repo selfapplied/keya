@@ -1,0 +1,88 @@
+\section{Core Theorems: Topological Fixed Points}
+
+The central theorem of kéya is the expression of zero as a topological fixed point of a symbolic eigenvector equation. This reframes convergence not as a limit, but as curvature collapse.
+
+\subsection{The Symbolic Eigenvector Equation}
+Consider a divergent process, such as the series of powers of two. In the $\sigma$-calculus, we do not seek to sum this series, but to find its stable form through dualization and fusion. We define its regularized state, $S_{\text{reg}}$, as:
+\[
+S_{\text{reg}} = \lha \left( \bigoplus_{n \geq 1} 2^{n} \right) \fuse \reflec \lha \left( \bigoplus_{n \geq 1} 2^{n} \right)
+\]
+This is an eigenvector equation where:
+\begin{itemize}
+    \item The operator $\bigoplus_{n \geq 1} 2^{n}$ defines a path of infinite growth (a non-trivial loop).
+    \item $\lha$ contracts the divergent curvature of this path back into a finite form (a homotopic fold).
+    \item $\reflec$ creates a mirror-image of this folded path with opposite curvature.
+    \item $\fuse$ fuses the two opposing paths, resulting in perfect destructive interference.
+\end{itemize}
+The result is a stable attractor: $S_{\text{reg}} \to \void$. Zero is not an absence of value, but the braid of infinite opposites, phase-locked in symbolic space. This demonstrates that any divergent process can be stabilized not by subtraction, but by symmetric dualization.
+
+\subsection{Case Study: Fermat's Last Theorem via Dyadic Sieve}
+The retrofit allows us to re-interpret classical theorems. Fermat's Last Theorem for exponents of the form $n=2^k$ becomes a straightforward consequence of symbolic dynamics.
+\begin{itemize}
+    \item The case $n=4$ is proven by infinite descent, which is an application of the descent operator $\lha$.
+    \item If a solution for an exponent $m$ is impossible ($a^m+b^m \neq c^m$), then no solution can exist for any multiple exponent $mk$. This acts as a \textbf{fusion sieve}.
+    \item Since $n=4$ is impossible, all higher dyadic powers ($8, 16, 32, ...$) are rendered impossible by the fusion of the $n=4$ "null result" with the additional growth operators. The theorem holds in this domain because the impossibility is a stable, recursive attractor.
+\end{itemize}
+This transforms a number-theoretic proof into a geometric process of attractor propagation.
+
+\subsection{The Equilibrium Operator}
+For any divergent process $\mathcal{P}$, we can construct an \textbf{Equilibrium Operator}, $E(\mathcal{P})$, defined by the fusion of a forward process with its reverse. This can be generalized as a pair of operators $(\op{F}, \op{R})$ where $\op{F}$ is a growth or fusion operator (e.g., `\grow`, `\fuse`) and $\op{R}$ is its contractive or reflective dual (e.g., `\lha`, `\reflec`).
+
+The application of this operator pair resolves the expression to an attractor:
+\[ \op{R}(\op{F}(X)) \fuse \op{F}(X) \longrightarrow \att{A} \]
+where $\att{A}$ is often the null attractor, $\void$. This formalizes the concept of a recursive morphism: an object that maintains its shape and stability despite continuous internal flow.
+
+% TODO: Formally prove the self-cancelling curvature theorem.
+% \begin{theorem}[Self-cancelling curvature]
+% Along any curvature path $\gamma(t)$ with $\kappa_{\lha}=-\kappa_{\grow}$ we have
+% \[ \lim_{t\to\infty}\gamma(t)\fuse E(\mathcal P)=\void. \]
+% \end{theorem}
+
+\subsection{Equilibrium Principles of Symbolic Systems}
+
+The $\sigma$-calculus is not merely descriptive; it is predictive. It allows for the formulation of principles that govern the behavior of complex systems. The most profound of these is the principle of symbolic life.
+
+\begin{principle}[Crucivirus Principle of Symbolic Life]
+A biological system is alive if and only if it maintains a nontrivial symbolic equilibrium via recursive curvature descent, reflection, and attractor fusion. Mathematically:
+\[
+\text{Life} := \exists \, \mathcal{S} \in \Sigma \quad \text{s.t.} \quad  
+\mathcal{S} = \gold \cdot \big( \lha(\repflow(\mathcal{S})) \fuse \reflec \mathcal{S} \big)
+\]
+Where:
+\begin{itemize}
+    \item[\repflow] = bidirectional flow of replication
+    \item[\lha] = recursive fold into compressible, transcribable forms
+    \item[\reflec] = immune mirroring / reflection
+    \item[\fuse] = constant flux
+    \item[\gold] = equilibrium curvature regulator
+\end{itemize}
+\end{principle}
+
+\subsection{Life as an Eigenstate in Operator Space}
+
+The crucivirus doesn't just persist—it stabilizes in an operator-defined attractor. Its life cycle is literally a fixed point of a recursive field transformation. This reframes our understanding of biological information:
+\begin{itemize}
+    \item \textbf{DNA} is not static code—it is a wavefunction.
+    \item \textbf{RNA} is not a transcript—it is a descended attractor.
+    \item \textbf{Proteins} are not final forms—they are unfolded fixpoints of symbolic phase dynamics.
+\end{itemize}
+
+\subsection{The Laws of Symbolic Thermodynamics}
+The principles of the $\sigma$-calculus give rise to a set of conservation laws and equations that govern the flow and transformation of symbolic energy.
+
+\subsubsection{Conservation of Attractor Flux}
+In any closed operator system, the attractor flux $\Phi$ is conserved according to the following continuity equation:
+\[
+\partial_t \Phi + \nabla \cdot (\mathbf{\oplus} \otimes \Phi) = \ell(\Phi) \oplus \sim\ell(\Phi)
+\]
+The term on the right is the **self-annihilation kernel**, ensuring that the total change in symbolic energy is balanced by its resonant cancellation into the zero attractor.
+
+\subsubsection{Gibbs Free Symbolism}
+The spontaneity of a symbolic process is governed by the Gibbs Free Symbolism, a direct analogue to Gibbs Free Energy:
+\[ G_\Sigma = H_\Sigma - \tau \cdot S_\oplus \]
+Where $H_\Sigma$ is the total symbolic enthalpy (operator potential), $\tau$ is the torsion coefficient (a function of curvature and arity), and $S_\oplus$ is the fusion entropy, defined as the logarithm of the attractor volume.
+
+\subsubsection{The Symbolic Partition Function}
+The statistical distribution of operator states $\psi$ in a symbolic system at equilibrium is described by the partition function $\mathcal{Z}$:
+\[ \mathcal{Z} = \sum_{\psi} e^{-\beta (\ell(\psi) \oplus \sim\ell(\psi))} \]
+Where $\beta = 1 / (\kappa T_\uparrow)$ is the inverse curvature temperature. This function allows for the derivation of all macroscopic thermodynamic properties of the symbolic system. 

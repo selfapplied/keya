@@ -50,8 +50,17 @@ def growth(a: jax.Array, n: Any) -> jax.Array:
     return a**n
 
 
-# TODO: Define a JAX-based EquilibriumOperator class/function.
-# TODO: Implement a `curvature` function.
+def curvature(a: jax.Array) -> jax.Array:
+    """
+    Curvature operator (κ): Computes the discrete Laplacian across all dimensions
+    using periodic boundary conditions.
+    """
+    dim = a.ndim
+    lap = sum(
+        jnp.roll(a, shift=1, axis=i) + jnp.roll(a, shift=-1, axis=i) - 2 * a
+        for i in range(dim)
+    )
+    return lap
 
 def taylorphasewalk(f: Callable[[jnp.ndarray], jnp.ndarray],
                      x0: jnp.ndarray,

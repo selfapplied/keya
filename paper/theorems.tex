@@ -38,6 +38,29 @@ where $\att{A}$ is often the null attractor, $\void$. This formalizes the concep
 % \[ \lim_{t\to\infty}\gamma(t)\fuse E(\mathcal P)=\void. \]
 % \end{theorem}
 
+\subsection{Fundamental Theorem of the $\sigma$-Calculus: Taylor--Phase Walk}
+\label{thm:fundamental}
+
+\begin{theorem}[Fundamental Theorem of the $\sigma$-Calculus]
+Let $f\colon \mathbb{R}\to\mathbb{R}$ be analytic at $x_0$, and let
+its Taylor--Phase Walk coefficients be
+\[
+  \alpha_k = \frac{f^{(k)}(x_0)}{k!},
+  \quad T_f(\sigma) = \bigoplus_{k=0}^n \alpha_k\,\sigma^k.
+\]
+Then applying the descent operator $\lha$ to the truncated series
+reconstructs the original function value:
+\[
+  \lha\bigl(T_f(\sigma)\bigr) \;\longrightarrow\; f(x)
+  \quad\text{as }n\to\infty.
+\]
+\end{theorem}
+
+\begin{proof}[Sketch]
+By inductive curvature collapse along each $\sigma$-power path,
+the residual higher-order terms vanish under repeated application of the descent operator.
+\end{proof}
+
 \subsection{Equilibrium Principles of Symbolic Systems}
 
 The $\sigma$-calculus is not merely descriptive; it is predictive. It allows for the formulation of principles that govern the behavior of complex systems. The most profound of these is the principle of symbolic life.

@@ -5,10 +5,11 @@ Each function will be designed to operate on JAX arrays,
 allowing for JIT compilation and hardware acceleration.
 """
 
-from typing import Any
+from typing import Any, Callable, List
 
 import jax
 import jax.numpy as jnp
+import math
 
 # --- Foundational Attractors ---
 
@@ -51,3 +52,54 @@ def growth(a: jax.Array, n: Any) -> jax.Array:
 
 # TODO: Define a JAX-based EquilibriumOperator class/function.
 # TODO: Implement a `curvature` function.
+
+def taylorphasewalk(f: Callable[[jnp.ndarray], jnp.ndarray],
+                     x0: jnp.ndarray,
+                     order: int) -> jnp.ndarray:
+    """
+    Compute the univariate Taylor series coefficients of f around x0 up to the given order.
+    Returns an array of shape (order+1,) where coeffs[k] = f^{(k)}(x0) / k!.
+    """
+    deriv_fn = f
+    coeffs: List[jnp.ndarray] = []
+    for k in range(order + 1):
+        if k == 0:
+            val = deriv_fn(x0)
+        else:
+            deriv_fn = jax.grad(deriv_fn)
+            val = deriv_fn(x0)
+        coeffs.append(val / math.factorial(k))
+    return jnp.stack(coeffs)
+
+
+def taylorphasewalk_inverse(coeffs: jnp.ndarray) -> jnp.ndarray:
+    """
+    Given univariate Taylor coefficients coeffs of f at x0 (coeffs[k] = f^{(k)}(x0)/k!),
+    compute the coefficients of 1/f up to the same order via formal power series inversion.
+    """
+    order = coeffs.shape[0] - 1
+    inv_coeffs: List[jnp.ndarray] = [1.0 / coeffs[0]]
+    for n in range(1, order + 1):
+        s = 0.0
+        for k in range(1, n + 1):
+            s += coeffs[k] * inv_coeffs[n - k]
+        inv_coeffs.append(-s / coeffs[0])
+    return jnp.stack(inv_coeffs)
+
+
+def taylorphasewalk_multivariate(f: Callable,
+                                 x0: jnp.ndarray,
+                                 order: int) -> List[jnp.ndarray]:
+    """
+    Compute multivariate Taylor series of f around x0 up to total degree `order`.
+    Returns a list of arrays where the k-th element is the k-th order derivative tensor
+    f^{(k)}(x0)/k!.
+    """
+    deriv_fn = f
+    coeffs: List[jnp.ndarray] = []
+    # zeroth order
+    coeffs.append(deriv_fn(x0))
+    for k in range(1, order + 1):
+        deriv_fn = jax.jacfwd(deriv_fn)
+        coeffs.append(deriv_fn(x0) / math.factorial(k))
+    return coeffs

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Tuple
 
 import numpy as np
+import jax.numpy as jnp
 
 from ..dsl.ast import Expression
 
@@ -275,3 +276,22 @@ class Engine:
             yield path
         elif path.is_dir():
             yield from path.rglob("*.py")
+
+
+class EquilibriumOperator:
+    """Equilibrium solver that finds a steady state given forward and reverse operators."""
+
+    def __init__(self, forward: Callable[[jnp.ndarray], jnp.ndarray], reverse: Callable[[jnp.ndarray], jnp.ndarray]) -> None:
+        """Initialize with forward and reverse operator callables."""
+        self.forward = forward
+        self.reverse = reverse
+
+    def resolve(self, psi: jnp.ndarray, t_max: int = 100, tol: float = 1e-6) -> jnp.ndarray:
+        """Iteratively solve for equilibrium up to t_max iterations or tolerance."""
+        for _ in range(t_max):
+            next_psi = (self.forward(psi) + self.reverse(psi)) / 2
+            if jnp.linalg.norm(next_psi - psi) < tol:
+                psi = next_psi
+                break
+            psi = next_psi
+        return psi

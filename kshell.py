@@ -1,7 +1,12 @@
 import sys
 
-from src.keya.core.engine import Engine
-from src.keya.shell.repl import KeyaREPL
+import os
+
+# Ensure the src directory is on the path for local development
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
+from keya.core.engine import Engine
+from keya.shell.repl import KeyaREPL
 
 
 def main():

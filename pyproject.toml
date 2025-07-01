@@ -11,5 +11,7 @@ dependencies = [
     "matplotlib>=3.10.3",
     "numpy>=2.3.1",
     "prompt-toolkit>=3.0.47",
+    "sympy>=1.10.1",
+    "scipy>=1.9.1",
     "nltk>=3.8.1",
 ]

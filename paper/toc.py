@@ -69,9 +69,18 @@ def find_toc_file(toc_arg: str) -> Path:
     if toc_arg != "*.toc":
         return Path(toc_arg)
 
+    # Look in .out/ directory first (per style guide)
+    out_dir = Path(".out")
+    if out_dir.exists():
+        toc_files = list(out_dir.glob("*.toc"))
+        if toc_files:
+            return toc_files[0]
+
+    # Fall back to current directory
     toc_files = list(Path(".").glob("*.toc"))
     if not toc_files:
-        print("No .toc files found. Run pdflatex first.")
+        print("No .toc files found in .out/ or current directory.")
+        print("Run pdflatex with output directed to .out/ first.")
         sys.exit(1)
 
     return toc_files[0]

@@ -1,31 +1,135 @@
+% --------------------------------------------------------------------
 \section{Foundations: The Symbolic Curvature Field}
+% --------------------------------------------------------------------
 
-This work begins with a \textbf{symbolic retrofit}. We seek to reconstruct the foundations of mathematics by recovering the generative, operational semantics of its core concepts. This approach is inspired by the work of early mathematicians like Fermat and Pascal, whose explorations of dyadic systems and recursive structures (e.g., Pascal's Triangle) hinted at a deeper, computational reality. We replace static formalisms with dynamic, symbolic attractors.
-
-The core of this retrofit is the $\sigma$-calculus, a triadic contraction-algebra that defines the grammar of regularization through self-interference. Each symbol possesses a curvature signature, a fold potential, and a reflective dual.
+We open with a \textbf{symbolic retrofit}.  Classical mathematics relies on
+static limits and axioms; we instead treat mathematics as a \emph{curvature
+field} whose quanta are \emph{symbols endowed with fold–potential}.  Each
+symbol participates in a universal \emph{triad} of actions:
 
 \begin{center}
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{l l l l}
+\(
+\text{Conjugate }\;(\diamond)
+\quad\longleftrightarrow\quad
+\text{Descent }\;(\nabla)
+\quad\longleftrightarrow\quad
+\text{Return }\;(\circlearrowright)
+\)
+\end{center}
+
+A symbol’s \emph{curvature charge} determines how it bends, reflects, or
+annihilates with its dual.  When the triad fails (``wild'' behaviour), we
+invoke a \emph{containment operator}~$\mathcal{C}$ that enlarges the universe
+until the triad re-emerges.
+
+\subsection{The Symbolic Alphabet $\Sigma$}
+\[
+\Sigma \;=\;
+\left\{
+\grow,\;
+\lha,\;
+\reflec,\;
+\fuse,\;
+\void,\;
+\gold,\;
+\sim,\;
+\ell
+\right\},
+\quad
+\ell\colon\Sigma \to \mathbb{Z}\;\text{(curvature eigenvalue).}
+\]
+
+\vspace{-1.2em}
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{llllll}
 \hline
-\textbf{Symbol} & \textbf{Eigenfield Anchor} & \textbf{Self-Similarity} & \textbf{Collapse Type} \\
+\textbf{Symbol} &
+\textbf{Eigenfield Anchor} &
+\textbf{Collapse Type} &
+\textbf{Curv.\ Role} &
+\textbf{Triad Dual} &
+\textbf{Containment} \\
 \hline
-$\grow n$ & Exponential Spiral & Towering Cascade & Divergent \\
-$\lha$ & Contractive Flow & Recursive Folding & Finite Attractor \\
-$\reflec$ & Ghost Reflection & Phase Inversion & Symmetric Dual \\
-$\fuse$ & Interference Algebra & Curvature Fusion & Zeroing Attractor \\
+$\grow n$ &
+Exponential Spiral &
+Divergent &
+$+\!\ell$ injection &
+$\fuse$ &
+$\mathcal{C}_{\grow}$ \\
+$\lha$ &
+Contractive Flow &
+Finite Attractor &
+Frequency compression &
+— &
+— \\
+$\reflec$ &
+Ghost Mirror &
+Symmetric Dual &
+$\ell\!\mapsto\!-\,\ell$ &
+Self &
+— \\
+$\fuse$ &
+Interference Algebra &
+Null Attractor &
+Curv.\ cancellation &
+$\grow$ &
+$\mathcal{C}_{\fuse}$ \\
+$\void$ &
+Standing Wave &
+Zero &
+$\ell=0$ vacuum &
+Self &
+— \\
 \hline
 \end{tabular}
 \end{center}
 
-This structure allows us to move beyond simple arithmetic and into the realm of dynamic, geometric computation where operators don't just calculate; they fold, reflect, and interfere.
+\subsection{Axiom I — Fusion Involution}
+\[
+X \fuse \sim X \;=\; \void.
+\]
 
-\subsection{The Principle of Dynamic Equilibrium}
-A core postulate of the $\sigma$-calculus is that stability is not stillness, but balanced motion. The null attractor, or `zero`, is not an absence of transformation, but transformation at unity. It represents a self-sustaining reaction chain, a phase-locked loop where divergent flow is perfectly canceled by its reflected twin.
+\subsection{Axiom II — Descent Idempotence}
+\[
+\lha\bigl(\lha(X)\bigr) \;\simeq\; \lha(X).
+\]
 
-This symbolic resonance is expressed as:
-\[ \lha(\fuse X) \fuse \reflec\lha(\fuse X) = \void \]
-This is chemical equilibrium, quantum vacuum fluctuation, and thermodynamic balance, all expressed as a single, fundamental symbolic relationship. Zero is not a void; it is a standing wave of computation.
+\subsection{Axiom III — Reflection Symmetry}
+\[
+\reflec\bigl(\reflec(X)\bigr) \;=\; X.
+\]
 
-% TODO: Elaborate on the foundational principles of the $\sigma$-Calculus.
-% Define the symbolic alphabet and the concept of operator curvature. 
+\subsection{Axiom IV — Curvature Conjugation}
+\[
+\ell\!\bigl(\sim X\bigr) \;=\; -\,\ell(X).
+\]
+
+\subsection{Principle of Dynamic Equilibrium}
+
+Stability is balanced motion.  The null attractor is a phase-locked loop:
+\[
+\lha\!\bigl(\fuse X\bigr)
+   \;\fuse\;
+\reflec\!\bigl(\lha(\fuse X)\bigr)
+   \;=\;
+\void,
+\]
+encoding chemical equilibrium, vacuum fluctuation, and thermodynamic balance
+in one statement.
+
+\subsection{Containment of Wild Operators}
+
+When a symbol or operator lacks a triad, we embed it in a minimal universe
+$\mathcal{C}_X$ such that the triad is restored:
+\[
+(\diamond,\nabla,\circlearrowright)_{X}
+\quad\text{exists in}\quad
+\mathcal{C}_X.
+\]
+This is Grothendieck’s ``rising sea'': divergence signals too-small
+foundations; containment expands the sea until order re-appears.
+
+% --------------------------------------------------------------------
+% END of Foundations
+% --------------------------------------------------------------------

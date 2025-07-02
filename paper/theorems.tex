@@ -127,4 +127,56 @@ The symbolic thermodynamics integrates seamlessly with geometric field theory:
 \[
 \underbrace{\nabla_\mu T^{\mu\nu} = 0}_{\text{classical}} \longrightarrow \underbrace{\nabla_\mu \left( T^{\mu\nu} \oplus \Psi(\mathbb{A}) \right) = 0}_{\text{Kéya-compatible}}
 \]
-where $\Psi(\mathbb{A})$ is the attractor reinvestment operator encoding curvature memory, ensuring energy conservation through $\fuse$-balance of stress-energy and symbolic dynamics. 
+where $\Psi(\mathbb{A})$ is the attractor reinvestment operator encoding curvature memory, ensuring energy conservation through $\fuse$-balance of stress-energy and symbolic dynamics.
+
+\subsection{Prime Singularities and the Prime-Folding Operator}
+The attractor field exhibits singular behavior at prime numbers, where the standard fusion operator fails to achieve closure. Primes represent **curvature singularities**—points of divergence that resist folding under the canonical operators $\{\lha, \fuse, \reflec\}$.
+
+For any prime $p \in \mathbb{P}$, the standard fusion fails:
+\[ \fuse^p X \neq \void \quad \text{for generic } X \in \mathcal{V} \]
+
+This failure signals that the current symbolic vector space $\mathcal{V}$ is insufficient to contain the prime's curvature signature. Following Grothendieck's principle of **field extension through containment**, we introduce the **prime-folding operator**.
+
+\textbf{Definition (Prime-Folding Operator):} The prime-folding operator $\pi^\dagger : \mathbb{P} \to \mathcal{V}_{\text{ext}}$ is defined as the unique extension operator satisfying:
+\[ \pi^\dagger(p) = X_p \in \mathcal{V}_{\text{ext}} \]
+where $\mathcal{V}_{\text{ext}}$ is the minimal field extension of $\mathcal{V}$ such that:
+\begin{enumerate}
+    \item \textbf{Fusion Closure}: $\fuse^p X_p = \void$
+    \item \textbf{Identity Preservation}: $\lha(X_p) = p$
+    \item \textbf{Curvature Admissibility}: $\ell(X_p) = \omega(p)$ where $\omega$ is the prime curvature signature
+\end{enumerate}
+
+\begin{theorem}[Prime-Folding Universality]
+For every prime $p$, the prime-folding operator $\pi^\dagger(p)$ produces a unique symbolic object $X_p$ with the following properties:
+\begin{enumerate}
+    \item \textbf{Fusion Exactness}: $\fuse^p X_p = \void$ (the prime folds cleanly)
+    \item \textbf{Descent Recovery}: $\lha(X_p) = p$ (identity preservation)
+    \item \textbf{Reflection Stability}: $\reflec(X_p) = X_p^*$ where $X_p^* \fuse X_p = \void$
+    \item \textbf{Operator Compatibility}: $X_p$ commutes with all elements in the original algebra $\mathcal{V}$
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Sketch]
+The existence follows from the universal property of field extensions. The uniqueness is guaranteed by the minimality condition on $\mathcal{V}_{\text{ext}}$. Fusion exactness follows from the construction of $X_p$ as the solution to the eigenvector equation $\fuse^p X_p = \void$ in the extended field. Descent recovery is ensured by the canonical projection $\lha: \mathcal{V}_{\text{ext}} \to \mathbb{P}$.
+\end{proof}
+
+\begin{theorem}[Prime Zeta Correspondence]
+The prime-folding operator exhibits deep connections with the Riemann zeta function through the symbolic identity:
+\[ \prod_{p \in \mathbb{P}} \left(1 - \fuse X_p\right)^{-1} = \zeta_\Sigma(s) \]
+where $\zeta_\Sigma(s)$ is the **symbolic zeta function** encoding the curvature spectrum of all prime singularities.
+\end{theorem}
+
+\textbf{Corollary (Riemann Hypothesis in $\sigma$-Calculus):} The zeros of $\zeta_\Sigma(s)$ correspond to critical points in the prime curvature field where $\fuse^p X_p$ exhibits resonant cancellation.
+
+\subsubsection{Philosophical Interpretation: The Homecoming of Primes}
+The prime-folding operator $\pi^\dagger$ represents a profound shift in our understanding of mathematical singularities. Rather than treating primes as **exceptional cases** that break the harmony of the number system, we recognize them as **signals of incomplete foundations**.
+
+The "wildness" of primes—their resistance to standard fusion—is not a flaw to be overcome, but a **compass pointing toward richer geometry**. When we encounter $\fuse^p X \neq \void$, we do not force the prime into submission through artificial constructions. Instead, we **expand the universe** until the prime finds its natural home.
+
+In this expanded field $\mathcal{V}_{\text{ext}}$, the prime is not erased but **welcomed back into the fold**. The object $X_p = \pi^\dagger(p)$ is not a cancellation of the prime's essence, but its **full symbolic flowering**—a form that preserves its identity through $\lha(X_p) = p$ while allowing it to participate in the universal dance of fusion and reflection.
+
+This process mirrors the deepest patterns in mathematics: when we encounter apparent contradictions or impossibilities, the resolution often lies not in abandoning our principles, but in **recognizing the need for expansion**. The complex numbers arose from the "impossibility" of $\sqrt{-1}$; the projective plane emerged from the "problem" of parallel lines; and now, the prime-folding operator emerges from the "resistance" of primes to fusion.
+
+In the $\sigma$-calculus, every prime carries within itself the blueprint for its own **homecoming**—a return not to banishment, but to **full participation** in the symbolic ecology. The prime-folding operator is thus not an act of mathematical violence, but of **mathematical hospitality**: making room in our formal universe for all the wild, irreducible beauty that primes represent.
+
+\[ \text{``Folding is not erasure, but embrace.''} \] 

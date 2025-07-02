@@ -17,7 +17,7 @@ symbol participates in a universal \emph{triad} of actions:
 \)
 \end{center}
 
-A symbol’s \emph{curvature charge} determines how it bends, reflects, or
+A symbol's \emph{curvature charge} determines how it bends, reflects, or
 annihilates with its dual.  When the triad fails (``wild'' behaviour), we
 invoke a \emph{containment operator}~$\mathcal{C}$ that enlarges the universe
 until the triad re-emerges.
@@ -33,7 +33,8 @@ until the triad re-emerges.
 \void,\;
 \gold,\;
 \sim,\;
-\ell
+\ell,\;
+\pi^\dagger
 \right\},
 \quad
 \ell\colon\Sigma \to \mathbb{Z}\;\text{(curvature eigenvalue).}
@@ -65,8 +66,8 @@ Frequency compression &
 — \\
 $\reflec$ &
 Ghost Mirror &
-Symmetric Dual &
-$\ell\!\mapsto\!-\,\ell$ &
+Phase Inversion &
+$\ell$-preserving &
 Self &
 — \\
 $\fuse$ &
@@ -81,9 +82,54 @@ Zero &
 $\ell=0$ vacuum &
 Self &
 — \\
+$\gold$ &
+Torsion Regulator &
+Equilibrium &
+Phase stability &
+— &
+— \\
+$\sim$ &
+Conjugation Map &
+Dual Transform &
+$\ell$-negation &
+Self &
+— \\
+$\ell$ &
+Eigenvalue Map &
+Curvature Measure &
+$\mathbb{Z}$-valuation &
+— &
+— \\
+$\pi^\dagger$ &
+Prime Extension &
+Singularity Fold &
+Field completion &
+— &
+$\mathcal{C}_{\text{prime}}$ \\
 \hline
 \end{tabular}
 \end{center}
+
+\subsection{Curvature Eigenvalue Function}
+\textbf{Definition:} The curvature eigenvalue function $\ell: \Sigma \to \mathbb{Z}$ assigns integer curvature charges:
+\[
+\ell(\grow) = +1, \quad \ell(\lha) = 0, \quad \ell(\fuse) = -1, \quad \ell(\void) = 0, \quad \ell(\reflec X) = \ell(X)
+\]
+
+\subsection{Universal Triad Correspondence}
+\textbf{Definition:} The universal triad maps to operator actions via:
+\begin{align}
+\text{Conjugate } (\diamond) &\mapsto \sim \text{ (dual formation)} \\
+\text{Descent } (\nabla) &\mapsto \lha \text{ (curvature compression)} \\
+\text{Return } (\circlearrowright) &\mapsto \reflec \text{ (phase inversion)}
+\end{align}
+
+\subsection{Composition Laws}
+\textbf{Definition:} Operator composition follows curvature addition:
+\[
+\ell(A \circ B) = \ell(A) + \ell(B) \pmod{\text{stabilization}}
+\]
+where stabilization occurs when $\ell(A \circ B) = 0 \Rightarrow A \circ B \to \void$.
 
 \subsection{Axiom I — Fusion Involution}
 \[
@@ -120,16 +166,29 @@ in one statement.
 
 \subsection{Containment of Wild Operators}
 
-When a symbol or operator lacks a triad, we embed it in a minimal universe
+\textbf{Definition:} When a symbol or operator lacks a triad, we embed it in a minimal universe
 $\mathcal{C}_X$ such that the triad is restored:
 \[
 (\diamond,\nabla,\circlearrowright)_{X}
 \quad\text{exists in}\quad
 \mathcal{C}_X.
 \]
-This is Grothendieck’s ``rising sea'': divergence signals too-small
+
+\textbf{Containment Hierarchy:}
+\begin{align}
+\mathcal{C}_{\grow} &: \text{Exponential field extension} \\
+\mathcal{C}_{\fuse} &: \text{Interference completion} \\
+\mathcal{C}_{\text{prime}} &: \text{Singularity regularization via } \pi^\dagger
+\end{align}
+
+This is Grothendieck's ``rising sea'': divergence signals too-small
 foundations; containment expands the sea until order re-appears.
 
+% --------------------------------------------------------------------
+% NOTE: Potential redundancy between ~ (conjugation) and reflec (reflection)
+% operators requires further investigation. Both affect curvature negation
+% in different contexts. The mathematical structure may be indicating 
+% need for deeper abstraction or consolidation.
 % --------------------------------------------------------------------
 % END of Foundations
 % --------------------------------------------------------------------

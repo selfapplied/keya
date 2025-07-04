@@ -22,6 +22,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.gridspec import GridSpec
 import jax.numpy as jnp
 from typing import Dict, Any
+from matplotlib import cm
 
 
 from keya.core.engine import Engine
@@ -41,6 +42,7 @@ class PrimeSierpinskiAnalyzer:
         self.prime_counts = self.compute_prime_counts()
         self.log_derivatives = self.compute_log_derivatives()
         self.anomalies = self.compute_anomalies()
+        self.fractional_derivatives = self.compute_fractional_derivative()
         
         # Initialize Keya engine
         self.engine = Engine()
@@ -106,6 +108,26 @@ class PrimeSierpinskiAnalyzer:
     def compute_anomalies(self) -> Dict[int, float]:
         """Compute anomalies = actual - expected prime density (2^k / k)."""
         return {k: float(self.log_derivatives[k] - (2**k) / k) for k in self.depths[:-1]}
+
+    def compute_fractional_derivative(self, alpha: float = 0.5) -> dict[int, float]:
+        """Fractional derivative via Grünwald–Letnikov definition."""
+        print(f"\n🧮 Computing fractional derivative (α={alpha})...")
+        fd: dict[int, float] = {}
+        total_weight = 0.0
+        
+        for k in self.depths[1:-1]:
+            total = 0.0
+            for j in range(k):
+                weight = binom(alpha, j) * (-1) ** j
+                total += weight * self.log_derivatives.get(k - j, 0)
+                total_weight += abs(weight)
+            fd[k] = total
+            
+        print(f"     Computed for {len(fd)} depth values")
+        print(f"     Total weight magnitude: {total_weight:.2f}")
+        print(f"     Result range: [{min(fd.values()):.3f}, {max(fd.values()):.3f}]")
+        
+        return fd
 
     def apply_operators_to_primes(self) -> Dict[str, Any]:
         """Apply Keya operators to prime distribution data."""
@@ -287,29 +309,9 @@ class PrimeSierpinskiAnalyzer:
         
         return containment_results
 
-    def compute_fractional_derivative(self, alpha: float = 0.5) -> dict[int, float]:
-        """Fractional derivative via Grünwald–Letnikov definition."""
-        print(f"\n🧮 Computing fractional derivative (α={alpha})...")
-        fd: dict[int, float] = {}
-        total_weight = 0.0
-        
-        for k in self.depths[1:-1]:
-            total = 0.0
-            for j in range(k):
-                weight = binom(alpha, j) * (-1) ** j
-                total += weight * self.log_derivatives.get(k - j, 0)
-                total_weight += abs(weight)
-            fd[k] = total
-            
-        print(f"     Computed for {len(fd)} depth values")
-        print(f"     Total weight magnitude: {total_weight:.2f}")
-        print(f"     Result range: [{min(fd.values()):.3f}, {max(fd.values()):.3f}]")
-        
-        return fd
-
     def validate_fractional_derivatives(self) -> None:
-        """Validate fractional derivative computations and enhancement."""
-        print("\n🔬 VALIDATING FRACTIONAL DERIVATIVES")
+        """Validate the fractional derivative calculations."""
+        print("\n🔍 VALIDATION: Fractional derivatives")
         print("-" * 50)
         
         alphas = [0.25, 0.5, 0.75, 1.0]
@@ -353,22 +355,38 @@ class PrimeSierpinskiAnalyzer:
             print("❓ CLAIM UNCERTAIN: enhancement is marginal")
 
     def safe_render(self, ax, data, title=""):
-        """Handle edge cases gracefully in visualization."""
-        if len(data.shape) == 1:
-            data = data.reshape(1, -1)  # Convert 1D to 2D row vector
+        """Render data to axes, handling empty or invalid cases."""
+        ax.set_title(title, fontsize=8)
         
-        if np.all(data == 0):
-            ax.text(0.5, 0.5, "No variation (all zeros)", ha='center', va='center')
-            ax.set_title(f"{title} (Invalid Data)")
-            return
+        is_empty = False
+        if data is None:
+            is_empty = True
+        elif isinstance(data, (list, np.ndarray, dict)):
+            if len(data) == 0:
+                is_empty = True
+        
+        if is_empty:
+            ax.text(0.5, 0.5, 'No data available', ha='center', va='center', fontsize=8)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            return False
+
+        # Ensure data is numpy array for plotting if it's a list
+        if isinstance(data, list):
+            data = np.array(data)
             
-        im = ax.imshow(data, aspect='auto', cmap='viridis')
-        plt.colorbar(im, ax=ax)
-        ax.set_title(title)
+        # Avoid plotting if data is all zeros or NaNs
+        if isinstance(data, np.ndarray) and (np.all(data == 0) or np.all(np.isnan(data))):
+             ax.text(0.5, 0.5, 'Data is all zero/NaN', ha='center', va='center', fontsize=8)
+             ax.set_xticks([])
+             ax.set_yticks([])
+             return False
+             
+        return True
 
     def safe_set_yscale(self, ax: Axes, data: np.ndarray) -> None:
-        """Helper method for safe log-scale setting."""
-        if np.min(data) > 0:
+        """Safely set y-axis scale, avoiding errors for empty or constant data."""
+        if data.size > 0 and np.ptp(data) > 0:
             ax.set_yscale('log')
         else:
             ax.set_yscale('linear')
@@ -455,23 +473,32 @@ class PrimeSierpinskiAnalyzer:
             print(f"Visualization failed: {e}")
 
     def plot_sierpinski_prime_sparks(self, ax: Axes) -> None:
-        """Plot Sierpinski pattern with processed prime sparks."""
-        size = 2**self.max_depth
-        img = np.zeros((size, self.max_depth))
+        """Plot a Sierpinski-like pattern from prime counting log-derivatives."""
+        
+        log_derivatives = list(self.log_derivatives.values())
+        
+        if not self.safe_render(ax, log_derivatives, "Sierpinski Prime Sparks"):
+            return
 
+        size = 2**6  # 64x64 grid
+        grid = np.zeros((size, size))
+        
         for k in self.depths:
             n = 2**k
             for i in range(0, n, 4):
-                img[i, k - 1] = k
+                grid[i, k - 1] = k
+
+        # Add a small constant to prevent a completely empty image, which can cause blank SVGs
+        grid = grid + 1e-9
 
         # Skip log-scale if data is invalid
-        if np.min(img) > 0:
+        if np.min(grid) > 0:
             norm = LogNorm(vmin=1, vmax=self.max_depth)
         else:
             norm = None
 
         ax.imshow(
-            img.T,
+            grid.T,
             aspect="auto",
             origin="lower",
             cmap="binary_r",
@@ -520,183 +547,202 @@ class PrimeSierpinskiAnalyzer:
         ax.set_title("Sierpinski Sieve with Prime Analysis")
         ax.grid(True, alpha=0.2)
         ax.legend()
+        ax.tick_params(axis='both', which='major', labelsize=6)
+        
+        # Add a colorbar
+        combined = np.concatenate([original_values, processed_values[:len(depths)]])
+        sm = cm.ScalarMappable(cmap='hot', norm=LogNorm(vmin=np.min(combined[combined > 0]) if np.any(combined > 0) else 1, 
+                                                              vmax=np.max(combined) if np.any(combined > 0) else 1))
+        sm.set_array([])
+        cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
+        cbar.ax.tick_params(labelsize=6)
+        cbar.set_label('Spark Intensity', fontsize=7)
 
     def plot_operator_effects(self, ax: Axes) -> None:
-        """Show effects of individual Wild and Tame operators."""
-        if not self.processed_data:
+        """Plot the effect of operators on prime distributions."""
+        if not self.safe_render(ax, self.processed_data, "Operator Effects on Prime Data"):
             return
-            
-        depths = list(self.log_derivatives.keys())
-        
-        ax.plot(depths, self.processed_data['original_primes'], 'o-', 
-               label='Original π', linewidth=2, markersize=6)
-        ax.plot(depths, self.processed_data['d_primes'][:len(depths)], 's--', 
-               label='Wild-operator π', linewidth=2, markersize=4)
-        ax.plot(depths, self.processed_data['c_primes'][:len(depths)], '^:', 
-               label='Tame-operator π', linewidth=2, markersize=4)
-        
-        ax.set_xlabel("Depth (k)")
-        ax.set_ylabel("Prime Density")
-        ax.set_title("Operator Effects")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
 
-    def plot_prime_anomaly_evolution(self, ax: Axes) -> None:
-        """Show how evolution affects prime anomalies."""
-        if not self.processed_data:
-            return
-            
-        depths = list(self.anomalies.keys())
-        
-        original = self.processed_data['original_anomalies']
-        evolved = self.processed_data['wild_closure_anomalies'][:len(depths)]
-        
-        ax.bar([d - 0.2 for d in depths], original, width=0.4, 
-               alpha=0.7, label='Original Anomalies', color='red')
-        ax.bar([d + 0.2 for d in depths], evolved, width=0.4, 
-               alpha=0.7, label='Evolved', color='blue')
-        
-        ax.axhline(0, color="black", lw=1)
-        ax.set_xlabel("Depth (k)")
-        ax.set_ylabel("Anomaly Magnitude")
-        ax.set_title("Prime Anomaly Evolution")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-
-    def plot_variance_reduction(self, ax: Axes) -> None:
-        """Show variance reduction from processing."""
-        if not self.processed_data:
-            return
-            
-        metrics = ['Primes', 'Anomalies']
-        reductions = [
-            self.processed_data['primes_variance_reduction'],
-            self.processed_data['anomalies_variance_reduction']
+        labels = ['Original', 'Ϟ-Op', 'C-Op', 'Wild-Tame']
+        prime_means = [
+            np.mean(self.processed_data['original_primes']),
+            np.mean(self.processed_data['d_primes']),
+            np.mean(self.processed_data['c_primes']),
+            np.mean(self.processed_data['wild_closure_primes'])
+        ]
+        anomaly_means = [
+            np.mean(self.processed_data['original_anomalies']),
+            np.mean(self.processed_data['d_anomalies']),
+            np.mean(self.processed_data['c_anomalies']),
+            np.mean(self.processed_data['wild_closure_anomalies'])
         ]
         
-        colors = ['skyblue' if r > 1 else 'lightcoral' for r in reductions]
-        bars = ax.bar(metrics, reductions, color=colors, alpha=0.7, edgecolor='black')
+        x = np.arange(len(labels))
+        width = 0.35
         
-        # Add value labels
-        for bar, reduction in zip(bars, reductions):
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
-                   f'{reduction:.2f}x', ha='center', va='bottom', fontweight='bold')
+        ax.bar(x - width/2, prime_means, width, label='Primes', color='skyblue')
+        ax.bar(x + width/2, anomaly_means, width, label='Anomalies', color='salmon')
         
-        ax.axhline(1, color="red", linestyle="--", alpha=0.7, label="No change")
-        ax.set_ylabel("Variance Reduction Ratio")
-        ax.set_title("Variance Reduction")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+        ax.set_ylabel('Mean Value', fontsize=8)
+        ax.set_title('Operator Effects on Data Mean', fontsize=9)
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
+        ax.legend(fontsize=7)
+        ax.tick_params(axis='y', labelsize=7)
+
+    def plot_prime_anomaly_evolution(self, ax: Axes) -> None:
+        """Plot the evolution of prime anomalies under operator application."""
+        if not self.safe_render(ax, self.processed_data, "Prime Anomaly Evolution"):
+            return
+
+        evolution_data = {
+            'Original': self.processed_data['original_anomalies'],
+            'Ϟ-Op': self.processed_data['d_anomalies'],
+            'C-Op': self.processed_data['c_anomalies'],
+            'Wild-Tame Cycle': self.processed_data['wild_closure_anomalies']
+        }
+        
+        for label, data in evolution_data.items():
+            ax.plot(data, label=label, marker='o', linestyle='--', markersize=3)
+            
+        ax.set_title("Evolution of Prime Anomalies", fontsize=9)
+        ax.set_xlabel("Depth (k-index)", fontsize=8)
+        ax.set_ylabel("Anomaly Value", fontsize=8)
+        ax.legend(fontsize=7)
+        ax.grid(True, linestyle=':', alpha=0.6)
+        ax.tick_params(labelsize=7)
+
+    def plot_variance_reduction(self, ax: Axes) -> None:
+        """Plot the variance reduction achieved by Keya operators."""
+        if not self.safe_render(ax, self.processed_data, "Variance Reduction"):
+            return
+            
+        reduction_primes = self.processed_data.get('primes_variance_reduction', 1.0)
+        reduction_anomalies = self.processed_data.get('anomalies_variance_reduction', 1.0)
+        
+        labels = ['Primes', 'Anomalies']
+        reductions = [reduction_primes, reduction_anomalies]
+        
+        colors = ['#2ca02c', '#d62728']
+        bars = ax.bar(labels, reductions, color=colors)
+        
+        ax.set_ylabel('Variance Reduction Factor (X)', fontsize=8)
+        ax.set_title('Operator-driven Variance Reduction', fontsize=9)
+        ax.axhline(1, color='grey', linestyle='--', lw=1)
+        ax.text(len(labels)-0.5, 1.05, 'No change', color='grey', fontsize=7)
+        ax.bar_label(bars, fmt='%.2fx', fontsize=8, padding=3)
+        ax.tick_params(axis='x', labelsize=8)
+        ax.tick_params(axis='y', labelsize=7)
+        ax.set_ylim(bottom=0, top=max(2, max(reductions) * 1.1))
 
     def plot_convergence_analysis(self, ax: Axes, convergence_data: dict) -> None:
-        """Plot convergence analysis for different containment types."""
-        for containment_type, data in convergence_data.items():
-            steps = [d['step'] for d in data]
-            variances = [d['variance'] for d in data]
-            ax.plot(steps, variances, 'o-', label=f'{containment_type}', linewidth=2, markersize=4)
-        
-        ax.set_xlabel("Evolution Steps")
-        ax.set_ylabel("Variance")
-        ax.set_title("Convergence by Containment Type")
+        """Plot the convergence of variance under different containment rules."""
+        if not self.safe_render(ax, convergence_data, "Convergence Analysis"):
+            return
+
+        for rule, data in convergence_data.items():
+            variances = data['variances']
+            ax.plot(range(1, len(variances) + 1), variances, marker='.', linestyle='-', label=f'{rule} rule')
+            
+        ax.set_title('Convergence of Variance', fontsize=9)
+        ax.set_xlabel('Cycle Iteration', fontsize=8)
+        ax.set_ylabel('Variance of Diagonal', fontsize=8)
         ax.set_yscale('log')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+        ax.legend(fontsize=7)
+        ax.grid(True, which='both', linestyle=':', alpha=0.5)
+        ax.tick_params(labelsize=7)
 
     def plot_log_derivative_comparison(self, ax: Axes) -> None:
-        """Compare actual and expected prime-density per bit."""
-        ds = list(self.log_derivatives.keys())
-        actual = [self.log_derivatives[k] for k in ds]
-        expected = [(2**k) / k for k in ds]
-
-        ax.plot(ds, actual, "o-", label="Actual Δₜπ", markersize=6)
-        ax.plot(ds, expected, "s--", label="Expected n/k", markersize=4)
-        ax.set_xlabel("Depth (k)")
-        ax.set_ylabel("Prime Density per Bit")
-        ax.set_title("Prime Density per Bit (Log-Derivative)")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        ax.set_yscale("log")
+        """Compare raw log derivatives with operator-processed values."""
+        if not self.safe_render(ax, self.processed_data, "Log-Derivative Comparison"):
+            return
+            
+        original = self.processed_data['original_primes']
+        final = self.processed_data['wild_closure_primes']
+        
+        ax.plot(original, label='Original Δπ(2^k)', color='blue', alpha=0.7)
+        ax.plot(final, label='Processed (Wild-Tame)', color='red', linestyle='--')
+        
+        ax.set_title('Log-Derivative Comparison', fontsize=9)
+        ax.set_xlabel("Depth (k-index)", fontsize=8)
+        ax.set_ylabel("Value", fontsize=8)
+        ax.legend(fontsize=7)
+        ax.grid(True, linestyle=':', alpha=0.6)
+        ax.tick_params(labelsize=7)
 
     def plot_prime_anomalies(self, ax: Axes) -> None:
-        """Bar chart of prime-density anomalies (actual – expected)."""
-        ds = list(self.anomalies.keys())
-        vals = [self.anomalies[k] for k in ds]
-        colors = ["green" if v > 0 else "red" for v in vals]
-        ax.bar(ds, vals, color=colors, alpha=0.7)
+        """Plot prime anomalies (actual - expected)."""
+        anomalies = list(self.anomalies.values())
+        if not self.safe_render(ax, anomalies, "Prime Anomalies"):
+            return
 
-        ax.axhline(0, color="black", lw=1)
-        ax.set_xlabel("Depth (k)")
-        ax.set_ylabel("Anomaly (Δₜπ - n/k)")
-        ax.set_title("Prime Density Anomalies")
-        ax.grid(True, alpha=0.3)
+        ax.plot(self.depths[:-1], anomalies, marker='o', markersize=3, linestyle='-', color='purple')
+        ax.axhline(0, color='grey', linestyle='--', lw=1)
+        
+        ax.set_title("Prime Anomalies (Actual - PNT Approx)", fontsize=9)
+        ax.set_xlabel("Depth (k)", fontsize=8)
+        ax.set_ylabel("Anomaly Value", fontsize=8)
+        ax.grid(True, linestyle=':', alpha=0.6)
+        ax.tick_params(labelsize=7)
 
     def plot_fractional_derivatives(self, ax: Axes) -> None:
-        """Fractional derivatives plot with safe scaling."""
-        alphas = [0.25, 0.5, 0.75, 1.0]
-        for alpha in alphas:
-            fd = self.compute_fractional_derivative(alpha)
-            if fd:
-                values = np.array(list(fd.values()))
-                # Special handling for α=1.0 case
-                if alpha == 1.0 and np.min(values) == 0:
-                    values = values + 1e-10  # Avoid exact zeros
-                self.safe_set_yscale(ax, values)
-                ax.plot(values, 'o-', label=f'α={alpha}')
-
-        ax.set_xlabel("Depth (k)")
-        ax.set_ylabel("Fractional Derivative")
-        ax.set_title("Fractional Sieving: Grünwald–Letnikov with Enhancement")
-        ax.legend(ncol=2)
-        ax.grid(True, alpha=0.3)
+        """Plot fractional derivatives of prime counts."""
+        f_derivs = list(self.fractional_derivatives.values())
+        if not self.safe_render(ax, f_derivs, "Fractional Derivatives (α=0.5)"):
+            return
+            
+        ax.plot(self.depths[:len(f_derivs)], f_derivs, marker='s', markersize=3, linestyle=':', color='green')
+        
+        ax.set_title("Fractional Derivative of π(2^k)", fontsize=9)
+        ax.set_xlabel("Depth (k)", fontsize=8)
+        ax.set_ylabel(f"D^0.5 π", fontsize=8)
+        ax.grid(True, linestyle=':', alpha=0.6)
+        ax.tick_params(labelsize=7)
 
     def plot_containment_type_comparison(self, ax: Axes, convergence_data: dict) -> None:
-        """Compare how different containment types affect prime analysis."""
-        final_variances = {}
-        
-        for containment_type, data in convergence_data.items():
-            final_variances[containment_type] = data[-1]['variance']  # Last step variance
-        
-        types = list(final_variances.keys())
-        variances = list(final_variances.values())
-        
-        colors = ['lightblue', 'lightgreen', 'lightcoral']
-        bars = ax.bar(types, variances, color=colors[:len(types)], alpha=0.7, edgecolor='black')
-        
-        # Add value labels
-        for bar, variance in zip(bars, variances):
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
-                   f'{variance:.2e}', ha='center', va='bottom', fontweight='bold', rotation=45)
-        
-        ax.set_ylabel("Final Variance")
-        ax.set_title("Containment Type Effectiveness")
-        ax.set_yscale('log')
-        ax.grid(True, alpha=0.3)
-
-    def plot_filtered_spectrum(self, ax: Axes) -> None:
-        """FFT power spectrum comparison with safe log scaling."""
-        if not hasattr(self, 'processed_data'):
+        """Compare the impact of different containment rules on variance."""
+        if not self.safe_render(ax, convergence_data, "Containment Rule Comparison"):
             return
         
-        vals_orig = [self.anomalies[k] for k in self.anomalies]
-        freq_orig = np.fft.rfftfreq(len(vals_orig))
-        power_orig = np.abs(np.fft.rfft(vals_orig)) ** 2
+        rules = list(convergence_data.keys())
+        final_variances = [data['variances'][-1] for data in convergence_data.values()]
         
-        # Use safe scaling helper
-        self.safe_set_yscale(ax, power_orig)
+        bars = ax.bar(rules, final_variances, color=['#1f77b4', '#ff7f0e', '#2ca02c'])
         
-        ax.plot(freq_orig, power_orig, 'b-', alpha=0.7, linewidth=2, label='Original Spectrum')
-        
-        if 'wild_closure_anomalies' in self.processed_data:
-            vals_dc = self.processed_data['wild_closure_anomalies'][:len(vals_orig)]
-            power_dc = np.abs(np.fft.rfft(vals_dc)) ** 2
-            self.safe_set_yscale(ax, power_dc)
-            ax.plot(freq_orig, power_dc, 'r-', alpha=0.8, linewidth=2, label='Filtered')
+        ax.set_title("Final Variance by Containment Rule", fontsize=9)
+        ax.set_xlabel("Containment Rule", fontsize=8)
+        ax.set_ylabel("Final Variance", fontsize=8)
+        ax.set_yscale('log')
+        ax.bar_label(bars, fmt='%.2e', fontsize=8, padding=3)
+        ax.tick_params(axis='x', labelsize=8)
+        ax.tick_params(axis='y', labelsize=7)
 
+    def plot_filtered_spectrum(self, ax: Axes) -> None:
+        """Plot the 'spectrum' of prime data after operator filtering."""
+        if not self.safe_render(ax, self.processed_data, "Filtered Prime Spectrum"):
+            return
+
+        original_spectrum = np.fft.fft(self.processed_data['original_primes'])
+        final_spectrum = np.fft.fft(self.processed_data['wild_closure_primes'])
+        
+        freq = np.fft.fftfreq(len(original_spectrum))
+        
+        ax.plot(freq, np.abs(original_spectrum), label='Original Spectrum', color='blue', alpha=0.6)
+        ax.plot(freq, np.abs(final_spectrum), label='Filtered Spectrum', color='red', linestyle='--')
+        
+        ax.set_title("Prime Data Spectrum", fontsize=9)
+        ax.set_xlabel("Frequency", fontsize=8)
+        ax.set_ylabel("FFT Magnitude", fontsize=8)
+        ax.set_xlim(0, max(freq))
+        ax.legend(fontsize=7)
+        ax.grid(True, linestyle=':', alpha=0.6)
+        ax.tick_params(labelsize=7)
 
 def main():
-    """Main demonstration of prime-Sierpinski analysis."""
+    """Main function to run the analysis and generate visualizations."""
+    # Ensure the output directory exists
+    os.makedirs(".out/visualizations", exist_ok=True)
+
     print("🔢 Prime Numbers in Sierpinski Framework with Keya Operators")
     print("=" * 70)
     print("This demo validates key claims about operator effects on prime distributions:")

@@ -6,21 +6,21 @@ This directory contains demonstration scripts showcasing different aspects of th
 
 ### Pure Keya D-C Language Demos
 
-**`demo-test-evolution.keya`** - *Basic Matrix Evolution*
+**`evolution.keya`** - *Basic Matrix Evolution*
 - Simple demonstration of D-C operators on glyph matrices
 - Shows basic syntax: matrix creation, D operator, and DC cycles
 - Perfect introduction to keya D-C language fundamentals
-- Run with: `python kshell.py demos/demo-test-evolution.keya`
+- Run with: `python kshell.py demos/evolution.keya`
 
-**`demo-symbol-translation.keya`** - *Symbol-to-Number Translation*
+**`symbol-translation.keya`** - *Symbol-to-Number Translation*
 - Demonstrates how keya symbols (∅ ▽ △ ⊙ ⊕) map to numbers (0-4)
 - Shows mixed glyph matrices and their mathematical evolution  
 - Illustrates binary containment convergence patterns
-- Run with: `python kshell.py demos/demo-symbol-translation.keya`
+- Run with: `python kshell.py demos/symbol-translation.keya`
 
 ### Core D-C Demonstrations
 
-**`demo_floating_point_dc.py`** - *Scientific Testing*
+**`floatingpoint-dc.py`** - *Scientific Testing*
 - Tests Deepseek's hypothesis that floating-point arithmetic embodies D-C operations
 - Rigorous numerical verification of IEEE 754 as containment operations
 - Outputs: `.out/tests/floating_point_dc_tests.out`, `.out/visualizations/floating_point_dc_tests.png`
@@ -28,20 +28,20 @@ This directory contains demonstration scripts showcasing different aspects of th
 
 ### Quantum Mechanics Integration
 
-**`demo_quantum_phenomena.py`** - *Quantum Visualization*
+**`quantum-phenomena.py`** - *Quantum Visualization*
 - Demonstrates electron orbital rendering using keya D-C operators
 - 3D visualization of hydrogen atom wave functions
 - Real-time quantum evolution via D-C cycles
 - Requires: matplotlib, numpy
 
-**`demo_mantissa_quantum.py`** - *Floating-Point ↔ Quantum Connection*
+**`mantissa-quantum.py`** - *Floating-Point ↔ Quantum Connection*
 - Shows relationship between mantissa normalization and wave function normalization
 - Demonstrates that D-C operators are fundamentally quantum operators
 - Explores the deep connection between computation and physics
 
 ### Interactive Systems
 
-**`demo_cellular_widgets.py`** - *Cellular Automata*
+**`cellular-widgets.py`** - *Cellular Automata*
 - Interactive cellular automata using keya D-C language
 - Real-time pattern evolution through D-C cycles
 - Click-to-edit grid interface
@@ -49,7 +49,7 @@ This directory contains demonstration scripts showcasing different aspects of th
 
 ### Development & Testing
 
-**`debug_infinity.py`** - *Infinity Handling*
+**`infinity.py`** - *Infinity Handling*
 - Tests keya's ability to handle infinite D-C iterations
 - Debugging utilities for cellular automata systems
 
@@ -65,8 +65,8 @@ Use the modern keya shell (kshell) to run pure D-C language programs:
 
 ```bash
 # Run from project root directory
-python kshell.py demos/demo-test-evolution.keya
-python kshell.py demos/demo-symbol-translation.keya
+python kshell.py demos/evolution.keya
+python kshell.py demos/symbol-translation.keya
 
 # Or start interactive REPL for exploration
 python kshell.py
@@ -85,15 +85,15 @@ cd demos
 python run_demo.py list
 
 # Run specific demo (scientific testing of floating-point D-C hypothesis)
-python run_demo.py demo_floating_point_dc.py
+python run_demo.py floatingpoint-dc.py
 
 # Run all demos
 python run_demo.py all
 
 # Or run directly
-python demo_quantum_phenomena.py
-python demo_cellular_widgets.py
-python demo_mantissa_quantum.py
+python quantum-phenomena.py
+python cellular-widgets.py
+python mantissa-quantum.py
 ```
 
 ## Output Organization

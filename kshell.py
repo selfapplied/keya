@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from keya.core.engine import Engine
-from keya.shell.repl import KeyaDCREPL
+from keya.shell.repl import KeyaDCREPL, SYMBOL_REPLACEMENTS
 
 
 def print_version():
@@ -28,17 +28,100 @@ def print_version():
     print("Features: D-C operators, glyph matrices, grammar transformations")
 
 
+def test_completion(word: str):
+    """Test tab completion for a given word."""
+    if not word:
+        print("Error: No word provided for completion testing")
+        return 1
+    
+    # Find all symbol matches
+    symbol_matches = []
+    
+    # Exact matches
+    if word.lower() in SYMBOL_REPLACEMENTS:
+        symbol_matches.append((word.lower(), SYMBOL_REPLACEMENTS[word.lower()]))
+    
+    # Prefix matches (only if no exact match)
+    if not symbol_matches:
+        for symbol_word in SYMBOL_REPLACEMENTS:
+            if symbol_word.startswith(word.lower()) and symbol_word != word.lower():
+                symbol_matches.append((symbol_word, SYMBOL_REPLACEMENTS[symbol_word]))
+    
+    # Output results
+    if len(symbol_matches) == 0:
+        print(f"No symbol completions for '{word}'")
+        return 0
+    elif len(symbol_matches) == 1:
+        # Single match - output the symbol (like tab would do)
+        symbol_word, symbol = symbol_matches[0]
+        print(symbol)
+        return 0
+    else:
+        # Multiple matches - output column-style list
+        print(f"Multiple completions for '{word}':")
+        for symbol_word, symbol in sorted(symbol_matches):
+            print(f"  {symbol_word:<12} → {symbol}")
+        return 0
+
+
+# Extensible command definitions
+COMMANDS = {
+    'interactive': {
+        'usage': 'python kshell.py',
+        'description': 'Start interactive shell',
+        'examples': []
+    },
+    'script': {
+        'usage': 'python kshell.py <script.keya>',
+        'description': 'Run script file',
+        'examples': [
+            'python kshell.py demos/evolution.keya',
+            'python kshell.py demos/symbol-translation.keya'
+        ]
+    },
+    'version': {
+        'usage': 'python kshell.py --version, -v',
+        'description': 'Show version information',
+        'examples': []
+    },
+    'help': {
+        'usage': 'python kshell.py --help, -h',
+        'description': 'Show this help',
+        'examples': []
+    },
+    'tab': {
+        'usage': 'python kshell.py --tab <word>, -t <word>',
+        'description': 'Test tab completion behavior',
+        'examples': [
+            'python kshell.py -t ten          # Should output: ⊗',
+            'python kshell.py -t v            # Should list: void, etc.'
+        ]
+    }
+}
+
 def print_usage():
-    """Print usage information."""
-    print("Usage:")
-    print("  python kshell.py                    # Start interactive shell")
-    print("  python kshell.py <script.keya>     # Run script file")
-    print("  python kshell.py --version         # Show version")
-    print("  python kshell.py --help            # Show this help")
+    """Print usage information from structured command definitions."""
+    print("Kshell - Kéya D-C Language Shell")
     print()
-    print("Examples:")
-    print("  python kshell.py examples/dc_test.py")
-    print("  python kshell.py examples/string_generation_test.py")
+    print("Usage:")
+    for cmd_info in COMMANDS.values():
+        print(f"  {cmd_info['usage']:<35} # {cmd_info['description']}")
+    
+    # Collect all examples
+    all_examples = []
+    for cmd_info in COMMANDS.values():
+        all_examples.extend(cmd_info['examples'])
+    
+    if all_examples:
+        print()
+        print("Examples:")
+        for example in all_examples:
+            print(f"  {example}")
+    
+    print()
+    print("Symbol Completions:")
+    print("  Core glyphs: void→∅, up→△, down→▽, unity→⊙, flow→⊕")
+    print("  Operators: tensor→⊗, growth→↑, descent→ℓ, reflect→~, dissonance→𝔻, containment→ℂ")
 
 
 def main():
@@ -53,6 +136,12 @@ def main():
         elif arg in ['--version', '-v']:
             print_version()
             return
+        elif arg in ['--tab', '-t']:
+            if len(sys.argv) < 3:
+                print("Error: --tab/-t requires a word argument")
+                print("Usage: python kshell.py --tab <word> OR python kshell.py -t <word>")
+                return 1
+            return test_completion(sys.argv[2])
         elif arg.startswith('--'):
             print(f"Unknown option: {arg}")
             print_usage()

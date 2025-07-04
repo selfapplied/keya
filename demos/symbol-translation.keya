@@ -1,16 +1,25 @@
 matrix symbol_demo {
   ops {
-    # Create matrices with different glyphs
+    # Symbol-to-number mapping (current approach)
     voids = [2, 2, ∅]        # All 0s
     downs = [2, 2, ▽]        # All 1s  
     ups = [2, 2, △]          # All 2s
     unities = [2, 2, ⊙]      # All 3s
     flows = [2, 2, ⊕]        # All 4s
     
-    # Mix them together
+    # Mixed symbol matrix
     mixed = [[∅, ▽], [△, ⊙]]
     
-    # Apply D-C evolution
+    # Apply D-C evolution on numeric interpretation
     evolved = DC(mixed, binary, 3)
   }
+}
+
+grammar symbol_mappings {
+  # Symbol-to-symbol grammar rules
+  ∅ → ▽
+  ▽ → [△, ⊕]
+  △ → ⊙
+  ⊙ → ∅
+  ⊕ → [▽, △]
 } 

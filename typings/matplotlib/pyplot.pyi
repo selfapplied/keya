@@ -156,4 +156,17 @@ def imshow(
     **kwargs: Any
 ) -> Any:
     """Display an image on the axes."""
+    ...
+
+def gcf() -> Any:
+    """
+    Get the current figure.
+    
+    If no current figure exists, a new one is created using figure().
+    
+    Returns
+    -------
+    figure : Figure
+        The current figure.
+    """
     ... 

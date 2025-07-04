@@ -25,6 +25,24 @@ from ..dsl.ast import (
     ResonanceProgram, Definition
 )
 
+# Shared glyph and operator replacements - used by both tab completion and space replacement
+SYMBOL_REPLACEMENTS = {
+    # Core glyphs
+    'void': '∅', 'empty': '∅',
+    'down': '▽', 'primal': '▽',
+    'up': '△', 'transformed': '△',
+    'unity': '⊙', 'contained': '⊙', 'stable': '⊙',
+    'flow': '⊕', 'dynamic': '⊕',
+    
+    # Operator symbols
+    'tensor': '⊗',
+    'growth': '↑',
+    'descent': 'ℓ',
+    'reflect': '~', 'reflection': '~',
+    'dissonance': '𝔻',
+    'containment': 'ℂ'
+}
+
 
 @dataclass
 class WorkspaceState:
@@ -77,14 +95,8 @@ class KeyaDCCompleter(Completer):
         self.operators = {'D', 'C', 'DC'}
         self.containment_types = {'binary', 'decimal', 'string', 'general'}
         
-        # Glyph replacements
-        self.glyph_replacements = {
-            'void': '∅', 'empty': '∅',
-            'down': '▽', 'primal': '▽',
-            'up': '△', 'transformed': '△',
-            'unity': '⊙', 'contained': '⊙', 'stable': '⊙',
-            'flow': '⊕', 'dynamic': '⊕'
-        }
+        # Use shared symbol replacements
+        self.symbol_replacements = SYMBOL_REPLACEMENTS
         
         # Common patterns
         self.patterns = {
@@ -101,13 +113,22 @@ class KeyaDCCompleter(Completer):
         word = document.get_word_before_cursor(WORD=True)
         line = document.current_line_before_cursor
         
-        # Glyph replacements
-        if word in self.glyph_replacements:
+        # Symbol replacements (glyphs and operators) - exact matches first
+        if word in self.symbol_replacements:
             yield Completion(
-                self.glyph_replacements[word],
+                self.symbol_replacements[word],
                 start_position=-len(word),
-                display_meta="glyph"
+                display_meta="symbol"
             )
+        
+        # Symbol replacements - prefix matches
+        for symbol_word in self.symbol_replacements:
+            if symbol_word.startswith(word.lower()) and symbol_word != word.lower():
+                yield Completion(
+                    symbol_word,
+                    start_position=-len(word),
+                    display_meta=f"symbol → {self.symbol_replacements[symbol_word]}"
+                )
         
         # Keywords
         for keyword in self.keywords:
@@ -168,6 +189,32 @@ class KeyaDCAutoSuggest(AutoSuggest):
     def get_suggestion(self, buffer: Buffer, document: Document) -> Optional[Suggestion]:
         """Generate smart suggestions based on context and history."""
         text = document.text
+        word = document.get_word_before_cursor(WORD=True)
+        
+        # Symbol suggestions - show glyph when there's one match
+        if word:
+            symbol_matches = []
+            
+            # Exact matches
+            if word.lower() in SYMBOL_REPLACEMENTS:
+                symbol_matches.append((word.lower(), SYMBOL_REPLACEMENTS[word.lower()]))
+            
+            # Prefix matches (only if no exact match)
+            if not symbol_matches:
+                for symbol_word in SYMBOL_REPLACEMENTS:
+                    if symbol_word.startswith(word.lower()) and symbol_word != word.lower():
+                        symbol_matches.append((symbol_word, SYMBOL_REPLACEMENTS[symbol_word]))
+            
+            # If exactly one symbol match, suggest the completion
+            if len(symbol_matches) == 1:
+                symbol_word, symbol = symbol_matches[0]
+                if word.lower() == symbol_word:
+                    # Exact match - suggest replacing with glyph
+                    return Suggestion(f' → {symbol}')
+                else:
+                    # Prefix match - suggest completing the word and show glyph
+                    remaining = symbol_word[len(word.lower()):]
+                    return Suggestion(f'{remaining} → {symbol}')
         
         # Suggest closing braces
         if text.count('{') > text.count('}'):
@@ -228,6 +275,37 @@ class KeyaDCREPL:
             """Exit on Ctrl+D."""
             event.app.exit()
         
+        @kb.add('tab')
+        def _(event):
+            """Smart tab completion - accept suggestions or show menu."""
+            buffer = event.app.current_buffer
+            doc = buffer.document
+            word = doc.get_word_before_cursor(WORD=True)
+            
+            if word:
+                # Find all symbol matches
+                symbol_matches = []
+                
+                # Exact matches
+                if word.lower() in SYMBOL_REPLACEMENTS:
+                    symbol_matches.append((word.lower(), SYMBOL_REPLACEMENTS[word.lower()]))
+                
+                # Prefix matches (only if no exact match)
+                if not symbol_matches:
+                    for symbol_word in SYMBOL_REPLACEMENTS:
+                        if symbol_word.startswith(word.lower()):
+                            symbol_matches.append((symbol_word, SYMBOL_REPLACEMENTS[symbol_word]))
+                
+                # If exactly one symbol match, accept the autosuggestion
+                if len(symbol_matches) == 1:
+                    symbol_word, symbol = symbol_matches[0]
+                    buffer.delete_before_cursor(count=len(word))
+                    buffer.insert_text(symbol + ' ')
+                    return
+            
+            # Default tab behavior - show completion menu
+            buffer.start_completion()
+        
 # Removed custom enter handling - using default behavior
         
         # Quick glyph insertions
@@ -243,6 +321,25 @@ class KeyaDCREPL:
             @kb.add(key)
             def _(event, g=glyph):
                 event.app.current_buffer.insert_text(g)
+        
+        # Symbol replacements on space (glyphs and operators)
+        @kb.add(' ')
+        def _(event):
+            """Handle space key with symbol replacement."""
+            buffer = event.app.current_buffer
+            doc = buffer.document
+            
+            # Get the word before the cursor
+            word_before = doc.get_word_before_cursor(WORD=True)
+            
+            # Check if it matches a symbol replacement
+            if word_before.lower() in SYMBOL_REPLACEMENTS:
+                # Delete the word and insert the symbol + space
+                buffer.delete_before_cursor(count=len(word_before))
+                buffer.insert_text(SYMBOL_REPLACEMENTS[word_before.lower()] + ' ')
+            else:
+                # Insert regular space
+                buffer.insert_text(' ')
         
         return kb
     
@@ -360,7 +457,7 @@ class KeyaDCREPL:
         print()
         print("Features:")
         print("  * Full D-C syntax: DC([3,3,△], binary, 5)")
-        print("  * Smart glyph completion: void → ∅, up → △") 
+        print("  * Smart symbol completion: void → ∅, tensor → ⊗, dissonance → 𝔻") 
         print("  * Matrix visualization: :show matrix_name")
         print("  * Workspace management: :workspace quantum_demo")
         print()
@@ -435,9 +532,13 @@ class KeyaDCREPL:
             self._clear_session()
         elif command == 'history':
             self._show_history()
+        elif command == 'plot':
+            self._plot_variable(args[0] if args else None, args[1] if len(args) > 1 else 'matrix')
+        elif command == 'display':
+            self._set_display_mode(args[0] if args else None)
         else:
             print(f"Unknown command: :{command}")
-            print("Available commands: help, show, vars, workspace, save, load, clear, history")
+            print("Available commands: help, show, vars, workspace, save, load, clear, history, plot, display")
     
     def _show_help(self, topic: Optional[str]):
         """Show contextual help."""
@@ -513,6 +614,8 @@ class KeyaDCREPL:
 
 <style fg="#98D8C8">Commands:</style>
   :show VAR        - Display variable/matrix
+  :plot VAR [TYPE] - Matplotlib visualization (matrix|distribution)
+  :display MODE    - Set display mode (glyphs|numbers|mixed)
   :vars            - List all variables
   :workspace NAME  - Switch workspace
   :save [FILE]     - Save session
@@ -546,18 +649,50 @@ class KeyaDCREPL:
             print(f"  Value: {value}")
     
     def _display_matrix(self, matrix, name: str):
-        """ASCII art matrix display."""
+        """ASCII art matrix display with mode support."""
         print(f"  Matrix {matrix.shape[0]}×{matrix.shape[1]}:")
         
         # Convert numeric values back to glyphs for display
-        glyph_map = {0.0: '∅', 1.0: '▽', 2.0: '△', 3.0: '⊙', 4.0: '⊕'}
+        glyph_map = {0.0: '∅', -1.0: '▽', 1.0: '△', 0.5: '⊙', 2.0: '⊕'}
+        
+        display_mode = getattr(self, 'display_mode', 'glyphs')
         
         for i in range(matrix.shape[0]):
             row = "    "
             for j in range(matrix.shape[1]):
                 val = matrix[i, j]
-                glyph = glyph_map.get(float(val), '?')
-                row += f"{glyph} "
+                
+                if display_mode == 'numbers':
+                    row += f"{val:.2f} "
+                elif display_mode == 'mixed':
+                    # Show both glyph and number
+                    best_match = None
+                    min_diff = float('inf')
+                    for glyph_val, glyph in glyph_map.items():
+                        diff = abs(float(val) - glyph_val)
+                        if diff < min_diff:
+                            min_diff = diff
+                            best_match = glyph
+                    
+                    if min_diff < 0.1:
+                        row += f"{best_match}({val:.1f}) "
+                    else:
+                        row += f"{val:.2f} "
+                else:  # 'glyphs' mode (default)
+                    # Check for close matches to handle floating point precision
+                    best_match = None
+                    min_diff = float('inf')
+                    for glyph_val, glyph in glyph_map.items():
+                        diff = abs(float(val) - glyph_val)
+                        if diff < min_diff:
+                            min_diff = diff
+                            best_match = glyph
+                    
+                    # Use glyph if close enough, otherwise show number
+                    if min_diff < 0.1:
+                        row += f"{best_match} "
+                    else:
+                        row += f"{val:.1f} "
             print(row)
     
     def _show_variables(self):
@@ -650,8 +785,20 @@ class KeyaDCREPL:
         elif isinstance(result, dict):
             print("\nResults:")
             for key, value in result.items():
-                if hasattr(value, 'shape'):
-                    print(f"  {key}: {value.shape} matrix")
+                if isinstance(value, list):
+                    # Handle list of matrices (from ops section)
+                    print(f"  {key}:")
+                    for i, item in enumerate(value):
+                        if hasattr(item, 'shape') and len(item.shape) == 2:
+                            print(f"    Variable {i+1}:")
+                            self._display_matrix(item, f"{key}_{i}")
+                        else:
+                            print(f"    {i+1}: {item}")
+                    # Store in workspace
+                    self.workspace.variables[key] = value
+                elif hasattr(value, 'shape'):
+                    print(f"  {key}:")
+                    self._display_matrix(value, key)
                     # Store in workspace
                     self.workspace.variables[key] = value
                 else:
@@ -688,4 +835,47 @@ class KeyaDCREPL:
             self._process_input(content)
             print(f"Script {path.name} completed.")
         except Exception as e:
-            print(f"Error executing script {path.name}: {e}") 
+            print(f"Error executing script {path.name}: {e}")
+    
+    def _plot_variable(self, name: Optional[str], plot_type: str = 'matrix'):
+        """Create matplotlib visualization of a variable."""
+        if not name:
+            print("Usage: :plot variable_name [matrix|cycle|distribution]")
+            return
+            
+        if name not in self.workspace.variables:
+            print(f"Variable '{name}' not found.")
+            return
+            
+        value = self.workspace.variables[name]
+        
+        if not hasattr(value, 'shape'):
+            print(f"Variable '{name}' is not a matrix.")
+            return
+            
+        try:
+            from ..vis.renderer import plot_dc_matrix, plot_glyph_distribution
+            
+            if plot_type == 'matrix':
+                plot_dc_matrix(value, f"Variable: {name}", interactive=True)
+            elif plot_type == 'distribution':
+                plot_glyph_distribution(value, f"Glyph Distribution: {name}", interactive=True)
+            else:
+                print(f"Unknown plot type: {plot_type}")
+                print("Available types: matrix, distribution")
+                
+        except ImportError:
+            print("Matplotlib visualization not available. Install matplotlib to use :plot")
+    
+    def _set_display_mode(self, mode: Optional[str]):
+        """Set display mode preferences."""
+        if not mode:
+            print("Usage: :display [glyphs|numbers|mixed]")
+            print(f"Current mode: {getattr(self, 'display_mode', 'glyphs')}")
+            return
+            
+        if mode in ['glyphs', 'numbers', 'mixed']:
+            self.display_mode = mode
+            print(f"Display mode set to: {mode}")
+        else:
+            print("Invalid display mode. Options: glyphs, numbers, mixed") 

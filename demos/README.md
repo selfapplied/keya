@@ -45,20 +45,25 @@ This directory contains demonstration scripts showcasing different aspects of th
 
 ## Running Demos
 
-All demos can be run from the project root:
+All demos can be run from the demos directory:
 
 ```bash
-# Scientific testing of floating-point D-C hypothesis
-python demos/demo_floating_point_dc.py
+# Navigate to demos directory
+cd demos
 
-# Quantum phenomena visualization
-python demos/demo_quantum_phenomena.py
+# List available demos
+python run_demo.py list
 
-# Interactive cellular automata
-python demos/demo_cellular_widgets.py
+# Run specific demo (scientific testing of floating-point D-C hypothesis)
+python run_demo.py demo_floating_point_dc.py
 
-# Mantissa-quantum connection
-python demos/demo_mantissa_quantum.py
+# Run all demos
+python run_demo.py all
+
+# Or run directly
+python demo_quantum_phenomena.py
+python demo_cellular_widgets.py
+python demo_mantissa_quantum.py
 ```
 
 ## Output Organization

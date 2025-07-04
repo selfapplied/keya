@@ -1,26 +1,15 @@
 #!/usr/bin/env python3
 """
-🌌 KEYA D-C QUANTUM PHENOMENA RENDERER DEMO 🌌
+🌌 KEYA D-C QUANTUM PHENOMENA RENDERER 🌌
 
-Revolutionary quantum visualization using mathematical D-C operators!
-
-This demo showcases:
-- Electron orbital visualization (hydrogen atom)
-- Real-time quantum wave evolution using D-C operators
-- 3D probability clouds and isosurfaces
-- Quantum superposition states
-- Wave function collapse simulation
-- Integration of keya D-C language with quantum mechanics
-
-The mathematical beauty:
-- D (Dissonance) Operator → Wave function collapse / Symmetry breaking
-- C (Containment) Operator → Probability normalization / Constraint
-- DC Cycles → Quantum time evolution (Schrödinger equation)
-- ∞ Iterations → Continuous quantum dynamics
+This demonstrates how keya D-C operators naturally emerge in quantum mechanics,
+showcasing the deep mathematical connection between diagonalization-containment
+and quantum state evolution.
 """
 
 import sys
 import os
+import argparse
 # Add parent directory's src to path since we're in demos/ subdirectory
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 

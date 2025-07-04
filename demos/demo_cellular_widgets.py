@@ -15,6 +15,8 @@ Features:
 
 import sys
 import os
+import argparse
+
 # Add parent directory's src to path since we're in demos/ subdirectory
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
@@ -111,6 +113,14 @@ def demo_console_widget():
         print(f"Gen: {stats['generation']} | Active cells: {stats['total_cells'] - stats['void_cells']}")
 
 
+def demo_all_features():
+    """Run all console-based demos in sequence."""
+    print("🎉 Running all console demos in sequence!")
+    demo_console_widget()
+    print("\n" + "="*50)
+    print("✅ All demos completed successfully!")
+
+
 def display_console_grid(widget: CellularWidget):
     """Display widget grid in console."""
     grid = widget.get_display_grid()
@@ -119,7 +129,23 @@ def display_console_grid(widget: CellularWidget):
 
 
 def main():
-    """Main demo selector."""
+    """Main demo selector - non-interactive by default."""
+    parser = argparse.ArgumentParser(description='Keya D-C Cellular Automata Widgets Demo')
+    parser.add_argument('-i', '--interactive', action='store_true',
+                       help='Enable interactive mode with menu selection')
+    parser.add_argument('--choice', type=int, choices=range(1, 6), 
+                       help='Specific demo choice (1-5)')
+    
+    args = parser.parse_args()
+    
+    # Non-interactive mode (default) - run console demo
+    if not args.interactive:
+        print("🤖 NON-INTERACTIVE MODE (use -i for interactive)")
+        print("Running console demo automatically...")
+        demo_console_widget()
+        return
+    
+    # Interactive mode - show menu
     print("🚀 KEYA D-C CELLULAR AUTOMATA WIDGETS 🚀")
     print("=" * 50)
     print("Select a demo:")
@@ -130,7 +156,10 @@ def main():
     print("5. All Features Test")
     
     try:
-        choice = input("\nEnter choice (1-5): ").strip()
+        if args.choice:
+            choice = str(args.choice)
+        else:
+            choice = input("\nEnter choice (1-5): ").strip()
         
         if choice == '1':
             demo_ripple_widget()
@@ -141,13 +170,10 @@ def main():
         elif choice == '4':
             demo_console_widget()
         elif choice == '5':
-            print("🎉 Running all demos in sequence!")
-            demo_console_widget()
-            print("\n" + "="*50)
-            demo_ripple_widget()
+            demo_all_features()
         else:
-            print("Invalid choice. Showing ripple demo by default...")
-            demo_ripple_widget()
+            print("Invalid choice. Showing console demo by default...")
+            demo_console_widget()
             
     except KeyboardInterrupt:
         print("\n👋 Demo interrupted. Goodbye!")

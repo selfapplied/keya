@@ -103,7 +103,7 @@ class PrimeSierpinskiDCAnalyzer:
 
     def compute_prime_counts(self) -> Dict[int, int]:
         """Compute prime counts π(2^k) for k=1..max_depth."""
-        return {k: int(primepi(2**k)) for k in self.depths}
+        return {int(k): int(primepi(2**k)) for k in self.depths}
 
     def compute_log_derivatives(self) -> Dict[int, float]:
         """Compute log-derivatives Δₜπ(k) = π(2^{k+1}) - π(2^k)."""
@@ -489,7 +489,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-    def plot_prime_anomaly_dc_evolution(self, ax: plt.Axes) -> None:
+    def plot_prime_anomaly_dc_evolution(self, ax: Axes) -> None:
         """Show how D-C evolution affects prime anomalies."""
         if not self.dc_processed_data:
             return

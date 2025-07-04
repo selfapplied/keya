@@ -27,7 +27,11 @@ from typing import Dict, Any
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.core.engine import Engine
-from keya.core.operators import D_operator, C_operator, DC_cycle
+from keya.core.operators import D_operator as Wild_operator, C_operator as Containment_operator, DC_cycle as WildTame_cycle
+
+# Create aliases for the operators to match usage in the code
+C_operator = Containment_operator
+DC_cycle = WildTame_cycle
 
 
 class PrimeSierpinskiDCAnalyzer:
@@ -136,10 +140,10 @@ class PrimeSierpinskiDCAnalyzer:
         
         print(f"Matrix size for D-C processing: {size}x{size}")
         
-        # Apply D-operator (diagonalize irregularities)
-        print("\n  🔧 D-operator: Diagonalizing prime gaps...")
-        d_primes = D_operator(prime_matrix)
-        d_anomalies = D_operator(anomaly_matrix)
+        # Apply Ϟ-operator (diagonalize irregularities)
+        print("\n  🔧 Ϟ-operator: Diagonalizing prime gaps...")
+        d_primes = Wild_operator(prime_matrix)
+        d_anomalies = Wild_operator(anomaly_matrix)
         
         # Validate D-operator effect
         d_prime_vals = np.array([d_primes[i, i] for i in range(min(len(prime_values), size))])
@@ -425,7 +429,7 @@ class PrimeSierpinskiDCAnalyzer:
             origin="lower",
             cmap="binary_r",
             norm=LogNorm(vmin=1, vmax=self.max_depth),
-            extent=[0, size, 1, self.max_depth],
+            extent=(0, size, 1, self.max_depth),
         )
 
         # Original prime data
@@ -465,7 +469,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.grid(True, alpha=0.2)
         ax.legend()
 
-    def plot_dc_operator_effects(self, ax: plt.Axes) -> None:
+    def plot_dc_operator_effects(self, ax: Axes) -> None:
         """Show effects of individual D and C operators."""
         if not self.dc_processed_data:
             return
@@ -507,7 +511,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-    def plot_dc_variance_reduction(self, ax: plt.Axes) -> None:
+    def plot_dc_variance_reduction(self, ax: Axes) -> None:
         """Show variance reduction from D-C processing."""
         if not self.dc_processed_data:
             return
@@ -533,7 +537,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-    def plot_dc_convergence_analysis(self, ax: plt.Axes, convergence_data: dict) -> None:
+    def plot_dc_convergence_analysis(self, ax: Axes, convergence_data: dict) -> None:
         """Plot convergence analysis for different containment types."""
         for containment_type, data in convergence_data.items():
             steps = [d['step'] for d in data]
@@ -547,7 +551,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-    def plot_log_derivative_comparison(self, ax: plt.Axes) -> None:
+    def plot_log_derivative_comparison(self, ax: Axes) -> None:
         """Compare actual and expected prime-density per bit."""
         ds = list(self.log_derivatives.keys())
         actual = [self.log_derivatives[k] for k in ds]
@@ -562,7 +566,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.grid(True, alpha=0.3)
         ax.set_yscale("log")
 
-    def plot_prime_anomalies(self, ax: plt.Axes) -> None:
+    def plot_prime_anomalies(self, ax: Axes) -> None:
         """Bar chart of prime-density anomalies (actual – expected)."""
         ds = list(self.anomalies.keys())
         vals = [self.anomalies[k] for k in ds]
@@ -606,7 +610,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.legend(ncol=2)
         ax.grid(True, alpha=0.3)
 
-    def plot_containment_type_comparison(self, ax: plt.Axes, convergence_data: dict) -> None:
+    def plot_containment_type_comparison(self, ax: Axes, convergence_data: dict) -> None:
         """Compare how different containment types affect prime analysis."""
         final_variances = {}
         
@@ -630,7 +634,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.set_yscale('log')
         ax.grid(True, alpha=0.3)
 
-    def plot_dc_filtered_spectrum(self, ax: plt.Axes) -> None:
+    def plot_dc_filtered_spectrum(self, ax: Axes) -> None:
         """FFT power spectrum comparison: original vs D-C filtered."""
         vals_orig = [self.anomalies[k] for k in self.anomalies]
         
@@ -708,7 +712,7 @@ def main():
         print("Prime derivative growth ratios:")
         print(f"  Mean ratio: {gap_mean:.3f}")
         print(f"  Variance: {gap_variance:.6f}")
-        print(f"  Regularity index: {1.0/max(gap_variance, 1e-6):.1f}")
+        print(f"  Regularity index: {1.0/max(float(gap_variance), 1e-6):.1f}")
         
         # Test if growth follows predictable pattern
         expected_growth = 2.0  # Theoretical expectation

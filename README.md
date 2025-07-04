@@ -28,6 +28,9 @@ $\Sigma$ is a non-commutative operator field whose elements carry curvature $\ka
 | `⊗` | Structural Tensor | Binary Op | Binds elements, analogous to multiplication. |
 | `φ` | Golden Convergence | Attractor | A constant representing the golden ratio, $\varphi$. |
 | `π` | Rotational Lock | Attractor | A constant representing $\pi$ for rotational dynamics. |
+| `Ϟ` | Wild Operator | Matrix Op | Diagonalization unleashing chaotic/pathological behavior (Cantor-like). |
+| `§` | Containment | Matrix Op | Pattern resolution via containment rules (binary/decimal/string). |
+| `∮` | Wild-Tame Cycle | Meta-Op | Closed loop Ϟ§ iteration: chaos topology transformation until stability. |
 
 ### 🧩 **Core Language Features**
 | **Construct**      | **Syntax**                     | **Mathematical Analog**              |

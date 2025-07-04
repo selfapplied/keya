@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Debug infinity parsing."""
+
+import sys
+import os
+# Add parent directory's src to path since we're in demos/ subdirectory
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+from keya.dsl import parse
+
+
+def test_simple_infinity():
+    """Test the simplest possible infinity case."""
+    
+    program = """
+matrix test {
+    basic {
+        result = DC([2, 2], binary, ∞)
+    }
+}
+"""
+    
+    print("🔍 Testing simple infinity...")
+    try:
+        ast = parse(program.strip())
+        print("✅ Simple parsing works!")
+        return True
+    except Exception as e:
+        print(f"❌ Simple parsing failed: {e}")
+        return False
+
+
+def test_regular_number():
+    """Test that regular numbers still work."""
+    
+    program = """
+matrix test {
+    basic {
+        result = DC([2, 2], binary, 5)
+    }
+}
+"""
+    
+    print("🔍 Testing regular number...")
+    try:
+        ast = parse(program.strip())
+        print("✅ Regular number works!")
+        return True
+    except Exception as e:
+        print(f"❌ Regular number failed: {e}")
+        return False
+
+
+if __name__ == "__main__":
+    print("🐛 DEBUGGING INFINITY PARSING 🐛\n")
+    
+    # Test regular numbers first
+    if test_regular_number():
+        # Then test infinity
+        test_simple_infinity()
+    else:
+        print("❌ Basic parsing is broken") 

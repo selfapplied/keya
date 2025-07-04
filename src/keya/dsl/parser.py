@@ -86,6 +86,9 @@ class Lexer:
         ('GLYPH_UNITY', r'⊙'),
         ('GLYPH_FLOW', r'⊕'),
         
+        # Special symbols
+        ('INFINITY', r'∞'),
+        
         # D-C operators (order matters - longer patterns first)
         ('DC_CYCLE', r'\b(?:DC|dc)\b'),
         ('D_OP', r'𝔻|D'),
@@ -465,7 +468,13 @@ class Parser:
             max_iterations = None
             if self.match('COMMA'):
                 self.consume('COMMA')
-                max_iterations = int(self.consume('NUMBER').value)
+                if self.match('INFINITY'):
+                    self.consume('INFINITY')
+                    max_iterations = float('inf')  # Use Python's infinity
+                elif self.match('NUMBER'):
+                    max_iterations = int(self.consume('NUMBER').value)
+                else:
+                    raise ParseError("Expected number or ∞ for iteration count")
             
             self.consume('RPAREN')
             return DCCycle(operand=operand, containment_type=containment_type, max_iterations=max_iterations)

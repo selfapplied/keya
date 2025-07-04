@@ -471,18 +471,34 @@ class Engine:
             
         return result
     
-    def _apply_dc_cycle(self, matrix: np.ndarray, ctype: ContainmentType, max_iter: Optional[int]) -> np.ndarray:
+    def _apply_dc_cycle(self, matrix: np.ndarray, ctype: ContainmentType, max_iter: Optional[Union[int, float]]) -> np.ndarray:
         """Apply iterative D-C cycle transformations."""
         result = matrix.copy()
-        iterations = max_iter or 5
         
-        print(f"      Starting DC cycle ({iterations} iterations)...")
+        # Handle infinite iterations for cellular automata
+        if max_iter == float('inf'):
+            print(f"      Starting infinite DC cycle (cellular automata mode)...")
+            # For infinite iterations, we'll store the evolution sequence
+            # and return a generator or just run until manual stop
+            # For now, run a practical limit for demo purposes
+            iterations = 1000  # Large number for continuous evolution
+        else:
+            iterations = int(max_iter) if max_iter else 5
+            print(f"      Starting DC cycle ({iterations} iterations)...")
+        
         for i in range(iterations):
             # Apply D (dissonance) transformation
             result = self._apply_dissonance_transform(result)
             # Apply C (containment) transformation  
             result = self._apply_containment_transform(result, ctype)
-            print(f"        Iteration {i+1} complete")
+            
+            if max_iter == float('inf'):
+                # In cellular automata mode, we could yield intermediate states
+                # For now, just run silently for the demo
+                if i % 100 == 0:  # Progress indicator
+                    print(f"        Evolution step {i+1}...")
+            else:
+                print(f"        Iteration {i+1} complete")
             
         return result
 

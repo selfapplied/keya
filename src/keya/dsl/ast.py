@@ -141,7 +141,7 @@ class DCCycle(Expression):
     
     operand: Expression  # Matrix expression
     containment_type: ContainmentType
-    max_iterations: Optional[int] = None
+    max_iterations: Optional[Union[int, float]] = None  # Support infinity (float('inf'))
 
 
 @dataclass(slots=True)

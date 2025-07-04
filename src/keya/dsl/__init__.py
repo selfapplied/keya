@@ -46,8 +46,8 @@ from .ast import (
 )
 from .parser import Lexer, ParseError, Parser, Token, parse
 
-# Import engine for complete D-C language support
-from ..core.engine import Engine
+# Note: Engine import removed to prevent circular import
+# Import Engine directly from keya.core.engine when needed
 
 __all__ = [
     # Core types
@@ -74,6 +74,6 @@ __all__ = [
     # Enums
     'Glyph', 'ContainmentType', 'Operator',
     
-    # Parser & Engine
-    'parse', 'ParseError', 'Lexer', 'Parser', 'Token', 'Engine'
+    # Parser
+    'parse', 'ParseError', 'Lexer', 'Parser', 'Token'
 ] 

@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import List, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 
 class Operator(Enum):
@@ -15,6 +15,38 @@ class Operator(Enum):
     # Unary Operators
     DESCENT = auto()  # ℓ
     REFLECTION = auto()  # ~
+    
+    # D-C Fundamental Operators
+    DISSONANCE = auto()  # 𝔻 - symmetry breaking
+    CONTAINMENT = auto()  # ℂ - resonance creation
+    
+    # Matrix Operations
+    MATRIX_ADD = auto()      # matrix addition
+    MATRIX_MULT = auto()     # matrix multiplication
+    EXTRACT_STRING = auto()  # extract string from matrix
+    
+    # String Operations
+    STRING_CONCAT = auto()   # string concatenation
+    PATTERN_MATCH = auto()   # pattern recognition
+
+
+class Glyph(Enum):
+    """The fundamental symbols in the resonance field."""
+    
+    VOID = "∅"     # emptiness
+    DOWN = "▽"     # primal glyph  
+    UP = "△"       # transformed glyph
+    UNITY = "⊙"    # contained/stable glyph
+    FLOW = "⊕"     # dynamic glyph
+
+
+class ContainmentType(Enum):
+    """Types of containment for the C operator."""
+    
+    BINARY = "binary"
+    DECIMAL = "decimal"  
+    STRING = "string"
+    GENERAL = "general"
 
 
 class ASTNode(ABC):
@@ -37,6 +69,23 @@ class Literal(Expression):
     """Represents a literal value like a number, string, or color."""
 
     value: Union[int, float, str]
+
+
+@dataclass(slots=True)
+class GlyphLiteral(Expression):
+    """Represents a glyph literal like ∅, ▽, △, ⊙, ⊕."""
+    
+    glyph: Glyph
+
+
+@dataclass(slots=True)
+class MatrixLiteral(Expression):
+    """Represents a matrix literal with explicit glyph values."""
+    
+    rows: int
+    cols: int
+    fill_glyph: Optional[Glyph] = None
+    values: Optional[List[List[Glyph]]] = None  # If specific values are given
 
 
 @dataclass(slots=True)
@@ -71,6 +120,82 @@ class UnaryOp(Expression):
     operand: Expression
 
 
+@dataclass(slots=True)
+class DissonanceOp(Expression):
+    """Represents application of the D (dissonance) operator."""
+    
+    operand: Expression  # Matrix expression
+
+
+@dataclass(slots=True) 
+class ContainmentOp(Expression):
+    """Represents application of the C (containment) operator."""
+    
+    operand: Expression  # Matrix expression
+    containment_type: ContainmentType
+
+
+@dataclass(slots=True)
+class DCCycle(Expression):
+    """Represents a full D-C cycle operation."""
+    
+    operand: Expression  # Matrix expression
+    containment_type: ContainmentType
+    max_iterations: Optional[int] = None
+
+
+@dataclass(slots=True)
+class MatrixBinaryArithmetic(Expression):
+    """Binary arithmetic using emergent base systems."""
+    
+    left: Expression   # Matrix expression
+    right: Expression  # Matrix expression
+    operation: str     # "add" or "multiply"
+
+
+@dataclass(slots=True)
+class StringFromSeed(Expression):
+    """Generate string from seed glyph using grammar."""
+    
+    seed_glyph: GlyphLiteral
+    grammar: "GrammarDef"
+    length: Expression  # Number expression
+
+
+@dataclass(slots=True)
+class PatternMatch(Expression):
+    """Pattern matching in strings."""
+    
+    string_expr: Expression
+    pattern: List[Glyph]
+
+
+@dataclass(slots=True)
+class StringConcat(Expression):
+    """String concatenation operation."""
+    
+    left: Expression   # String/matrix expression
+    right: Expression  # String/matrix expression
+
+
+# --- Grammar and Language Constructs ---
+
+@dataclass(slots=True)
+class GrammarRule(ASTNode):
+    """A single grammar production rule: glyph -> [glyphs]."""
+    
+    from_glyph: Glyph
+    to_glyphs: List[Glyph]
+
+
+@dataclass(slots=True)
+class GrammarDef(Expression):
+    """Grammar definition with production rules."""
+    
+    name: str
+    rules: List[GrammarRule]
+
+
 # --- Top-level Language Constructs ---
 
 
@@ -97,10 +222,47 @@ class Assignment(ASTNode):
 
 
 @dataclass(slots=True)
+class MatrixAssignment(Statement):
+    """Assignment of matrix expressions."""
+    
+    target: Variable
+    value: Expression  # Matrix expression
+
+
+@dataclass(slots=True)
+class GrammarAssignment(Statement):
+    """Assignment of grammar definitions."""
+    
+    target: Variable
+    grammar: GrammarDef
+
+
+@dataclass(slots=True)
 class Action(ASTNode):
     """Represents a keyword action, e.g., stop."""
 
     name: str
+
+
+@dataclass(slots=True)
+class ResonanceTrace(Statement):
+    """Compute and output resonance trace of a matrix."""
+    
+    matrix_expr: Expression
+
+
+@dataclass(slots=True)
+class VerifyArithmetic(Statement):
+    """Verify that base system emergence works correctly."""
+    
+    test_size: Optional[Expression] = None
+
+
+@dataclass(slots=True)
+class VerifyStrings(Statement):
+    """Verify that string generation works correctly."""
+    
+    pass
 
 
 # --- Main Program Structure ---
@@ -118,6 +280,29 @@ class Section(ASTNode):
 class Definition(ASTNode):
     """The root of the AST, representing a full definition block."""
 
-    def_type: str  # e.g., "image", "grammar"
     name: str
     sections: List[Section]
+    def_type: str = "definition"  # e.g., "image", "grammar", "matrix", "resonance"
+
+
+# --- Program Types ---
+
+@dataclass(slots=True)
+class MatrixProgram(Definition):
+    """A program that works with glyph matrices and D-C operations."""
+    
+    def_type: str = "matrix"
+
+
+@dataclass(slots=True)
+class GrammarProgram(Definition):
+    """A program that defines and uses string grammars."""
+    
+    def_type: str = "grammar"
+
+
+@dataclass(slots=True)
+class ResonanceProgram(Definition):
+    """A program that explores resonance and symbolic emergence."""
+    
+    def_type: str = "resonance"

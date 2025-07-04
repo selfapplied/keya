@@ -4,12 +4,12 @@ import cmath
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Tuple
 
 import numpy as np
 
 from ..core.engine import Engine
-from ..dsl.ast import ContainmentType, Glyph
+from ..dsl.ast import ContainmentType
 
 
 class WaveFunctionType(Enum):
@@ -231,7 +231,7 @@ matrix quantum_evolution {{
             self.engine.variables['psi_matrix'] = prob_density
             
             # Execute D-C evolution
-            result = self.engine.execute_program(keya_program.strip())
+            self.engine.execute_program(keya_program.strip())
             
             # Get evolved state
             if 'evolved_psi' in self.engine.variables:

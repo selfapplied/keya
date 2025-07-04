@@ -8,8 +8,6 @@ The key insight: Floating point mantissa normalization IS quantum normalization.
 """
 
 import numpy as np
-from typing import Tuple, Optional, Union
-import cmath
 
 
 class QuantumDCOperators:
@@ -205,17 +203,17 @@ def demonstrate_quantum_dc_emergence():
     
     # Verify quantum properties
     props = qdc.verify_quantum_properties(psi_normalized)
-    print(f"\n✅ Quantum verification:")
+    print("\n✅ Quantum verification:")
     for key, value in props.items():
         print(f"   {key}: {value}")
     
     # Demonstrate DC cycle evolution
-    print(f"\n🌀 DC cycle evolution (quantum time evolution)...")
+    print("\n🌀 DC cycle evolution (quantum time evolution)...")
     psi_evolved = qdc.quantum_dc_cycle(psi_normalized, iterations=5)
     print(f"After 5 DC cycles: {psi_evolved}")
     
     final_props = qdc.verify_quantum_properties(psi_evolved)
-    print(f"\n✅ Final quantum verification:")
+    print("\n✅ Final quantum verification:")
     print(f"   Probability conserved: {final_props['is_normalized']}")
     print(f"   Total probability: {final_props['total_probability']:.6f}")
     

@@ -4,6 +4,20 @@ This directory contains demonstration scripts showcasing different aspects of th
 
 ## Demo Scripts
 
+### Pure Keya D-C Language Demos
+
+**`demo-test-evolution.keya`** - *Basic Matrix Evolution*
+- Simple demonstration of D-C operators on glyph matrices
+- Shows basic syntax: matrix creation, D operator, and DC cycles
+- Perfect introduction to keya D-C language fundamentals
+- Run with: `python kshell.py demos/demo-test-evolution.keya`
+
+**`demo-symbol-translation.keya`** - *Symbol-to-Number Translation*
+- Demonstrates how keya symbols (∅ ▽ △ ⊙ ⊕) map to numbers (0-4)
+- Shows mixed glyph matrices and their mathematical evolution  
+- Illustrates binary containment convergence patterns
+- Run with: `python kshell.py demos/demo-symbol-translation.keya`
+
 ### Core D-C Demonstrations
 
 **`demo_floating_point_dc.py`** - *Scientific Testing*
@@ -45,7 +59,23 @@ This directory contains demonstration scripts showcasing different aspects of th
 
 ## Running Demos
 
-All demos can be run from the demos directory:
+### Keya D-C Language Demos (.keya files)
+
+Use the modern keya shell (kshell) to run pure D-C language programs:
+
+```bash
+# Run from project root directory
+python kshell.py demos/demo-test-evolution.keya
+python kshell.py demos/demo-symbol-translation.keya
+
+# Or start interactive REPL for exploration
+python kshell.py
+# Then try: grid = [3, 3, ∅]; DC(grid, binary, 5)
+```
+
+### Python Integration Demos (.py files)
+
+All Python demos can be run from the demos directory:
 
 ```bash
 # Navigate to demos directory

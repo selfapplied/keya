@@ -27,9 +27,7 @@ from typing import Dict, Any
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.core.engine import Engine
-from keya.core.operators import D_operator, C_operator, DC_cycle, Glyph
-from keya.dsl.parser import parse
-from keya.dsl.ast import ContainmentType
+from keya.core.operators import D_operator, C_operator, DC_cycle
 
 
 class PrimeSierpinskiDCAnalyzer:
@@ -94,7 +92,7 @@ class PrimeSierpinskiDCAnalyzer:
         
         # Statistical properties
         anomaly_values = list(self.anomalies.values())
-        print(f"\nAnomaly statistics:")
+        print("\nAnomaly statistics:")
         print(f"  Mean: {np.mean(anomaly_values):8.2f}")
         print(f"  Std:  {np.std(anomaly_values):8.2f}")
         print(f"  Range: [{np.min(anomaly_values):8.1f}, {np.max(anomaly_values):8.1f}]")
@@ -217,7 +215,7 @@ class PrimeSierpinskiDCAnalyzer:
             'anomalies_variance_reduction': anomalies_variance_reduction
         }
 
-    def analyze_prime_dc_convergence(self) -> dict[str, any]:
+    def analyze_prime_dc_convergence(self) -> dict[str, Any]:
         """Analyze how D-C operators affect prime distribution convergence."""
         print("\n📈 ANALYZING D-C CONVERGENCE PROPERTIES")
         print("-" * 50)
@@ -411,7 +409,7 @@ class PrimeSierpinskiDCAnalyzer:
         print(f"Saved D-C prime analysis: {out_fn}")
         plt.close()
 
-    def plot_sierpinski_dc_prime_sparks(self, ax: plt.Axes) -> None:
+    def plot_sierpinski_dc_prime_sparks(self, ax: Axes) -> None:
         """Plot Sierpinski pattern with D-C processed prime sparks."""
         size = 2**self.max_depth
         img = np.zeros((size, self.max_depth))
@@ -442,12 +440,21 @@ class PrimeSierpinskiDCAnalyzer:
             dc_values = original_values
 
         # Plot both original and D-C processed
-        scale = size / max(original_values)
-        ax.scatter(positions, depths, s=[v * scale for v in original_values], 
+        # Ensure we have valid data and avoid divide by zero
+        if not original_values or max(original_values) == 0:
+            scale = 1.0
+        else:
+            scale = size / max(original_values)
+        
+        # Convert to numpy arrays to ensure proper typing for scatter
+        original_sizes = np.array([v * scale for v in original_values], dtype=float)
+        dc_sizes = np.array([v * scale for v in dc_values[:len(depths)]], dtype=float)
+        
+        ax.scatter(positions, depths, s=original_sizes, 
                   c=original_values, cmap="plasma", alpha=0.5, 
                   edgecolors='white', linewidth=0.5, label='Original', zorder=8)
         
-        ax.scatter(positions, [d + 0.2 for d in depths], s=[v * scale for v in dc_values[:len(depths)]], 
+        ax.scatter(positions, [d + 0.2 for d in depths], s=dc_sizes, 
                   c=dc_values[:len(depths)], cmap="viridis", alpha=0.8,
                   edgecolors='black', linewidth=0.5, marker='s', label='D-C Processed', zorder=10)
 
@@ -681,7 +688,7 @@ def main():
     dominant_freq_orig = np.argmax(power_orig)
     total_power_orig = np.sum(power_orig)
     
-    print(f"Original anomaly spectrum:")
+    print("Original anomaly spectrum:")
     print(f"  Total power: {total_power_orig:.2e}")
     print(f"  Dominant frequency bin: {dominant_freq_orig}")
     print(f"  Power distribution: {np.std(power_orig):.2e} (std)")
@@ -698,7 +705,7 @@ def main():
     if gaps:
         gap_variance = np.var(gaps)
         gap_mean = np.mean(gaps)
-        print(f"Prime derivative growth ratios:")
+        print("Prime derivative growth ratios:")
         print(f"  Mean ratio: {gap_mean:.3f}")
         print(f"  Variance: {gap_variance:.6f}")
         print(f"  Regularity index: {1.0/max(gap_variance, 1e-6):.1f}")
@@ -728,7 +735,7 @@ def main():
         prime_reduction = analyzer.dc_processed_data['primes_variance_reduction']
         anomaly_reduction = analyzer.dc_processed_data['anomalies_variance_reduction']
         
-        print(f"📊 Variance Reduction Results:")
+        print("📊 Variance Reduction Results:")
         print(f"  • Prime variance reduction: {prime_reduction:.2f}x")
         print(f"  • Anomaly variance reduction: {anomaly_reduction:.2f}x")
         
@@ -739,30 +746,30 @@ def main():
             print("  ❌ CLAIM 1: D-C operators reduce variance - FAILED")
     
     # Check diagonalization claim
-    print(f"\n🔧 D-C Operator Effects:")
-    print(f"  • Matrix diagonalization enhances prime structure analysis")
-    print(f"  • Containment operators stabilize chaotic distributions")
+    print("\n🔧 D-C Operator Effects:")
+    print("  • Matrix diagonalization enhances prime structure analysis")
+    print("  • Containment operators stabilize chaotic distributions")
     claims_validated += 1  # Assume validated based on processing completion
     print("  ✅ CLAIM 2: D-C operators enable structural analysis - VALIDATED")
     
     # Check convergence claim  
-    print(f"\n📈 Convergence Properties:")
-    print(f"  • Different containment rules show varied effectiveness")
-    print(f"  • Iterative D-C cycles demonstrate pattern emergence")
+    print("\n📈 Convergence Properties:")
+    print("  • Different containment rules show varied effectiveness")
+    print("  • Iterative D-C cycles demonstrate pattern emergence")
     claims_validated += 1
     print("  ✅ CLAIM 3: D-C cycles reveal patterns - VALIDATED")
     
     # Check fractional derivative enhancement
-    print(f"\n🧮 Fractional Derivative Enhancement:")
-    print(f"  • Grünwald–Letnikov derivatives computed for multiple α values")
-    print(f"  • D-C processing applied to fractional derivatives")
+    print("\n🧮 Fractional Derivative Enhancement:")
+    print("  • Grünwald–Letnikov derivatives computed for multiple α values")
+    print("  • D-C processing applied to fractional derivatives")
     claims_validated += 1
     print("  ✅ CLAIM 4: Fractional derivative D-C enhancement - VALIDATED")
     
     # Check Sierpinski framework integration
-    print(f"\n🔺 Sierpinski Framework Integration:")
-    print(f"  • Prime distributions mapped onto Sierpinski structure")  
-    print(f"  • D-C operators applied within triangle geometry")
+    print("\n🔺 Sierpinski Framework Integration:")
+    print("  • Prime distributions mapped onto Sierpinski structure")  
+    print("  • D-C operators applied within triangle geometry")
     claims_validated += 1
     print("  ✅ CLAIM 5: Sierpinski + D-C framework - VALIDATED")
     

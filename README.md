@@ -56,12 +56,15 @@ This project follows a specific set of conventions to maintain clarity and consi
 
 1.  **Output Directory**: All generated output files should be placed in the `.out/` directory.
 2.  **File Naming**: Python filenames should be concise and avoid underscores. For example, `hydrogen_orbital.py` is renamed to `orbital.py`.
+    -   *Exception*: Test files must use `test_*.py` pattern as required by pytest and Python testing conventions.
+    -   Letter of the law vs. spirit: renaming files by replacing underscores with dashes technically satisfies this rule, but does not uphold the spirit. In your own words, see if you can explain the _reasoning_ behind the rule.
 3.  **Code Structure**: We prefer code with minimal indentation depth. This is achieved through:
     -   **Early returns** to reduce nested `if` statements.
     -   **Small, focused functions** that adhere to the single-responsibility principle.
     -   **Factoring out common expressions** to keep the code DRY (Don't Repeat Yourself). 
 4.  **Purposeful Comments**: Code should be self-documenting. Avoid comments that explain *what* the code is doing. Instead, reserve comments for explaining the *why*—the complex logic, the reasoning behind a choice, or the physical model being implemented. A perfect illustration of this is in `examples/orbital.py`, where comments clarify the physics of the Schrödinger equation, which would be impossible to infer from the code alone.
 5.  **No `isinstance`**: The use of `isinstance` is a signal that code complexity is growing in a disorderly way. It should be replaced by more robust patterns like `typing.Protocol` or `match/case` to restore order.
+    1.  Exception: numpy arrays and exteernal code patterns may necessitate the pattern. Use DRY patterns where possible to contain the surface area.
 6.  **Universal Type Hinting**: All function and method signatures **must** include type hints for every parameter and the return value. It serves as documentation and catches errors very early in the pipeline.
     -   Balance: The `-> None` and `-> Any` add no extra information, adding
   tokens in deference to the law instead of the spirit of the law.
@@ -82,4 +85,16 @@ This project follows a specific set of conventions to maintain clarity and consi
 
 ## License
 
-Kéya is released under the [MIT License](LICENSE). This means you can use, modify, and distribute the code freely, including for commercial purposes, as long as you include the original copyright notice.
+Kéya is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). 
+
+### Why AGPL v3?
+
+We chose AGPL v3 to foster **reinvestment and locality** in software development:
+
+🔄 **Reinvestment**: Any improvements you make must be shared back with the community  
+🏘️ **Locality**: Network services using Kéya must provide source code to their users  
+🛡️ **Anti-Extraction**: Prevents "take and run" patterns that don't contribute back  
+🔬 **Research Friendly**: Academics and researchers can use Kéya freely  
+🤝 **Community Building**: Creates a commons-based ecosystem where everyone benefits
+
+**In Practice**: You can use Kéya for any purpose, but if you modify it or run it as a web service, you must share your source code. This ensures the knowledge stays in the commons and benefits everyone.

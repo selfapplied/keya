@@ -1,0 +1,16 @@
+matrix symbol_demo {
+  ops {
+    # Create matrices with different glyphs
+    voids = [2, 2, ∅]        # All 0s
+    downs = [2, 2, ▽]        # All 1s  
+    ups = [2, 2, △]          # All 2s
+    unities = [2, 2, ⊙]      # All 3s
+    flows = [2, 2, ⊕]        # All 4s
+    
+    # Mix them together
+    mixed = [[∅, ▽], [△, ⊙]]
+    
+    # Apply D-C evolution
+    evolved = DC(mixed, binary, 3)
+  }
+} 

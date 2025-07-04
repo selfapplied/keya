@@ -1,9 +1,8 @@
 """Cellular Automata Widget using Keya D-C Language."""
 
-import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -142,7 +141,6 @@ class CellularWidget:
                     distance = np.sqrt(dx*dx + dy*dy)
                     if distance <= radius:
                         # Create wave pattern based on distance
-                        intensity = (radius - distance) / radius
                         if distance < 1:
                             # Center gets high energy
                             self.state.matrix[y, x] = self._glyph_to_number(Glyph.FLOW)
@@ -188,7 +186,7 @@ matrix evolution {{
             self.engine.variables['grid'] = self.state.matrix
             
             # Execute the evolution step
-            result = self.engine.execute_program(keya_program.strip())
+            self.engine.execute_program(keya_program.strip())
             
             # Get the evolved matrix
             if 'grid' in self.engine.variables:

@@ -1,16 +1,14 @@
 """3D Quantum Phenomena Renderer using Keya D-C Operators."""
 
-import time
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Optional, Tuple, Any
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
-from .wave_function import QuantumWaveFunction, WaveFunctionType
+from .wavefunction import QuantumWaveFunction, WaveFunctionType
 from .orbital import ElectronOrbital, OrbitalType
 
 
@@ -44,7 +42,7 @@ class QuantumRenderer:
         
         # Rendering state
         self.current_frame = 0
-        self.animation = None
+        self.animation: Optional[Any] = None  # FuncAnimation type varies with matplotlib version
         self.is_animating = False
         
         # Visualization parameters
@@ -55,7 +53,7 @@ class QuantumRenderer:
         # Setup display
         self._setup_display()
         
-    def _create_quantum_colormap(self):
+    def _create_quantum_colormap(self) -> LinearSegmentedColormap:
         """Create a beautiful quantum-themed colormap."""
         colors = [
             (0.0, 0.0, 0.1),      # Deep blue (low probability)
@@ -67,7 +65,7 @@ class QuantumRenderer:
         ]
         return LinearSegmentedColormap.from_list("quantum", colors)
     
-    def _setup_display(self):
+    def _setup_display(self) -> None:
         """Setup the 3D display."""
         self.ax.set_xlabel('X (Bohr radii)')
         self.ax.set_ylabel('Y (Bohr radii)')
@@ -111,7 +109,7 @@ class QuantumRenderer:
         
         print(f"✅ Wave function loaded: {self.wave_function.get_quantum_stats()}")
     
-    def render_orbital_2d_slices(self):
+    def render_orbital_2d_slices(self) -> None:
         """Render 2D slices of the orbital probability density."""
         if not self.orbital:
             print("❌ No orbital loaded!")
@@ -245,6 +243,10 @@ class QuantumRenderer:
             self.ax.clear()
             self._setup_display()
             
+            # Safety check for wave function
+            if not self.wave_function:
+                return []
+            
             # Evolve one step using D-C operators
             if frame > 0:
                 self.wave_function.apply_dc_evolution(1)
@@ -288,13 +290,14 @@ class QuantumRenderer:
             
         print(f"🌀 Starting D-C orbital evolution ({evolution_steps} steps)...")
         
-        # Store initial state
-        initial_prob = self.orbital.probability_density.copy()
-        
         def animate(frame):
             # Clear and setup
             self.ax.clear()
             self._setup_display()
+            
+            # Safety check for orbital
+            if not self.orbital:
+                return []
             
             # Apply D-C evolution every few frames
             if frame > 0 and frame % 3 == 0:
@@ -334,7 +337,7 @@ class QuantumRenderer:
         
         self.is_animating = True
         
-    def render_quantum_superposition(self):
+    def render_quantum_superposition(self) -> None:
         """Render quantum superposition visualization."""
         print("🌈 Rendering quantum superposition...")
         
@@ -344,6 +347,11 @@ class QuantumRenderer:
         # Clear and setup
         self.ax.clear()
         self._setup_display()
+        
+        # Safety check for wave function
+        if not self.wave_function:
+            print("❌ No wave function loaded for superposition!")
+            return
         
         # Get probability density and phase
         prob_2d = self.wave_function.get_probability_density_2d()
@@ -355,12 +363,12 @@ class QuantumRenderer:
         X, Y = np.meshgrid(x, y)
         
         # Plot probability surface
-        surf1 = self.ax.plot_surface(X, Y, prob_2d, cmap=self.colormap,
-                                    alpha=0.7, edgecolor='none')
+        self.ax.plot_surface(X, Y, prob_2d, cmap=self.colormap,
+                            alpha=0.7, edgecolor='none')
         
         # Plot phase as wireframe offset
-        surf2 = self.ax.plot_wireframe(X, Y, phase_2d + np.max(prob_2d) + 0.5,
-                                      alpha=0.5, color='cyan', linewidth=1)
+        self.ax.plot_wireframe(X, Y, phase_2d + np.max(prob_2d) + 0.5,
+                              alpha=0.5, color='cyan', linewidth=1)
         
         # Add interference pattern projection
         interference = prob_2d * np.cos(phase_2d)

@@ -18,9 +18,7 @@ import jax.numpy as jnp
 
 from keya.core.operators import (
     BINARY_GRAMMAR,
-    FIBONACCI_GRAMMAR,
     SIMPLE_GRAMMAR,
-    C_operator,
     D_operator,
     Glyph,
     Grammar,
@@ -168,7 +166,7 @@ def test_string_operations():
     # Verify content preservation
     concat_string = extract_string_from_matrix(concatenated)
     string1_part = extract_string_from_matrix(string1)
-    string2_part = extract_string_from_matrix(string2)
+    extract_string_from_matrix(string2)  # Extract for comparison
     
     # Check that original strings are preserved in concatenation
     assert concat_string[:len(string1_part)] == string1_part, "First string not preserved"

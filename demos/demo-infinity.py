@@ -22,7 +22,7 @@ matrix test {
     
     print("🔍 Testing simple infinity...")
     try:
-        ast = parse(program.strip())
+        parse(program.strip())  # Validate syntax
         print("✅ Simple parsing works!")
         return True
     except Exception as e:
@@ -43,7 +43,7 @@ matrix test {
     
     print("🔍 Testing regular number...")
     try:
-        ast = parse(program.strip())
+        parse(program.strip())  # Validate syntax
         print("✅ Regular number works!")
         return True
     except Exception as e:

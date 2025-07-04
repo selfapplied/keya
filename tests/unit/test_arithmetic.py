@@ -54,7 +54,7 @@ def test_number_representation():
         decoded = matrix_to_binary_number(matrix)
         
         print(f"\nNumber {num} (binary: {bin(num)}):")
-        print_matrix(matrix, f"Matrix representation")
+        print_matrix(matrix, "Matrix representation")
         print(f"Decoded back to: {decoded}")
         
         assert decoded == num, f"Failed to represent {num}: got {decoded}"
@@ -127,7 +127,7 @@ def test_dc_generated_arithmetic():
     print(f"Sum: {pattern_value} + {pattern_value2} = {sum_value}")
     print(f"Expected: {expected_sum}")
     
-    assert sum_value == expected_sum, f"D-C pattern arithmetic failed"
+    assert sum_value == expected_sum, "D-C pattern arithmetic failed"
     print("✅ D-C generated patterns can perform arithmetic")
 
 def test_comprehensive_verification():

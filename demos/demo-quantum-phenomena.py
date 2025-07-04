@@ -9,13 +9,12 @@ and quantum state evolution.
 
 import sys
 import os
-import argparse
 # Add parent directory's src to path since we're in demos/ subdirectory
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from keya.quantum.renderer import create_quantum_demo, QuantumRenderer
+from keya.quantum.renderer import create_quantum_demo
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
-from keya.quantum.wave_function import QuantumWaveFunction, WaveFunctionType
+from keya.quantum.wavefunction import QuantumWaveFunction, WaveFunctionType
 from keya.dsl.ast import ContainmentType
 
 
@@ -45,7 +44,7 @@ def test_quantum_basics():
     success = wave.apply_dc_evolution(3)
     if success:
         new_stats = wave.get_quantum_stats()
-        print(f"   ✅ D-C evolution successful!")
+        print("   ✅ D-C evolution successful!")
         print(f"   📊 New probability: {new_stats['total_probability']:.3f}")
         print(f"   ⏰ New time: {new_stats['time']:.3f}")
     else:
@@ -91,12 +90,12 @@ def demo_hydrogen_orbitals():
         print(f"   🎯 Max probability density: {max_prob:.4f}")
         
         # Test D-C evolution
-        print(f"   🌀 Testing D-C evolution...")
+        print("   🌀 Testing D-C evolution...")
         evolution_success = orbital.evolve_with_dc_operators(1)
         if evolution_success:
-            print(f"   ✅ D-C evolution successful!")
+            print("   ✅ D-C evolution successful!")
         else:
-            print(f"   ❌ D-C evolution failed")
+            print("   ❌ D-C evolution failed")
     
     print("\n✨ HYDROGEN ORBITALS DEMO COMPLETE! ✨")
 

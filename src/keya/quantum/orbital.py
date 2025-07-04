@@ -1,13 +1,12 @@
 """Electron Orbital Visualization using Keya D-C Operators."""
 
-import math
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 from scipy.special import sph_harm, factorial, genlaguerre
 
-from .wave_function import QuantumWaveFunction, WaveFunctionType
+from .wavefunction import QuantumWaveFunction, WaveFunctionType
 from ..dsl.ast import ContainmentType
 
 
@@ -112,28 +111,28 @@ class ElectronOrbital:
         
         return psi
     
-    def _radial_wave_function(self, r: np.ndarray, n: int, l: int) -> np.ndarray:
+    def _radial_wave_function(self, r: np.ndarray, n: int, angular_l: int) -> np.ndarray:
         """Calculate the radial part of the hydrogen wave function."""
         
         # Normalization constant
-        norm = np.sqrt((2/(n*self.a0))**3 * factorial(n-l-1) / (2*n*factorial(n+l)))
+        norm = np.sqrt((2/(n*self.a0))**3 * factorial(n-angular_l-1) / (2*n*factorial(n+angular_l)))
         
         # Rho = 2r/(na0)
         rho = 2 * r / (n * self.a0)
         
         # Associated Laguerre polynomial
-        laguerre = genlaguerre(n-l-1, 2*l+1)(rho)
+        laguerre = genlaguerre(n-angular_l-1, 2*angular_l+1)(rho)
         
         # Radial wave function
-        R_nl = norm * np.exp(-rho/2) * (rho**l) * laguerre
+        R_nl = norm * np.exp(-rho/2) * (rho**angular_l) * laguerre
         
         return R_nl
     
-    def _angular_wave_function(self, theta: np.ndarray, phi: np.ndarray, l: int, m: int) -> np.ndarray:
+    def _angular_wave_function(self, theta: np.ndarray, phi: np.ndarray, angular_l: int, m: int) -> np.ndarray:
         """Calculate the angular part using spherical harmonics."""
         
-        # Note: scipy's sph_harm uses (m, l, phi, theta) convention
-        Y_lm = sph_harm(m, l, phi, theta)
+        # Note: scipy's sph_harm uses (m, angular_l, phi, theta) convention
+        Y_lm = sph_harm(m, angular_l, phi, theta)
         
         return Y_lm
     
@@ -222,7 +221,6 @@ class ElectronOrbital:
         dc_prob = self.dc_wave_function.get_probability_density_3d()
         
         # Update the central region of the orbital
-        center_slice = slice(self.grid_size//4, 3*self.grid_size//4)
         scale_factor = np.max(self.probability_density) / (np.max(dc_prob) + 1e-10)
         
         # Simple update of central region

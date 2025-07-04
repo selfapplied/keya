@@ -57,7 +57,7 @@ def test_jax_acceleration():
         a_np = np.array(a)
         b_np = np.array(b)
         start_time = time.time()
-        result_np = np.dot(a_np, b_np)
+        np.dot(a_np, b_np)  # Perform computation for timing
         numpy_time = time.time() - start_time
         print(f"NumPy time: {numpy_time:.4f}s")
         

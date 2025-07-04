@@ -24,13 +24,11 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
-from typing import List, Tuple, Dict
-import struct
+from typing import Dict
 
 from keya.core.engine import Engine 
-from keya.core.operators import Glyph, D_operator, C_operator, DC_cycle
+from keya.core.operators import Glyph
 from keya.dsl.parser import parse
-from keya.dsl.ast import ContainmentType
 
 # Ensure output directories exist (relative to project root)
 output_base = os.path.join(os.path.dirname(__file__), '..')
@@ -226,10 +224,10 @@ matrix correspondence_test {
 }
 """
         
-        ast = parse(keya_program.strip())
+        parse(keya_program.strip())  # Validate syntax
         engine = Engine()
         engine.variables['test_matrix'] = test_matrix
-        result = engine.execute_program(keya_program.strip())
+        engine.execute_program(keya_program.strip())
         
         # Check if operations preserve structure
         matrices_exist = all(name in engine.variables for name in 
@@ -316,12 +314,12 @@ def create_test_visualizations(test_results: Dict):
     # Test 4: Overall results
     all_tests = []
     all_results = []
-    for category, data in test_results.items():
-        if isinstance(data, dict):
-            for test_name, result in data.items():
-                if isinstance(result, bool):
-                    all_tests.append(f"{category}_{test_name}")
-                    all_results.append(1.0 if result else 0.0)
+    for item in [(cat, name, result) for cat, data in test_results.items() 
+                 if isinstance(data, dict) for name, result in data.items()]:
+        match item:
+            case (str(category), str(test_name), bool(value)):
+                all_tests.append(f"{category}_{test_name}")
+                all_results.append(1.0 if value else 0.0)
     
     colors = ['green' if r > 0.5 else 'red' for r in all_results]
     ax4.bar(range(len(all_results)), all_results, color=colors)
@@ -365,16 +363,18 @@ def main():
     
     for category, results in test_results.items():
         print(f"\n{category.upper()}:")
-        if isinstance(results, dict):
-            for test_name, result in results.items():
-                if isinstance(result, bool):
-                    status = "PASS" if result else "FAIL"
-                    print(f"  {test_name}: {status}")
+        if not isinstance(results, dict):
+            continue
+        for name, result in results.items():
+            match (name, result):
+                case (str(name), bool(passed)):
+                    status = "PASS" if passed else "FAIL"
+                    print(f"  {name}: {status}")
                     total_tests += 1
-                    if result:
+                    if passed:
                         passed_tests += 1
-                else:
-                    print(f"  {test_name}: {result}")
+                case (str(name), value):
+                    print(f"  {name}: {value}")
     
     print(f"\nOVERALL: {passed_tests}/{total_tests} tests passed")
     print(f"Success rate: {passed_tests/total_tests*100:.1f}%")

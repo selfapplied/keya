@@ -4,9 +4,8 @@ Functions for rendering the output of kéya D-C simulations.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Any
 
-from ..dsl.ast import Glyph
 
 
 def plot_wavefunction(
@@ -48,8 +47,7 @@ def plot_wavefunction(
     ax.set_title(title)
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
-    # Type checker doesn't recognize 3D axis methods, but this is correct
-    ax.set_zlabel("Z")  # type: ignore
+    ax.set_zlabel("Z")
     fig.colorbar(sc, label="Phase (radians)")
 
     plt.show()
@@ -220,7 +218,7 @@ def plot_glyph_distribution(matrix: np.ndarray, title: str = "Glyph Distribution
     plt.show()
 
 
-def visualize_dc_program_results(results: Dict[str, any], program_name: str = "D-C Program"):
+def visualize_dc_program_results(results: Dict[str, Any], program_name: str = "D-C Program"):
     """
     Create a comprehensive visualization of D-C program execution results.
     

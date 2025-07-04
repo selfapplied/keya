@@ -1,8 +1,6 @@
 """Widget Renderer for Keya D-C Cellular Automata."""
 
-import threading
-import time
-from typing import Optional, Tuple
+from typing import Tuple, Optional, Any
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -36,12 +34,12 @@ class WidgetRenderer:
         # Initialize the display
         self.image = None
         self.text_display = None
-        self.animation = None
+        self.animation: Optional[Any] = None  # FuncAnimation type
         self.is_running = False
         
         # Mouse interaction state
         self.mouse_pressed = False
-        self.last_mouse_pos = None
+        self.last_mouse_pos: Optional[Tuple[int, int]] = None
         
     def _grid_to_image_array(self) -> np.ndarray:
         """Convert the widget grid to a numpy array for matplotlib."""

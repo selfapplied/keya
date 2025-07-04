@@ -67,7 +67,7 @@ def test_d_operator_basic():
     result2 = D_operator(uniform_down)
     
     for i in range(2):
-        assert result2[i, i] == Glyph.UP.value, f"DOWN diagonal should flip to UP"
+        assert result2[i, i] == Glyph.UP.value, "DOWN diagonal should flip to UP"
     
     print("✅ D operator correctly transforms DOWN → UP on diagonal")
 
@@ -207,7 +207,7 @@ def test_operator_properties():
     # Test that D operator is idempotent on diagonal-fixed glyphs
     unity_matrix = create_glyph_matrix((3, 3), Glyph.UNITY)
     d_unity = D_operator(unity_matrix)
-    d_d_unity = D_operator(d_unity)
+    D_operator(d_unity)  # Apply D operator twice for testing
     
     # UNITY should be a fixed point under omega transformation
     diagonal_unchanged = all(d_unity[i, i] == Glyph.UNITY.value for i in range(3))

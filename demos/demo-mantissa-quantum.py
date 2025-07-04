@@ -13,11 +13,11 @@ import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import Tuple, List, Dict, Any
+from typing import Dict, Any
 
 # Add parent directory's src to path since we're in demos/ subdirectory
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-from keya.quantum.quantum_dc import QuantumDCOperators
+from keya.quantum.quantumdc import QuantumDCOperators
 
 
 class MantissaQuantumValidator:
@@ -82,7 +82,7 @@ class MantissaQuantumValidator:
         }
         
         print(f"\n📊 Results: Max error: {max_error:.2e}, Range violations: {range_violations}/{len(test_values)}")
-        print(f"✅ PASS" if result['pass'] else "❌ FAIL")
+        print("✅ PASS" if result['pass'] else "❌ FAIL")
         
         return result
     
@@ -151,7 +151,7 @@ class MantissaQuantumValidator:
         }
         
         print(f"\n📊 Results: Max prob error: {max_prob_error:.2e}, Failures: {normalization_failures}/{len(test_states)}")
-        print(f"✅ PASS" if result['pass'] else "❌ FAIL")
+        print("✅ PASS" if result['pass'] else "❌ FAIL")
         
         return result
     
@@ -187,7 +187,6 @@ class MantissaQuantumValidator:
             
             # The equivalence test: do the normalization factors follow the same scaling law?
             # Both should scale inversely with the magnitude
-            expected_scaling = abs(float_val)
             mantissa_scaling = 1.0 / mantissa_norm_factor
             quantum_scaling = 1.0 / quantum_norm_factor
             
@@ -215,7 +214,7 @@ class MantissaQuantumValidator:
         }
         
         print(f"\n📊 Results: Max principle error: {max_principle_error:.2e}")
-        print(f"✅ PASS" if result['pass'] else "❌ FAIL")
+        print("✅ PASS" if result['pass'] else "❌ FAIL")
         
         return result
     
@@ -278,7 +277,7 @@ class MantissaQuantumValidator:
         }
         
         print(f"\n📊 Results: Max conservation error: {max_conservation_error:.2e}")
-        print(f"✅ PASS" if result['pass'] else "❌ FAIL")
+        print("✅ PASS" if result['pass'] else "❌ FAIL")
         
         return result
     
@@ -304,7 +303,7 @@ class MantissaQuantumValidator:
             'overall_pass': all_tests_pass
         }
         
-        print(f"\n🎯 OVERALL VALIDATION RESULTS")
+        print("\n🎯 OVERALL VALIDATION RESULTS")
         print("-" * 30)
         print(f"Test 1 (Mantissa Properties): {'✅ PASS' if test1['pass'] else '❌ FAIL'}")
         print(f"Test 2 (Quantum Properties): {'✅ PASS' if test2['pass'] else '❌ FAIL'}")

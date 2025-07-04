@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 
 class Operator(Enum):
@@ -158,7 +158,7 @@ class StringFromSeed(Expression):
     """Generate string from seed glyph using grammar."""
     
     seed_glyph: GlyphLiteral
-    grammar: "GrammarDef"
+    grammar: Union[Expression, "GrammarDef"]  # Can be expression that resolves to GrammarDef
     length: Expression  # Number expression
 
 
@@ -214,7 +214,7 @@ class Boundary(Statement):
 
 
 @dataclass(slots=True)
-class Assignment(ASTNode):
+class Assignment(Statement):
     """Represents an assignment, e.g., color = #000000."""
 
     target: Variable
@@ -238,7 +238,7 @@ class GrammarAssignment(Statement):
 
 
 @dataclass(slots=True)
-class Action(ASTNode):
+class Action(Statement):
     """Represents a keyword action, e.g., stop."""
 
     name: str

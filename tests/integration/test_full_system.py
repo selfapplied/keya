@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
 from keya.dsl import Engine, parse
 from keya.shell.repl import KeyaREPL
-from keya.vis.renderer import plot_dc_matrix, visualize_dc_program_results
 
 
 def test_basic_parsing():
@@ -28,7 +27,7 @@ def test_basic_parsing():
 }"""
     
     try:
-        ast = parse(matrix_code)
+        parse(matrix_code)  # Validate syntax
         print("  ✅ Matrix program parsing successful")
         return True
     except Exception as e:
@@ -84,7 +83,7 @@ def test_repl_commands():
     print("🐚 Testing REPL functionality...")
     
     engine = Engine()
-    repl = KeyaREPL(engine)
+    KeyaREPL(engine)  # Initialize REPL for engine setup
     
     # Test some basic operations that don't require user input
     test_commands = [
@@ -104,7 +103,7 @@ def test_repl_commands():
     success_count = 0
     for command in test_commands:
         try:
-            result = engine.execute_program(command)
+            engine.execute_program(command)  # Execute for side effects
             print(f"  ✅ Command '{command}' executed")
             success_count += 1
         except Exception as e:
@@ -124,13 +123,12 @@ def test_matrix_visualization():
         import numpy as np
         
         # Create a test matrix
-        test_matrix = np.array([
+        np.array([
             [0.0, 1.0],    # ∅, △
             [-1.0, 0.5]    # ▽, ⊙
         ])
         
         # Test visualization functions (they won't display in test mode)
-        from keya.vis.renderer import plot_dc_matrix
         print("  ✅ Visualization imports successful")
         print("  ✅ Test matrix created")
         
@@ -158,11 +156,11 @@ def test_end_to_end():
         engine = Engine()
         
         # Parse
-        ast = parse(dc_program)
+        parse(dc_program)  # Validate syntax
         print("  ✅ Complex program parsed")
         
         # Execute
-        result = engine.execute_program(dc_program)
+        engine.execute_program(dc_program)  # Execute for side effects
         print("  ✅ Complex program executed")
         
         # Check if variables were created

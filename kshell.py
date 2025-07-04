@@ -18,13 +18,13 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from keya.core.engine import Engine
-from keya.shell.repl import KeyaREPL
+from keya.shell.repl import KeyaDCREPL
 
 
 def print_version():
     """Print version information."""
     print("Kshell - Kéya D-C Language Shell")
-    print("Version: 1.0.0")
+    print("Version: 2.0.0 - Modern Language-First REPL")
     print("Features: D-C operators, glyph matrices, grammar transformations")
 
 
@@ -66,8 +66,7 @@ def main():
             
             try:
                 engine = Engine()
-                repl = KeyaREPL(engine)
-                print(f"Executing script: {script_path}")
+                repl = KeyaDCREPL(engine)
                 repl.run_script(str(script_path))
             except Exception as e:
                 print(f"Error executing script: {e}")
@@ -76,8 +75,8 @@ def main():
         # Interactive mode: start the REPL
         try:
             engine = Engine()
-            repl = KeyaREPL(engine)
-            repl.run_interactive()
+            repl = KeyaDCREPL(engine)
+            repl.run()
         except KeyboardInterrupt:
             print("\nKshell interrupted by user.")
         except Exception as e:

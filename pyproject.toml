@@ -15,3 +15,46 @@ dependencies = [
     "scipy>=1.9.1",
     "nltk>=3.8.1",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.1",
+    "ruff>=0.12.2",
+]
+
+[tool.mypy]
+python_version = "3.13"
+mypy_path = ["typings", "src"]
+strict = true
+warn_unused_ignores = true
+show_error_codes = true
+
+# Disable the annoying "-> None" requirement  
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false  # Disable annoying untyped calls check
+
+# Matplotlib 3D support
+[[tool.mypy.overrides]]
+module = "matplotlib.*"
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]  
+module = "numpy.*"
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = "scipy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "jax.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sympy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "nltk.*"
+ignore_missing_imports = true

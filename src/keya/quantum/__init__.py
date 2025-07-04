@@ -1,6 +1,6 @@
 """Keya D-C Quantum Phenomena Rendering System."""
 
-from .wave_function import QuantumWaveFunction, WaveFunctionType
+from .wavefunction import QuantumWaveFunction, WaveFunctionType
 from .orbital import ElectronOrbital, OrbitalType
 from .renderer import QuantumRenderer, PhenomenaType
 

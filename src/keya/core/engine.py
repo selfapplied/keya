@@ -8,9 +8,9 @@ import jax.numpy as jnp
 
 from ..dsl.ast import (
     Assignment, ASTNode, ContainmentOp, ContainmentType, DCCycle, Definition,
-    DissonanceOp, Expression, FunctionCall, Glyph, GlyphLiteral, GrammarAssignment,
-    GrammarDef, GrammarProgram, GrammarRule, Literal, MatrixAssignment, MatrixLiteral,
-    MatrixProgram, ResonanceProgram, ResonanceTrace, Section, Statement, Variable,
+    DissonanceOp, Expression, Glyph, GlyphLiteral, GrammarAssignment,
+    GrammarDef, GrammarProgram, Literal, MatrixAssignment, MatrixLiteral,
+    MatrixProgram, ResonanceProgram, ResonanceTrace, Section, Variable,
     VerifyArithmetic, VerifyStrings
 )
 from ..dsl.parser import parse
@@ -50,11 +50,13 @@ class Manifold:
 
     def compute_curvature(self, symbol: Symbol) -> float:
         """Computes the curvature of a symbol relative to the manifold."""
-        if isinstance(symbol, FunctionSymbol):
-            # ℜ_expected for a 'good' function is < 0.7
-            # A function with '-> None' has ℜ_actual = 1.0
-            return self.attractor_states.get(f"return_type.{symbol.return_type}", 0.0)
-        return 0.0
+        match symbol:
+            case FunctionSymbol():
+                # ℜ_expected for a 'good' function is < 0.7
+                # A function with '-> None' has ℜ_actual = 1.0
+                return self.attractor_states.get(f"return_type.{symbol.return_type}", 0.0)
+            case _:
+                return 0.0
 
 
 @dataclass
@@ -119,9 +121,10 @@ class SymbolExtractor(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.FunctionDef):
         return_type = "∅"  # Assume no annotation
         if node.returns:
-            if isinstance(node.returns, ast.Name) and node.returns.id == "None":
-                return_type = "None"
-            # In a full implementation, we'd handle other types here.
+            match node.returns:
+                case ast.Name(id="None"):
+                    return_type = "None"
+                # In a full implementation, we'd handle other types here.
 
         symbol = FunctionSymbol(
             id=node.name,
@@ -168,16 +171,16 @@ class Linter(ast.NodeVisitor):
         if not node.returns:
             return
 
-        is_none = isinstance(node.returns, ast.Constant) and node.returns.value is None
-        is_name_constant_none = (
-            hasattr(ast, "NameConstant")
-            and isinstance(node.returns, ast.NameConstant)
-            and node.returns.value is None
-        )
-        is_any = isinstance(node.returns, ast.Name) and node.returns.id == "Any"
+        forbidden_type = None
+        match node.returns:
+            case ast.Constant(value=None):
+                forbidden_type = "None"
+            case ast.NameConstant(value=None) if hasattr(ast, "NameConstant"):
+                forbidden_type = "None"
+            case ast.Name(id="Any"):
+                forbidden_type = "Any"
 
-        if is_none or is_name_constant_none or is_any:
-            forbidden_type = "None" if (is_none or is_name_constant_none) else "Any"
+        if forbidden_type:
             error_msg = (
                 f"{self.file}:{node.lineno}:{node.col_offset + 1}: "
                 f"Function `{node.name}` should not have `-> {forbidden_type}` annotation."
@@ -208,7 +211,7 @@ class Engine:
 
     def __init__(self):
         # Legacy symbol table for backward compatibility
-        self.symbol_table: dict[str, tuple[str, Callable]] = {
+        self.symbol_table: dict[str, tuple[str, Callable[..., Any]]] = {
             "beta": ("ß", TemporalOperator),
             "nabla": ("∇", CurvatureOperator),
             "cycle": ("⊙", CycleOperator),
@@ -223,159 +226,119 @@ class Engine:
         self.current_program: Optional[Definition] = None
         
     def execute_program(self, source_code: str) -> Any:
-        """Execute a complete keya D-C program from source code."""
+        """Execute a complete keya D-C program."""
         try:
-            ast_node = parse(source_code)
-            self.current_program = ast_node
-            return self.execute_node(ast_node)
+            ast = parse(source_code)
+            return self.execute_node(ast)
         except Exception as e:
-            print(f"Execution error: {e}")
-            return None
+            raise RuntimeError(f"Execution error: {e}")
     
     def execute_node(self, node: ASTNode) -> Any:
-        """Execute any AST node and return the result."""
-        if isinstance(node, MatrixProgram):
-            return self.execute_matrix_program(node)
-        elif isinstance(node, GrammarProgram):
-            return self.execute_grammar_program(node)
-        elif isinstance(node, ResonanceProgram):
-            return self.execute_resonance_program(node)
-        elif isinstance(node, Section):
-            return self.execute_section(node)
-        elif isinstance(node, MatrixAssignment):
-            return self.execute_matrix_assignment(node)
-        elif isinstance(node, GrammarAssignment):
-            return self.execute_grammar_assignment(node)
-        elif isinstance(node, Assignment):
-            return self.execute_assignment(node)
-        elif isinstance(node, VerifyArithmetic):
-            return self.execute_verify_arithmetic(node)
-        elif isinstance(node, VerifyStrings):
-            return self.execute_verify_strings(node)
-        elif isinstance(node, ResonanceTrace):
-            return self.execute_resonance_trace(node)
-        elif isinstance(node, DissonanceOp):
-            return self.execute_dissonance_op(node)
-        elif isinstance(node, ContainmentOp):
-            return self.execute_containment_op(node)
-        elif isinstance(node, DCCycle):
-            return self.execute_dc_cycle(node)
-        elif isinstance(node, MatrixLiteral):
-            return self.execute_matrix_literal(node)
-        elif isinstance(node, GlyphLiteral):
-            return self.execute_glyph_literal(node)
-        elif isinstance(node, Variable):
-            return self.execute_variable(node)
-        elif isinstance(node, Literal):
-            return node.value
-        else:
-            print(f"Unknown node type: {type(node)}")
-            return None
+        """Execute any AST node."""
+        match node:
+            case MatrixProgram():
+                return self.execute_matrix_program(node)
+            case GrammarProgram():
+                return self.execute_grammar_program(node)
+            case ResonanceProgram():
+                return self.execute_resonance_program(node)
+            case MatrixAssignment():
+                return self.execute_matrix_assignment(node)
+            case GrammarAssignment():
+                return self.execute_grammar_assignment(node)
+            case Assignment():
+                return self.execute_assignment(node)
+            case DissonanceOp():
+                return self.execute_dissonance_op(node)
+            case ContainmentOp():
+                return self.execute_containment_op(node)
+            case DCCycle():
+                return self.execute_dc_cycle(node)
+            case MatrixLiteral():
+                return self.execute_matrix_literal(node)
+            case GlyphLiteral():
+                return self.execute_glyph_literal(node)
+            case Variable():
+                return self.execute_variable(node)
+            case VerifyArithmetic():
+                return self.execute_verify_arithmetic(node)
+            case VerifyStrings():
+                return self.execute_verify_strings(node)
+            case ResonanceTrace():
+                return self.execute_resonance_trace(node)
+            case Literal():
+                return node.value
+            case _:
+                raise ValueError(f"Unknown node type: {type(node)}")
     
     def execute_matrix_program(self, program: MatrixProgram) -> Dict[str, Any]:
         """Execute a matrix program and return results."""
         results = {}
-        print(f"Executing matrix program: {program.name}")
-        
         for section in program.sections:
             section_result = self.execute_section(section)
             results[section.name] = section_result
-            
         return results
     
     def execute_grammar_program(self, program: GrammarProgram) -> Dict[str, Any]:
         """Execute a grammar program and return results."""
         results = {}
-        print(f"Executing grammar program: {program.name}")
-        
         for section in program.sections:
             section_result = self.execute_section(section)
             results[section.name] = section_result
-            
         return results
     
     def execute_resonance_program(self, program: ResonanceProgram) -> Dict[str, Any]:
         """Execute a resonance program and return results."""
         results = {}
-        print(f"Executing resonance program: {program.name}")
-        
         for section in program.sections:
             section_result = self.execute_section(section)
             results[section.name] = section_result
-            
         return results
     
     def execute_section(self, section: Section) -> List[Any]:
         """Execute all statements in a section."""
-        print(f"  Section: {section.name}")
         results = []
-        
         for statement in section.statements:
             result = self.execute_node(statement)
             results.append(result)
-            
         return results
     
-    def execute_matrix_assignment(self, node: MatrixAssignment) -> Optional[np.ndarray]:
+    def execute_matrix_assignment(self, node: MatrixAssignment) -> np.ndarray:
         """Execute matrix assignment and store result."""
         value = self.execute_node(node.value)
-        if isinstance(value, np.ndarray):
-            self.variables[node.target.name] = value
-            print(f"    {node.target.name} = {value.shape} matrix")
-            return value
-        else:
-            print(f"Error: Expected matrix, got {type(value)}")
-            return None
+        matrix = self._contain_as_matrix(value, "Matrix assignment")
+        self.variables[node.target.name] = matrix
+        return matrix
     
     def execute_grammar_assignment(self, node: GrammarAssignment) -> GrammarDef:
         """Execute grammar assignment and store result."""
         grammar = node.grammar
         self.grammars[node.target.name] = grammar
-        print(f"    {node.target.name} = grammar '{grammar.name}' ({len(grammar.rules)} rules)")
         return grammar
     
     def execute_assignment(self, node: Assignment) -> Any:
         """Execute regular assignment."""
         value = self.execute_node(node.value)
         self.variables[node.target.name] = value
-        print(f"    {node.target.name} = {value}")
         return value
     
-    def execute_dissonance_op(self, node: DissonanceOp) -> Optional[np.ndarray]:
+    def execute_dissonance_op(self, node: DissonanceOp) -> np.ndarray:
         """Execute the D (dissonance) operator on a matrix."""
         operand = self.execute_node(node.operand)
-        if isinstance(operand, np.ndarray):
-            # D operator: Apply symmetry breaking transformation
-            result = self._apply_dissonance_transform(operand)
-            print(f"    D({operand.shape}) -> {result.shape}")
-            return result
-        else:
-            print(f"Error: D operator requires matrix input, got {type(operand)}")
-            return None
+        matrix = self._contain_as_matrix(operand, "D operator")
+        return self._apply_dissonance_transform(matrix)
     
-    def execute_containment_op(self, node: ContainmentOp) -> Optional[np.ndarray]:
+    def execute_containment_op(self, node: ContainmentOp) -> np.ndarray:
         """Execute the C (containment) operator on a matrix."""
         operand = self.execute_node(node.operand)
-        if isinstance(operand, np.ndarray):
-            # C operator: Apply containment transformation based on type
-            result = self._apply_containment_transform(operand, node.containment_type)
-            print(f"    C({operand.shape}, {node.containment_type.value}) -> {result.shape}")
-            return result
-        else:
-            print(f"Error: C operator requires matrix input, got {type(operand)}")
-            return None
+        matrix = self._contain_as_matrix(operand, "C operator")
+        return self._apply_containment_transform(matrix, node.containment_type)
     
-    def execute_dc_cycle(self, node: DCCycle) -> Optional[np.ndarray]:
+    def execute_dc_cycle(self, node: DCCycle) -> np.ndarray:
         """Execute a full D-C cycle on a matrix."""
         operand = self.execute_node(node.operand)
-        if isinstance(operand, np.ndarray):
-            # DC cycle: Apply D then C transformations iteratively
-            result = self._apply_dc_cycle(operand, node.containment_type, node.max_iterations)
-            print(f"    DC({operand.shape}, {node.containment_type.value}, {node.max_iterations}) -> cycle complete")
-            return result
-        else:
-            print(f"Error: DC cycle requires matrix input, got {type(operand)}")
-            return None
+        matrix = self._contain_as_matrix(operand, "DC cycle")
+        return self._apply_dc_cycle(matrix, node.containment_type, node.max_iterations)
     
     def execute_matrix_literal(self, node: MatrixLiteral) -> np.ndarray:
         """Create a matrix from literal specification."""
@@ -386,7 +349,6 @@ class Engine:
             # Matrix with dimensions and fill
             fill_value = self._glyph_to_number(node.fill_glyph) if node.fill_glyph else 0
             matrix = np.full((node.rows, node.cols), fill_value)
-        
         return matrix
     
     def execute_glyph_literal(self, node: GlyphLiteral) -> float:
@@ -398,32 +360,45 @@ class Engine:
         if node.name in self.variables:
             return self.variables[node.name]
         else:
-            print(f"Error: Variable '{node.name}' not defined")
-            return None
+            raise NameError(f"Variable '{node.name}' not defined")
     
     def execute_verify_arithmetic(self, node: VerifyArithmetic) -> bool:
         """Verify arithmetic operations work correctly."""
         test_size = 10
-        if node.test_size and isinstance(node.test_size, Literal):
-            test_size = node.test_size.value
-        print(f"    Verifying arithmetic with test size {test_size}...")
-        # Implement arithmetic verification logic
-        return True
+        match node.test_size:
+            case Literal():
+                test_size = int(node.test_size.value)
+            case _:
+                pass
+        
+        # Actually test D-C arithmetic operations
+        try:
+            test_matrix = np.random.rand(test_size, test_size)
+            d_result = self._apply_dissonance_transform(test_matrix)
+            c_result = self._apply_containment_transform(test_matrix, ContainmentType.DECIMAL)
+            return (isinstance(d_result, np.ndarray) and 
+                   isinstance(c_result, np.ndarray) and
+                   d_result.shape == test_matrix.shape)
+        except Exception:
+            return False
     
     def execute_verify_strings(self, node: VerifyStrings) -> bool:
         """Verify string operations work correctly."""
-        print(f"    Verifying string operations...")
-        # Implement string verification logic
-        return True
+        # Test string containment transformations
+        try:
+            test_matrix = np.array([[1.5, 2.7], [3.1, 4.9]])
+            result = self._apply_containment_transform(test_matrix, ContainmentType.STRING)
+            # Should convert to integer 0-9 range
+            return (isinstance(result, np.ndarray) and 
+                   bool(np.all(result >= 0)) and bool(np.all(result <= 9)))
+        except Exception:
+            return False
     
-    def execute_resonance_trace(self, node: ResonanceTrace) -> Optional[Union[float, np.ndarray]]:
+    def execute_resonance_trace(self, node: ResonanceTrace) -> float:
         """Compute resonance trace of a matrix."""
-        matrix = self.execute_node(node.matrix_expr)
-        if isinstance(matrix, np.ndarray):
-            trace = np.trace(matrix)
-            print(f"    Trace({matrix.shape}) = {trace}")
-            return trace
-        return None
+        operand = self.execute_node(node.matrix_expr)
+        matrix = self._contain_as_matrix(operand, "Trace")
+        return float(np.trace(matrix))
     
     def _glyph_to_number(self, glyph: Glyph) -> float:
         """Convert glyphs to numeric values for computation."""
@@ -477,28 +452,15 @@ class Engine:
         
         # Handle infinite iterations for cellular automata
         if max_iter == float('inf'):
-            print(f"      Starting infinite DC cycle (cellular automata mode)...")
-            # For infinite iterations, we'll store the evolution sequence
-            # and return a generator or just run until manual stop
-            # For now, run a practical limit for demo purposes
             iterations = 1000  # Large number for continuous evolution
         else:
             iterations = int(max_iter) if max_iter else 5
-            print(f"      Starting DC cycle ({iterations} iterations)...")
         
         for i in range(iterations):
             # Apply D (dissonance) transformation
             result = self._apply_dissonance_transform(result)
             # Apply C (containment) transformation  
             result = self._apply_containment_transform(result, ctype)
-            
-            if max_iter == float('inf'):
-                # In cellular automata mode, we could yield intermediate states
-                # For now, just run silently for the demo
-                if i % 100 == 0:  # Progress indicator
-                    print(f"        Evolution step {i+1}...")
-            else:
-                print(f"        Iteration {i+1} complete")
             
         return result
 
@@ -513,7 +475,7 @@ class Engine:
             result = self.execute_program(line)
             if result is not None:
                 return result
-        except:
+        except Exception:
             pass  # Fall back to legacy processing
         
         # Legacy command processing
@@ -523,19 +485,18 @@ class Engine:
         if command in self.symbol_table:
             _, func = self.symbol_table[command]
             if callable(func):
-                func(*args)
+                return func(*args)
             else:
-                print(f"Error: `{command}` is not an executable operator.")
+                raise RuntimeError(f"`{command}` is not an executable operator.")
         elif command in self.reversal:
             word = self.reversal[command]
             _, func = self.symbol_table[word]
             if callable(func):
-                func(*args)
+                return func(*args)
             else:
-                print(f"Error: `{command}` ({word}) is not an executable operator.")
+                raise RuntimeError(f"`{command}` ({word}) is not an executable operator.")
         else:
-            translated = self.translate_symbols(line)
-            print(f"Translated: {translated}")
+            return self.translate_symbols(line)
 
     def translate_symbols(self, text: str) -> str:
         """Translates known words to their symbolic representation."""
@@ -578,6 +539,13 @@ class Engine:
             yield path
         elif path.is_dir():
             yield from path.rglob("*.py")
+
+    def _contain_as_matrix(self, value: Any, operation_name: str) -> np.ndarray:
+        """Containment operator: Ensure value is contained within matrix domain."""
+        if isinstance(value, np.ndarray):
+            return value
+        # Could add other matrix-like type conversions here
+        raise TypeError(f"{operation_name} requires matrix input, got {type(value)}")
 
 
 class EquilibriumOperator:

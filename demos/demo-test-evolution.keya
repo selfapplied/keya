@@ -1,0 +1,7 @@
+matrix test_evolution {
+  ops {
+    grid = [3, 3, ∅]
+    evolved = D(grid)
+    result = DC(grid, binary, 5)
+  }
+} 

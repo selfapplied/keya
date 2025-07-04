@@ -38,7 +38,7 @@ def run_demo(demo_name: str, save_output: bool = True):
             print(f"✅ Complete. Output saved to: {output_file}")
         else:
             result = subprocess.run([sys.executable, demo_path], cwd='.')
-            print(f"✅ Complete.")
+            print("✅ Complete.")
         
         return result.returncode == 0
     
@@ -50,7 +50,7 @@ def list_demos():
     """List available demos."""
     demos_dir = "."
     demos = [f for f in os.listdir(demos_dir) 
-             if f.endswith('.py') and not f.startswith('README') and f != 'run_demo.py']
+             if f.endswith('.py') and not f.startswith('README') and f != 'run-demo.py']
     return sorted(demos)
 
 def main():
@@ -70,9 +70,9 @@ def main():
         for demo in demos:
             print(f"  - {demo}")
         
-        print(f"\nOutput saved to:")
-        print(f"  - Test logs: ../.out/tests/")
-        print(f"  - Visualizations: ../.out/visualizations/")
+        print("\nOutput saved to:")
+        print("  - Test logs: ../.out/tests/")
+        print("  - Visualizations: ../.out/visualizations/")
         
         return
     

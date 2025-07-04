@@ -8,9 +8,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
 from keya.dsl import (
-    Assignment,
     ContainmentOp,
-    ContainmentType,
     DCCycle,
     DissonanceOp,
     Glyph,
@@ -21,9 +19,6 @@ from keya.dsl import (
     MatrixProgram,
     ParseError,
     ResonanceProgram,
-    ResonanceTrace,
-    VerifyArithmetic,
-    VerifyStrings,
     parse,
 )
 
@@ -245,7 +240,7 @@ def test_error_handling():
     
     for i, code in enumerate(invalid_codes):
         try:
-            ast = parse(code)
+            parse(code)  # Should fail for invalid syntax
             print(f"  ✗ Test {i+1}: Should have failed but didn't")
         except ParseError as e:
             print(f"  ✓ Test {i+1}: Correctly caught parse error: {e.message}")

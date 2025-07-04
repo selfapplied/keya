@@ -2,16 +2,13 @@
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from .ast import (
     Action,
     # Statements
     Assignment,
     # Core AST types
-    ASTNode,
-    # Operations
-    BinaryOp,
     Boundary,
     ContainmentOp,
     ContainmentType,
@@ -34,7 +31,6 @@ from .ast import (
     MatrixBinaryArithmetic,
     MatrixLiteral,
     MatrixProgram,
-    Operator,
     PatternMatch,
     ResonanceProgram,
     ResonanceTrace,
@@ -43,7 +39,6 @@ from .ast import (
     Statement,
     StringConcat,
     StringFromSeed,
-    UnaryOp,
     Variable,
     VerifyArithmetic,
     VerifyStrings,
@@ -142,7 +137,7 @@ class Lexer:
     
     def __init__(self, text: str):
         self.text = text
-        self.tokens = []
+        self.tokens: List[Token] = []
         self.current = 0
         self.line = 1
         self.column = 1
@@ -225,8 +220,10 @@ class Parser:
     def skip_newlines(self):
         """Skip any NEWLINE tokens."""
         
-        while self.peek() and self.peek().type == 'NEWLINE':
+        token = self.peek()
+        while token and token.type == 'NEWLINE':
             self.current += 1
+            token = self.peek()
     
     def parse_program(self) -> Definition:
         """Parse a complete program definition."""
@@ -316,22 +313,29 @@ class Parser:
             return self.parse_verify_statement()
         elif self.match('TRACE'):
             return self.parse_trace_statement()
-        elif self.match('IDENTIFIER') and self.peek(1) and self.peek(1).type == 'ASSIGN':
-            return self.parse_assignment()
-        else:
-            # Could be a boundary condition or other statement
-            expr = self.parse_expression()
-            
-            if self.match('ARROW'):
-                # Boundary condition
-                self.consume('ARROW')
-                consequence = self.parse_statement()
+        elif self.match('IDENTIFIER'):
+            next_token = self.peek(1)
+            if next_token and next_token.type == 'ASSIGN':
+                return self.parse_assignment()
+        
+        # Could be a boundary condition or other statement
+        expr = self.parse_expression()
+        
+        if self.match('ARROW'):
+            # Boundary condition
+            self.consume('ARROW')
+            consequence = self.parse_statement()
+            # Ensure consequence is Assignment or Action
+            if isinstance(consequence, (Assignment, Action)):
                 return Boundary(condition=expr, consequence=consequence)
             else:
-                # Standalone expression - convert to action
-                if isinstance(expr, Variable):
+                raise ParseError("Boundary consequence must be Assignment or Action")
+        else:
+            # Standalone expression - convert to action
+            match expr:
+                case Variable():
                     return Action(name=expr.name)
-                else:
+                case _:
                     raise ParseError("Expected statement")
     
     def parse_verify_statement(self) -> Union[VerifyArithmetic, VerifyStrings]:
@@ -661,7 +665,11 @@ class Parser:
     def is_matrix_expression(self, expr: Expression) -> bool:
         """Check if an expression is matrix-related."""
         
-        return isinstance(expr, (MatrixLiteral, DissonanceOp, ContainmentOp, DCCycle, MatrixBinaryArithmetic))
+        match expr:
+            case MatrixLiteral() | DissonanceOp() | ContainmentOp() | DCCycle() | MatrixBinaryArithmetic():
+                return True
+            case _:
+                return False
 
 
 def parse(text: str) -> Definition:

@@ -20,7 +20,6 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
-from keya.quantum.renderer import QuantumRenderer
 
 
 def demo_single_orbital(orbital_type: OrbitalType, title: str):
@@ -43,8 +42,6 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
     print(f"Most probable radius: {info['most_probable_radius']:.3f} Bohr")
     
     # Create visualizations
-    renderer = QuantumRenderer()
-    
     # Create a figure with multiple panels
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
     fig.suptitle(f"{title} - Keya D-C Quantum Analysis", fontsize=16, fontweight='bold')
@@ -118,7 +115,7 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
         variance_before = np.var(prob_nonzero)
         variance_after = np.var(prob_nonzero_after)
         
-        print(f"D-C Evolution Results:")
+        print("D-C Evolution Results:")
         print(f"  Average change: {change:.6f}")
         print(f"  Variance before: {variance_before:.6f}")
         print(f"  Variance after: {variance_after:.6f}")

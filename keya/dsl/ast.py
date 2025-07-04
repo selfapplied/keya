@@ -16,9 +16,9 @@ class Operator(Enum):
     DESCENT = auto()  # ℓ
     REFLECTION = auto()  # ~
     
-    # D-C Fundamental Operators
-    DISSONANCE = auto()  # 𝔻 - symmetry breaking
-    CONTAINMENT = auto()  # ℂ - resonance creation
+    #  Fundamental Operators
+    WILD = auto()  # Ϟ - symmetry breaking
+    TAME = auto()  # § - resonance creation
     
     # Matrix Operations
     MATRIX_ADD = auto()      # matrix addition
@@ -121,23 +121,23 @@ class UnaryOp(Expression):
 
 
 @dataclass(slots=True)
-class DissonanceOp(Expression):
-    """Represents application of the D (dissonance) operator."""
+class WildOp(Expression):
+    """Represents application of the Ϟ (Wild) operator."""
     
     operand: Expression  # Matrix expression
 
 
 @dataclass(slots=True) 
-class ContainmentOp(Expression):
-    """Represents application of the C (containment) operator."""
+class TameOp(Expression):
+    """Represents application of the § (Tame) operator."""
     
     operand: Expression  # Matrix expression
     containment_type: ContainmentType
 
 
 @dataclass(slots=True)
-class DCCycle(Expression):
-    """Represents a full D-C cycle operation."""
+class WildTameCycle(Expression):
+    """Represents a full ∮ () cycle operation."""
     
     operand: Expression  # Matrix expression
     containment_type: ContainmentType
@@ -289,7 +289,7 @@ class Definition(ASTNode):
 
 @dataclass(slots=True)
 class MatrixProgram(Definition):
-    """A program that works with glyph matrices and D-C operations."""
+    """A program that works with glyph matrices."""
     
     def_type: str = "matrix"
 

@@ -1,18 +1,11 @@
 """
-Test the fundamental D-C operators: Dissonance and Containment.
+Test the fundamental operators: Dissonance and Containment.
 
 This demonstrates the basic mechanics of D and C operations on glyph matrices.
 All claims are verified with assertions and observable tests.
 """
 
-import os
 
-os.environ['JAX_PLATFORMS'] = 'cpu'  # Force CPU to avoid METAL bugs
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import jax.numpy as jnp
 
@@ -152,7 +145,7 @@ def test_resonance_trace():
 
 def test_dc_cycle_convergence():
     """Test that DC cycles actually converge to some stable state."""
-    print("\n=== TESTING D-C CYCLE CONVERGENCE ===")
+    print("\n=== TESTING CYCLE CONVERGENCE ===")
     
     initial = create_glyph_matrix((4, 4), Glyph.UP)
     print_matrix(initial, "Initial state")
@@ -216,7 +209,7 @@ def test_operator_properties():
     print("✅ D operator respects fixed points")
 
 if __name__ == "__main__":
-    print("Testing D-C operators with rigorous verification...")
+    print("Testing operators with rigorous verification...")
     print("No ungrounded claims - only observable behavior.\n")
     
     # Run all tests
@@ -234,4 +227,4 @@ if __name__ == "__main__":
     print("✅ Resonance trace provides normalized dissonance measurement")
     print("✅ DC cycles are deterministic")
     print("✅ Operators preserve mathematical properties")
-    print("\nAll tests passed. The D-C operator implementation is mathematically sound.") 
+    print("\nAll tests passed. The operator implementation is mathematically sound.") 

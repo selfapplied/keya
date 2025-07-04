@@ -1,5 +1,5 @@
 """
-Functions for rendering the output of kéya D-C simulations.
+Functions for rendering the output of kéya simulations.
 """
 
 import matplotlib
@@ -205,11 +205,11 @@ def plot_wavefunction(
     _save_or_show(fig, "wavefunction", save_to, interactive)
 
 def plot_dc_matrix(matrix: np.ndarray, 
-                   title: str = "D-C Matrix Visualization", 
+                   title: str = "Matrix Visualization", 
                    glyph_mapping: Optional[Dict[float, str]] = None,
                    save_to: Optional[str] = None,
                    interactive: bool = False):
-    """Visualize a D-C matrix with glyph symbols and color mapping."""
+    """Visualize a matrix with glyph symbols and color mapping."""
     if glyph_mapping is None:
         glyph_mapping = {0.0: '∅', -1.0: '▽', 1.0: '△', 0.5: '⊙', 2.0: '⊕'}
     
@@ -242,10 +242,10 @@ def plot_dc_matrix(matrix: np.ndarray,
     _save_or_show(fig, f"matrix_{title}", save_to, interactive)
 
 def plot_dc_transformation(before: np.ndarray, after: np.ndarray, 
-                          operation: str = "D-C Transform",
+                          operation: str = "Transform",
                           save_to: Optional[str] = None,
                           interactive: bool = False):
-    """Visualize before and after D-C transformation."""
+    """Visualize before and after transformation."""
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     
     # Before heatmap
@@ -274,10 +274,10 @@ def plot_dc_transformation(before: np.ndarray, after: np.ndarray,
     plt.tight_layout()
     _save_or_show(fig, f"transform_{operation}", save_to, interactive)
 
-def plot_dc_cycle(matrices: List[np.ndarray], operation: str = "D-C Cycle",
+def plot_dc_cycle(matrices: List[np.ndarray], operation: str = "Cycle",
                   save_to: Optional[str] = None,
                   interactive: bool = False):
-    """Visualize a sequence of matrices through D-C cycle iterations."""
+    """Visualize a sequence of matrices through cycle iterations."""
     n_iterations = len(matrices)
     cols = min(4, n_iterations)
     rows = (n_iterations + cols - 1) // cols
@@ -339,10 +339,10 @@ def plot_glyph_distribution(matrix: np.ndarray, title: str = "Glyph Distribution
     fig = plt.gcf()
     _save_or_show(fig, f"distribution_{title}", save_to, interactive)
 
-def visualize_dc_program_results(results: Dict[str, Any], program_name: str = "D-C Program",
+def visualize_dc_program_results(results: Dict[str, Any], program_name: str = "Program",
                                 save_to_dir: Optional[str] = None,
                                 interactive: bool = False):
-    """Create a comprehensive visualization of D-C program execution results."""
+    """Create a comprehensive visualization of program execution results."""
     print(f"\n=== {program_name} Visualization ===")
     
     if save_to_dir is None:

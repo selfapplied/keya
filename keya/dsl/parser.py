@@ -1,4 +1,4 @@
-"""Parser for the keya D-C language."""
+"""Parser for the keya language."""
 
 import re
 from dataclasses import dataclass
@@ -10,11 +10,11 @@ from .ast import (
     Assignment,
     # Core AST types
     Boundary,
-    ContainmentOp,
+    TameOp,
     ContainmentType,
-    DCCycle,
+    WildTameCycle,
     Definition,
-    DissonanceOp,
+    WildOp,
     Expression,
     FunctionCall,
     # Enums
@@ -66,7 +66,7 @@ class Token:
 
 
 class Lexer:
-    """Tokenizes keya D-C source code."""
+    """Tokenizes keya  source code."""
     
     # Token patterns
     TOKENS = [
@@ -84,10 +84,10 @@ class Lexer:
         # Special symbols
         ('INFINITY', r'∞'),
         
-        # D-C operators (order matters - longer patterns first)
-        ('DC_CYCLE', r'\b(?:DC|dc)\b'),
-        ('D_OP', r'𝔻|D'),
-        ('C_OP', r'ℂ|C'),
+        #  operators (order matters - longer patterns first)
+        ('WILDTAME_OP', r'\b(?:WT|wt)\b|∮'),
+        ('WILD_OP', r'Ϟ|\bW\b'),
+        ('TAME_OP', r'§|\bT\b'),
         
         # Matrix brackets
         ('MATRIX_START', r'\['),
@@ -176,7 +176,7 @@ class Lexer:
 
 
 class Parser:
-    """Parses keya D-C source code into an AST."""
+    """Parses keya source code into an AST."""
     
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
@@ -217,7 +217,7 @@ class Parser:
         token = self.peek()
         return token is not None and token.type in token_types
     
-    def skip_newlines(self):
+    def skip_newlines(self) -> None:
         """Skip any NEWLINE tokens."""
         
         token = self.peek()
@@ -448,22 +448,22 @@ class Parser:
     def parse_unary_op(self) -> Expression:
         """Parse unary operations."""
         
-        if self.match('D_OP'):
-            self.consume('D_OP')
+        if self.match('WILD_OP'):
+            self.consume('WILD_OP')
             operand = self.parse_primary()
-            return DissonanceOp(operand=operand)
+            return WildOp(operand=operand)
         
-        elif self.match('C_OP'):
-            self.consume('C_OP')
+        elif self.match('TAME_OP'):
+            self.consume('TAME_OP')
             self.consume('LPAREN')
             operand = self.parse_expression()
             self.consume('COMMA')
             containment_type = self.parse_containment_type()
             self.consume('RPAREN')
-            return ContainmentOp(operand=operand, containment_type=containment_type)
+            return TameOp(operand=operand, containment_type=containment_type)
         
-        elif self.match('DC_CYCLE'):
-            self.consume('DC_CYCLE')
+        elif self.match('WILDTAME_OP'):
+            self.consume('WILDTAME_OP')
             self.consume('LPAREN')
             operand = self.parse_expression()
             self.consume('COMMA')
@@ -481,7 +481,7 @@ class Parser:
                     raise ParseError("Expected number or ∞ for iteration count")
             
             self.consume('RPAREN')
-            return DCCycle(operand=operand, containment_type=containment_type, max_iterations=max_iterations)
+            return WildTameCycle(operand=operand, containment_type=containment_type, max_iterations=max_iterations)
         
         else:
             return self.parse_primary()
@@ -666,14 +666,14 @@ class Parser:
         """Check if an expression is matrix-related."""
         
         match expr:
-            case MatrixLiteral() | DissonanceOp() | ContainmentOp() | DCCycle() | MatrixBinaryArithmetic():
+            case MatrixLiteral() | WildOp() | TameOp() | WildTameCycle() | MatrixBinaryArithmetic():
                 return True
             case _:
                 return False
 
 
 def parse(text: str) -> Definition:
-    """Parse keya D-C source code."""
+    """Parse keya source code."""
     
     lexer = Lexer(text)
     tokens = lexer.tokenize()

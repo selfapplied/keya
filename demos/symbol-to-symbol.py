@@ -13,7 +13,6 @@ The key insight: symbols are first-class entities that can transform into other 
 """
 
 import sys
-sys.path.append('src')
 
 import jax.numpy as jnp
 from keya.core.operators import (

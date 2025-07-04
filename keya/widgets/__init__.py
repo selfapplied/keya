@@ -1,4 +1,4 @@
-"""Keya D-C Cellular Automata Widget System."""
+"""Keya Cellular Automata Widget System."""
 
 from .cellular import CellularWidget, GridState, InteractionMode
 from .renderer import WidgetRenderer

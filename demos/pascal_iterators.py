@@ -23,9 +23,6 @@ import matplotlib.pyplot as plt
 from scipy.special import comb
 import jax.numpy as jnp
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 from keya.core.engine import Engine
 from keya.core.operators import D_operator as Wild_operator, C_operator as Containment_operator, DC_cycle as WildTame_cycle, Glyph
 

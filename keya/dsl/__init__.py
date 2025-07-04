@@ -1,4 +1,4 @@
-"""Keya D-C Language DSL module."""
+"""Keya language DSL module."""
 
 from .ast import (
     Action,
@@ -9,11 +9,11 @@ from .ast import (
     # Operations
     BinaryOp,
     Boundary,
-    ContainmentOp,
+    TameOp,
     ContainmentType,
-    DCCycle,
+    WildTameCycle,
     Definition,
-    DissonanceOp,
+    WildOp,
     Expression,
     FunctionCall,
     # Enums
@@ -58,7 +58,7 @@ __all__ = [
     
     # Operations
     'BinaryOp', 'UnaryOp', 'FunctionCall',
-    'DissonanceOp', 'ContainmentOp', 'DCCycle',
+    'WildOp', 'TameOp', 'WildTameCycle',
     'MatrixBinaryArithmetic', 'StringFromSeed', 'PatternMatch', 'StringConcat',
     
     # Grammar

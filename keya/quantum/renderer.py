@@ -1,4 +1,4 @@
-"""3D Quantum Phenomena Renderer using Keya D-C Operators."""
+"""3D Quantum Phenomena Renderer using Keya Operators."""
 
 from enum import Enum
 from typing import Optional, Tuple, Any
@@ -19,11 +19,11 @@ class PhenomenaType(Enum):
     PROBABILITY_CLOUD = "probability_cloud" # 3D probability clouds
     SUPERPOSITION = "superposition"       # Quantum superposition states
     WAVE_COLLAPSE = "wave_collapse"      # Wave function collapse
-    DC_EVOLUTION = "dc_evolution"        # D-C operator evolution
+    DC_EVOLUTION = "dc_evolution"        # operator evolution
 
 
 class QuantumRenderer:
-    """3D renderer for quantum phenomena using keya D-C mathematical framework."""
+    """3D renderer for quantum phenomena using keya mathematical framework."""
     
     def __init__(self, 
                  phenomena_type: PhenomenaType = PhenomenaType.ELECTRON_ORBITAL,
@@ -81,7 +81,7 @@ class QuantumRenderer:
         self.ax.grid(True, alpha=0.3)
         
         # Title
-        self.ax.set_title("Keya D-C Quantum Phenomena Renderer", 
+        self.ax.set_title("Keya Quantum Phenomena Renderer", 
                          color='white', fontsize=16, pad=20)
     
     def load_orbital(self, orbital_type: OrbitalType = OrbitalType.S_1S, grid_size: int = 60):
@@ -231,7 +231,7 @@ class QuantumRenderer:
         plt.tight_layout()
         
     def render_wave_function_evolution(self, steps: int = 50):
-        """Render real-time wave function evolution using D-C operators."""
+        """Render real-time wave function evolution using operators."""
         if not self.wave_function:
             print("❌ No wave function loaded!")
             return
@@ -247,7 +247,7 @@ class QuantumRenderer:
             if not self.wave_function:
                 return []
             
-            # Evolve one step using D-C operators
+            # Evolve one step using operators
             if frame > 0:
                 self.wave_function.apply_dc_evolution(1)
             
@@ -269,7 +269,7 @@ class QuantumRenderer:
             
             # Update title with evolution info
             stats = self.wave_function.get_quantum_stats()
-            self.ax.set_title(f"D-C Quantum Evolution - Step {frame}\n"
+            self.ax.set_title(f"Quantum Evolution - Step {frame}\n"
                              f"Time: {stats['time']:.3f}, "
                              f"Total Prob: {stats['total_probability']:.3f}",
                              color='white', fontsize=14)
@@ -283,12 +283,12 @@ class QuantumRenderer:
         self.is_animating = True
         
     def render_dc_orbital_evolution(self, evolution_steps: int = 20):
-        """Render orbital evolution using keya D-C operators."""
+        """Render orbital evolution using keya operators."""
         if not self.orbital:
             print("❌ No orbital loaded!")
             return
             
-        print(f"🌀 Starting D-C orbital evolution ({evolution_steps} steps)...")
+        print(f"🌀 Starting orbital evolution ({evolution_steps} steps)...")
         
         def animate(frame):
             # Clear and setup
@@ -299,7 +299,7 @@ class QuantumRenderer:
             if not self.orbital:
                 return []
             
-            # Apply D-C evolution every few frames
+            # Apply evolution every few frames
             if frame > 0 and frame % 3 == 0:
                 self.orbital.evolve_with_dc_operators(1)
             
@@ -323,7 +323,7 @@ class QuantumRenderer:
             info = self.orbital.get_orbital_info()
             dc_stats = self.orbital.dc_wave_function.get_quantum_stats()
             
-            self.ax.set_title(f"D-C {info['orbital_type']} Evolution - Frame {frame}\n"
+            self.ax.set_title(f"{info['orbital_type']} Evolution - Frame {frame}\n"
                              f"DC Time: {dc_stats['time']:.3f}, "
                              f"Containment: {dc_stats['containment_type']}",
                              color='white', fontsize=14)
@@ -436,7 +436,7 @@ def create_quantum_demo(demo_type: str = "orbital") -> QuantumRenderer:
         renderer.render_quantum_superposition()
         
     elif demo_type == "dc_orbital":
-        # D-C orbital evolution demo
+        # orbital evolution demo
         renderer.load_orbital(OrbitalType.S_2S, grid_size=50)
         renderer.render_dc_orbital_evolution(15)
         

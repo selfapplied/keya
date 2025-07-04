@@ -3,8 +3,6 @@
 
 import sys
 import os
-# Add parent directory's src to path since we're in demos/ subdirectory
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.dsl import parse
 

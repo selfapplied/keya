@@ -1,4 +1,4 @@
-"""Cellular Automata Widget using Keya D-C Language."""
+"""Cellular Automata Widget using Keya Language."""
 
 from dataclasses import dataclass
 from enum import Enum
@@ -28,7 +28,7 @@ class GridState:
     
 
 class CellularWidget:
-    """A widget that displays evolving cellular automata using keya D-C rules."""
+    """A widget that displays evolving cellular automata."""
     
     def __init__(self, 
                  width: int = 20, 
@@ -43,7 +43,7 @@ class CellularWidget:
         self.interaction_mode = interaction_mode
         self.evolution_speed = evolution_speed
         
-        # Initialize the keya D-C engine
+        # Initialize the keya engine
         self.engine = Engine()
         
         # Create initial grid state
@@ -162,7 +162,7 @@ class CellularWidget:
         print("⏸️  Stopped cellular evolution")
     
     def step_evolution(self) -> bool:
-        """Perform one evolution step using keya D-C operators. Returns True if changed."""
+        """Perform one evolution step using keya operators. Returns True if changed."""
         if not self.state.evolution_active:
             return False
             
@@ -171,12 +171,12 @@ class CellularWidget:
         if len(self.history) > self.max_history:
             self.history.pop(0)
             
-        # Use keya D-C language to evolve the grid
+        # Use keya language to evolve the grid
         # Create a keya program that applies one DC cycle
         keya_program = f"""
 matrix evolution {{
     step {{
-        result = DC(grid, {self.containment_type.value}, 1)
+        result = ∮(grid, {self.containment_type.value}, 1)
     }}
 }}
 """

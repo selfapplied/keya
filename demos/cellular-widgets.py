@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
 """
-🌟 KEYA D-C CELLULAR AUTOMATA WIDGETS DEMO 🌟
+🌟 KEYA CELLULAR AUTOMATA WIDGETS DEMO 🌟
 
 This demonstrates the revolutionary cellular automata widget system 
-powered by the keya D-C mathematical language!
+powered by the keya mathematical language!
 
 Features:
-- Real-time cellular evolution using keya D-C operators
+- Real-time cellular evolution using keya operators
 - Interactive widgets with multiple interaction modes
 - Infinite iteration support (∞) for continuous evolution  
-- Mathematical D-C harmonic transformations
+- Mathematical harmonic transformations
 - Beautiful visual rendering with matplotlib
 """
 
 import sys
 import os
 import argparse
-
-# Add parent directory's src to path since we're in demos/ subdirectory
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.widgets.renderer import create_demo_widget, WidgetRenderer
 from keya.widgets.cellular import CellularWidget, InteractionMode
@@ -28,7 +25,7 @@ from keya.dsl.ast import ContainmentType
 def demo_ripple_widget():
     """Demo the ripple interaction widget."""
     print("🌊 RIPPLE WIDGET DEMO")
-    print("Click anywhere to create energy ripples that evolve via D-C operators!")
+    print("Click anywhere to create energy ripples that evolve via operators!")
     print("Press SPACE to start/stop evolution, R to reset")
     
     widget, renderer = create_demo_widget("ripple")
@@ -49,7 +46,7 @@ def demo_infinite_evolution():
         evolution_speed=0.1  # Fast evolution
     )
     
-    # Manually test infinite D-C cycle
+    # Manually test infinite cycle
     program = """
 matrix infinite_test {
     cellular_evolution {
@@ -59,10 +56,10 @@ matrix infinite_test {
 }
 """
     
-    print("Testing infinite D-C cycles...")
+    print("Testing infinite cycles...")
     result = widget.engine.execute_program(program.strip())
     if result:
-        print("✅ Infinite D-C cycles working!")
+        print("✅ Infinite cycles working!")
     
     renderer = WidgetRenderer(widget)
     renderer.show(auto_evolve=True)
@@ -88,7 +85,7 @@ def demo_multi_containment():
 def demo_console_widget():
     """Demo a console-based widget for systems without GUI."""
     print("💻 CONSOLE WIDGET DEMO")
-    print("Watch D-C evolution in the terminal!")
+    print("Watch evolution in the terminal!")
     
     widget = CellularWidget(width=15, height=10)
     
@@ -130,7 +127,7 @@ def display_console_grid(widget: CellularWidget):
 
 def main():
     """Main demo selector - non-interactive by default."""
-    parser = argparse.ArgumentParser(description='Keya D-C Cellular Automata Widgets Demo')
+    parser = argparse.ArgumentParser(description='Keya Cellular Automata Widgets Demo')
     parser.add_argument('-i', '--interactive', action='store_true',
                        help='Enable interactive mode with menu selection')
     parser.add_argument('--choice', type=int, choices=range(1, 6), 
@@ -146,7 +143,7 @@ def main():
         return
     
     # Interactive mode - show menu
-    print("🚀 KEYA D-C CELLULAR AUTOMATA WIDGETS 🚀")
+    print("🚀 KEYA CELLULAR AUTOMATA WIDGETS 🚀")
     print("=" * 50)
     print("Select a demo:")
     print("1. Ripple Widget (Interactive)")

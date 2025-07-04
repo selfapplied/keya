@@ -1,7 +1,6 @@
 """Test file to verify matplotlib 3D API type checking works correctly."""
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 # Create 3D plot
 fig = plt.figure(figsize=(10, 8))

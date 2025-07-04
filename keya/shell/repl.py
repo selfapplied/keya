@@ -1,11 +1,9 @@
-"""Modern Keya D-C REPL - Language-first interactive shell."""
+"""Modern Keya  REPL - Language-first interactive shell."""
 
 import json
-import os
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
@@ -13,16 +11,14 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import HTML, StyleAndTextTuples
-from prompt_toolkit.key_binding import KeyBindings, KeyPressEvent
-from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.styles import Style
 
 from ..core.engine import Engine
-from ..dsl.parser import parse, ParseError
+from ..dsl.parser import ParseError
 from ..dsl.ast import (
-    Glyph, ContainmentType, MatrixProgram, GrammarProgram, 
-    ResonanceProgram, Definition
+    Definition
 )
 
 # Shared glyph and operator replacements - used by both tab completion and space replacement
@@ -39,8 +35,9 @@ SYMBOL_REPLACEMENTS = {
     'growth': '↑',
     'descent': 'ℓ',
     'reflect': '~', 'reflection': '~',
-    'dissonance': '𝔻',
-    'containment': 'ℂ'
+    'wild': 'Ϟ',
+    'tame': '§',
+    'wildtame': '∮', 'cycle': '∮'
 }
 
 
@@ -61,8 +58,8 @@ class WorkspaceState:
                 'history': self.history[-50:]  # Last 50 commands
             }
             path.write_text(json.dumps(data, indent=2))
-        except Exception:
-            # Ignore save errors
+        except (OSError, PermissionError, UnicodeEncodeError):
+            # Ignore filesystem and encoding errors during workspace save
             pass
     
     def load_from_file(self, path: Path):
@@ -72,13 +69,13 @@ class WorkspaceState:
                 data = json.loads(path.read_text())
                 self.name = data.get('name', 'default')
                 self.history = data.get('history', [])
-            except (json.JSONDecodeError, Exception):
-                # Ignore corrupted workspace files
+            except (json.JSONDecodeError, OSError, UnicodeDecodeError, KeyError):
+                # Ignore corrupted or malformed workspace files
                 pass
 
 
 class KeyaDCCompleter(Completer):
-    """Advanced completer for keya D-C language."""
+    """Advanced completer for keya  language."""
     
     def __init__(self, engine: Engine, workspace: WorkspaceState):
         self.engine = engine
@@ -92,7 +89,7 @@ class KeyaDCCompleter(Completer):
         }
         
         # Operators and types
-        self.operators = {'D', 'C', 'DC'}
+        self.operators = {'Ϟ', '§', '∮', 'W', 'T', 'WT'}
         self.containment_types = {'binary', 'decimal', 'string', 'general'}
         
         # Use shared symbol replacements
@@ -101,9 +98,9 @@ class KeyaDCCompleter(Completer):
         # Common patterns
         self.patterns = {
             'matrix_dims': '[{rows}, {cols}, {fill}]',
-            'dc_cycle': 'DC({matrix}, {type}, {iterations})',
-            'dissonance': 'D({matrix})',
-            'containment': 'C({matrix}, {type})',
+            'wildtame_cycle': '∮({matrix}, {type}, {iterations})',
+            'wild': 'Ϟ({matrix})',
+            'tame': '§({matrix}, {type})',
             'matrix_program': 'matrix {name} {\n  ops {\n    {content}\n  }\n}',
             'grammar_program': 'grammar {name} {\n  rules {\n    {content}\n  }\n}',
         }
@@ -180,7 +177,7 @@ class KeyaDCCompleter(Completer):
 
 
 class KeyaDCAutoSuggest(AutoSuggest):
-    """Intelligent auto-suggestions for keya D-C."""
+    """Intelligent auto-suggestions for keya ."""
     
     def __init__(self, engine: Engine, workspace: WorkspaceState):
         self.engine = engine
@@ -233,7 +230,7 @@ class KeyaDCAutoSuggest(AutoSuggest):
 
 
 class KeyaDCREPL:
-    """Modern, language-first REPL for keya D-C."""
+    """Modern, language-first REPL for keya ."""
     
     def __init__(self, engine: Engine):
         self.engine = engine
@@ -453,10 +450,10 @@ class KeyaDCREPL:
     
     def _show_welcome(self):
         """Display welcome message."""
-        print("Keya D-C Shell - Modern Language-First REPL")
+        print("Keya Shell - Modern Language-First REPL")
         print()
         print("Features:")
-        print("  * Full D-C syntax: DC([3,3,△], binary, 5)")
+        print("  * Full syntax: ∮([3,3,△], binary, 5)")
         print("  * Smart symbol completion: void → ∅, tensor → ⊗, dissonance → 𝔻") 
         print("  * Matrix visualization: :show matrix_name")
         print("  * Workspace management: :workspace quantum_demo")
@@ -483,7 +480,7 @@ class KeyaDCREPL:
         if line.lower() in ['exit', 'quit']:
             raise EOFError()
         
-        # Try to parse and execute as D-C language
+        # Try to parse and execute as language
         try:
             # Check if it's a simple expression or full program
             if any(keyword in line for keyword in ['matrix', 'grammar', 'resonance']):
@@ -498,7 +495,7 @@ class KeyaDCREPL:
                     result = self.engine.execute_program(wrapped)
                     if result and 'result' in result:
                         self._display_result(result['result'])
-                except:
+                except Exception:
                     # Fallback: try as variable lookup
                     if line in self.workspace.variables:
                         self._display_result(self.workspace.variables[line])
@@ -544,7 +541,7 @@ class KeyaDCREPL:
         """Show contextual help."""
         if topic == 'syntax':
             print_formatted_text(HTML("""
-<style fg="#FF6B6B" bold>Keya D-C Syntax Reference</style>
+<style fg="#FF6B6B" bold>Keya  Syntax Reference</style>
 
 <style fg="#98D8C8">Program Types:</style>
   <style fg="#F7DC6F">matrix</style> program_name { ops { ... } }
@@ -552,30 +549,30 @@ class KeyaDCREPL:
   <style fg="#F7DC6F">resonance</style> program_name { traces { ... } }
 
 <style fg="#98D8C8">Operators:</style>
-  <style fg="#F7DC6F">D</style>(matrix)                    - Dissonance (symmetry breaking)
-  <style fg="#F7DC6F">C</style>(matrix, type)             - Containment (binary|decimal|string|general)
-  <style fg="#F7DC6F">DC</style>(matrix, type, iterations) - Full D-C cycle
+  <style fg="#F7DC6F">Ϟ</style>(matrix)                    - Wild (symmetry breaking)
+  <style fg="#F7DC6F">§</style>(matrix, type)             - Tame (binary|decimal|string|general)
+  <style fg="#F7DC6F">∮</style>(matrix, type, iterations) - Full  cycle
 
 <style fg="#98D8C8">Glyphs:</style>
   <style fg="#BB8FCE">∅</style> void    <style fg="#BB8FCE">▽</style> down    <style fg="#BB8FCE">△</style> up    <style fg="#BB8FCE">⊙</style> unity    <style fg="#BB8FCE">⊕</style> flow
             """))
         elif topic == 'operators':
             print_formatted_text(HTML("""
-<style fg="#FF6B6B" bold>D-C Operators</style>
+<style fg="#FF6B6B" bold> Operators</style>
 
-<style fg="#F7DC6F" bold>D(matrix)</style> - Dissonance Operator
-  Breaks symmetry and creates interference patterns
-  Example: <style fg="#85C1E9">D([3,3,△])</style>
+<style fg="#F7DC6F" bold>Ϟ(matrix)</style> - Wild Operator
+  Breaks symmetry and creates chaotic patterns
+  Example: <style fg="#85C1E9">Ϟ([3,3,△])</style>
 
-<style fg="#F7DC6F" bold>C(matrix, type)</style> - Containment Operator  
+<style fg="#F7DC6F" bold>§(matrix, type)</style> - Tame Operator  
   Resolves patterns into stable forms
   Types: binary, decimal, string, general
-  Example: <style fg="#85C1E9">C(evolved_matrix, binary)</style>
+  Example: <style fg="#85C1E9">§(evolved_matrix, binary)</style>
 
-<style fg="#F7DC6F" bold>DC(matrix, type, iterations)</style> - D-C Cycle
-  Iterative dissonance→containment evolution
-  Example: <style fg="#85C1E9">DC([4,4,∅], binary, 10)</style>
-  Infinite: <style fg="#85C1E9">DC(wave, general, ∞)</style>
+<style fg="#F7DC6F" bold>∮(matrix, type, iterations)</style> -  Cycle
+  Iterative wild→tame evolution
+  Example: <style fg="#85C1E9">∮([4,4,∅], binary, 10)</style>
+  Infinite: <style fg="#85C1E9">∮(wave, general, ∞)</style>
             """))
         elif topic == 'examples':
             print_formatted_text(HTML("""
@@ -584,14 +581,14 @@ class KeyaDCREPL:
 <style fg="#98D8C8">Simple matrix operations:</style>
   m = [3, 3, ∅]
   result = D(m)
-  evolved = DC(m, binary, 5)
+  evolved = ∮(m, binary, 5)
 
 <style fg="#98D8C8">Full program:</style>
   matrix evolution {
     ops {
       grid = [10, 10, ∅]
       grid[5,5] = △
-      final = DC(grid, binary, 20)
+      final = ∮(grid, binary, 20)
     }
   }
 
@@ -605,11 +602,11 @@ class KeyaDCREPL:
             """))
         else:
             print_formatted_text(HTML("""
-<style fg="#FF6B6B" bold>Keya D-C Help</style>
+<style fg="#FF6B6B" bold>Keya Help</style>
 
 <style fg="#98D8C8">Help topics:</style>
   :help syntax     - Language syntax reference
-  :help operators  - D-C operator details  
+  :help operators  -  operator details  
   :help examples   - Code examples
 
 <style fg="#98D8C8">Commands:</style>
@@ -823,7 +820,7 @@ class KeyaDCREPL:
         """))
     
     def run_script(self, filepath: str):
-        """Execute a keya D-C script file."""
+        """Execute a keya script file."""
         path = Path(filepath)
         if not path.exists():
             print(f"Script file not found: {filepath}")

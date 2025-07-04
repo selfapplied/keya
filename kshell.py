@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Kshell - The Kéya D-C Language Shell
+Kshell - The Keya Language Shell
 
-A command-line interface for the Kéya D-C language supporting:
-- Matrix operations with D-C operators
-- Glyph-based symbolic computation  
-- Grammar transformations
+Interactive shell for Keya language:
+- Matrix operations with glyph symbols
+- Grammar transformations  
 - Resonance analysis
-- Interactive visualization
+- Visualization
 """
 
 import sys
@@ -23,9 +22,9 @@ from keya.shell.repl import KeyaDCREPL, SYMBOL_REPLACEMENTS
 
 def print_version():
     """Print version information."""
-    print("Kshell - Kéya D-C Language Shell")
+    print("Kshell - Keya Language Shell")
     print("Version: 2.0.0 - Modern Language-First REPL")
-    print("Features: D-C operators, glyph matrices, grammar transformations")
+    print("Features: Glyph matrices, grammar transformations")
 
 
 def test_completion(word: str):
@@ -101,7 +100,7 @@ COMMANDS = {
 
 def print_usage():
     """Print usage information from structured command definitions."""
-    print("Kshell - Kéya D-C Language Shell")
+    print("Kshell - Keya Language Shell")
     print()
     print("Usage:")
     for cmd_info in COMMANDS.values():

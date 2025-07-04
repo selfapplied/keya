@@ -1,4 +1,4 @@
-"""Keya D-C Quantum Phenomena Rendering System."""
+"""Keya Quantum Phenomena Rendering System."""
 
 from .wavefunction import QuantumWaveFunction, WaveFunctionType
 from .orbital import ElectronOrbital, OrbitalType

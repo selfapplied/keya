@@ -1,18 +1,11 @@
 """
-Test the string generation system from D-C operators.
+Test the string generation system from operators.
 
-This demonstrates how horizontal propagation from D-C resonance can create
+This demonstrates how horizontal propagation from resonance can create
 formal languages, grammars, and string operations.
 """
 
-import os
 
-os.environ['JAX_PLATFORMS'] = 'cpu'  # Force CPU to avoid METAL bugs
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 import jax.numpy as jnp
 
@@ -173,10 +166,10 @@ def test_string_operations():
     print("✅ String concatenation works correctly")
 
 def test_dc_string_integration():
-    """Test string generation integrated with D-C operators."""
-    print("\n=== TESTING D-C STRING INTEGRATION ===")
+    """Test string generation integrated with operators."""
+    print("\n=== TESTING STRING INTEGRATION ===")
     
-    # Start with uniform field, apply D-C, then custom string grammar
+    # Start with uniform field, apply , then custom string grammar
     uniform_field = create_glyph_matrix((4, 8), Glyph.VOID)
     print_matrix(uniform_field, "Initial uniform field")
     
@@ -196,7 +189,7 @@ def test_dc_string_integration():
             if row_text:
                 print(f"Row {row} string: {row_text}")
     
-    print("✅ D-C operators integrate with string generation")
+    print("✅ operators integrate with string generation")
 
 def test_custom_grammar():
     """Test creation and use of custom grammar."""
@@ -235,7 +228,7 @@ def test_comprehensive_verification():
 
 if __name__ == "__main__":
     print("Testing string generation system...")
-    print("Verifying that D-C operators can generate formal languages.\n")
+    print("Verifying that operators can generate formal languages.\n")
     
     try:
         test_basic_grammars()
@@ -248,7 +241,7 @@ if __name__ == "__main__":
         
         print("\n🎉 ALL STRING TESTS PASSED!")
         print("✅ String generation system is verified and working")
-        print("✅ D-C operators generate functional grammar systems")
+        print("✅ operators generate functional grammar systems")
         print("✅ Formal languages emerge from resonance patterns")
         print("✅ Pattern recognition and string operations functional")
         

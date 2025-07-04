@@ -1,12 +1,12 @@
 """
-Example: Hydrogen Electron Orbitals using Keya D-C Quantum Operators
+Example: Hydrogen Electron Orbitals using Keya Quantum Operators
 
 This demo showcases different hydrogen orbitals (1s, 2s, 2p, 3d) using
 the sophisticated quantum module that properly implements:
 - Quantum numbers (n, l, m)  
 - Radial wave functions with Laguerre polynomials
 - Angular wave functions with spherical harmonics
-- Keya D-C operator evolution of quantum states
+- Keya operator evolution of quantum states
 """
 
 import sys
@@ -16,14 +16,12 @@ matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
 
 
 def demo_single_orbital(orbital_type: OrbitalType, title: str):
-    """Demonstrate a single orbital type with D-C evolution."""
+    """Demonstrate a single orbital type with evolution."""
     print(f"\n=== {title} ===")
     
     # Create the orbital
@@ -44,7 +42,7 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
     # Create visualizations
     # Create a figure with multiple panels
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    fig.suptitle(f"{title} - Keya D-C Quantum Analysis", fontsize=16, fontweight='bold')
+    fig.suptitle(f"{title} - Keya Quantum Analysis", fontsize=16, fontweight='bold')
     
     # Panel 1: XY cross-section
     xy_density = orbital.get_probability_density_2d('xy', z_slice=orbital.grid_size//2)
@@ -86,28 +84,28 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
     axes[1, 0].grid(True, alpha=0.3)
     axes[1, 0].legend()
     
-    # Panel 5: Before D-C evolution (probability histogram)
+    # Panel 5: Before evolution (probability histogram)
     prob_flat = orbital.probability_density.flatten()
     prob_nonzero = prob_flat[prob_flat > 1e-10]
     axes[1, 1].hist(np.log10(prob_nonzero), bins=50, alpha=0.7, color='blue', 
-                   label='Before D-C')
+                   label='Before ')
     axes[1, 1].set_xlabel('log₁₀(Probability Density)')
     axes[1, 1].set_ylabel('Frequency')
     axes[1, 1].set_title('Probability Distribution')
     axes[1, 1].grid(True, alpha=0.3)
     
-    # Panel 6: After D-C evolution
-    print("Evolving with D-C operators...")
+    # Panel 6: After evolution
+    print("Evolving with operators...")
     success = orbital.evolve_with_dc_operators(steps=20)
     
     if success:
         prob_flat_after = orbital.probability_density.flatten()
         prob_nonzero_after = prob_flat_after[prob_flat_after > 1e-10]
         axes[1, 2].hist(np.log10(prob_nonzero_after), bins=50, alpha=0.7, color='red',
-                       label='After D-C')
+                       label='After ')
         axes[1, 2].set_xlabel('log₁₀(Probability Density)')
         axes[1, 2].set_ylabel('Frequency')
-        axes[1, 2].set_title('After D-C Evolution')
+        axes[1, 2].set_title('After Evolution')
         axes[1, 2].grid(True, alpha=0.3)
         
         # Compute change metrics
@@ -115,16 +113,16 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
         variance_before = np.var(prob_nonzero)
         variance_after = np.var(prob_nonzero_after)
         
-        print("D-C Evolution Results:")
+        print("Evolution Results:")
         print(f"  Average change: {change:.6f}")
         print(f"  Variance before: {variance_before:.6f}")
         print(f"  Variance after: {variance_after:.6f}")
         print(f"  Variance ratio: {variance_after/variance_before:.3f}")
     else:
-        axes[1, 2].text(0.5, 0.5, 'D-C Evolution\nFailed', 
+        axes[1, 2].text(0.5, 0.5, 'Evolution\nFailed', 
                         ha='center', va='center', transform=axes[1, 2].transAxes,
                         fontsize=14, color='red')
-        axes[1, 2].set_title('D-C Evolution Status')
+        axes[1, 2].set_title('Evolution Status')
     
     axes[1, 1].legend()
     axes[1, 2].legend()
@@ -152,7 +150,7 @@ def demo_orbital_comparison():
     ]
     
     fig, axes = plt.subplots(2, 4, figsize=(20, 10))
-    fig.suptitle("Hydrogen Orbital Comparison - Keya D-C Quantum Theory", fontsize=16, fontweight='bold')
+    fig.suptitle("Hydrogen Orbital Comparison - Keya Quantum Theory", fontsize=16, fontweight='bold')
     
     for i, (orbital_type, title) in enumerate(orbitals_to_compare):
         print(f"Processing {title}...")
@@ -203,11 +201,11 @@ def demo_orbital_comparison():
 
 
 def main():
-    """Main demonstration of hydrogen orbitals with keya D-C operators."""
-    print("🛰️  Hydrogen Orbitals with Keya D-C Quantum Operators")
+    """Main demonstration of hydrogen orbitals with keya operators."""
+    print("🛰️  Hydrogen Orbitals with Keya Quantum Operators")
     print("=" * 60)
     
-    # Demo individual orbitals with D-C evolution
+    # Demo individual orbitals with evolution
     demo_single_orbital(OrbitalType.S_1S, "1s Ground State Orbital")
     demo_single_orbital(OrbitalType.P_2PZ, "2pz Orbital (Dumbbell Shape)")
     demo_single_orbital(OrbitalType.D_3DZ2, "3dz² Orbital (Complex Shape)")
@@ -218,10 +216,10 @@ def main():
     print("\n✅ Orbital demonstrations complete!")
     print("📁 Check .out/visualizations/ for generated plots")
     print("\n🔬 Key Insights:")
-    print("  • Keya D-C operators properly handle quantum wave functions")
+    print("  • Keya operators properly handle quantum wave functions")
     print("  • Real hydrogen orbitals show characteristic shapes (s, p, d)")
-    print("  • D-C evolution preserves quantum mechanical structure")
-    print("  • Variance typically decreases under D-C containment")
+    print("  • evolution preserves quantum mechanical structure")
+    print("  • Variance typically decreases under containment")
 
 
 if __name__ == "__main__":

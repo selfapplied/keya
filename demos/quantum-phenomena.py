@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-🌌 KEYA D-C QUANTUM PHENOMENA RENDERER 🌌
+🌌 KEYA QUANTUM PHENOMENA RENDERER 🌌
 
-This demonstrates how keya D-C operators naturally emerge in quantum mechanics,
+This demonstrates how keya operators naturally emerge in quantum mechanics,
 showcasing the deep mathematical connection between diagonalization-containment
 and quantum state evolution.
 """
 
 import sys
 import os
-# Add parent directory's src to path since we're in demos/ subdirectory
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.quantum.renderer import create_quantum_demo
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
@@ -39,24 +37,24 @@ def test_quantum_basics():
     print(f"   📊 Total probability: {stats['total_probability']:.3f}")
     print(f"   ⏰ Time: {stats['time']:.3f}")
     
-    # Test 3: Apply D-C evolution
-    print("\n3. Testing D-C quantum evolution...")
+    # Test 3: Apply evolution
+    print("\n3. Testing quantum evolution...")
     success = wave.apply_dc_evolution(3)
     if success:
         new_stats = wave.get_quantum_stats()
-        print("   ✅ D-C evolution successful!")
+        print("   ✅ evolution successful!")
         print(f"   📊 New probability: {new_stats['total_probability']:.3f}")
         print(f"   ⏰ New time: {new_stats['time']:.3f}")
     else:
-        print("   ❌ D-C evolution failed")
+        print("   ❌ evolution failed")
     
-    # Test 4: Test orbital D-C evolution
-    print("\n4. Testing orbital D-C evolution...")
+    # Test 4: Test orbital evolution
+    print("\n4. Testing orbital evolution...")
     orbital_success = orbital.evolve_with_dc_operators(2)
     if orbital_success:
-        print("   ✅ Orbital D-C evolution successful!")
+        print("   ✅ Orbital evolution successful!")
     else:
-        print("   ❌ Orbital D-C evolution failed")
+        print("   ❌ Orbital evolution failed")
     
     print("\n🎉 QUANTUM BASICS TEST COMPLETE! 🎉")
     return True
@@ -89,19 +87,19 @@ def demo_hydrogen_orbitals():
         max_prob = prob_2d.max()
         print(f"   🎯 Max probability density: {max_prob:.4f}")
         
-        # Test D-C evolution
-        print("   🌀 Testing D-C evolution...")
+        # Test evolution
+        print("   🌀 Testing evolution...")
         evolution_success = orbital.evolve_with_dc_operators(1)
         if evolution_success:
-            print("   ✅ D-C evolution successful!")
+            print("   ✅ evolution successful!")
         else:
-            print("   ❌ D-C evolution failed")
+            print("   ❌ evolution failed")
     
     print("\n✨ HYDROGEN ORBITALS DEMO COMPLETE! ✨")
 
 
 def demo_quantum_superposition():
-    """Demo quantum superposition using D-C operators."""
+    """Demo quantum superposition using operators."""
     print("🌈 QUANTUM SUPERPOSITION DEMO")
     print("=" * 32)
     
@@ -117,7 +115,7 @@ def demo_quantum_superposition():
     print(f"📍 Position expectation: <x>={pos_exp[0]:.2f}, <y>={pos_exp[1]:.2f}, <z>={pos_exp[2]:.2f}")
     
     # Evolve the superposition
-    print("\n🌀 Evolving superposition with D-C operators...")
+    print("\n🌀 Evolving superposition with operators...")
     for step in range(5):
         success = wave.apply_dc_evolution(1)
         if success:
@@ -160,7 +158,7 @@ def demo_wave_collapse():
 
 
 def demo_infinite_quantum_evolution():
-    """Demo infinite quantum evolution using ∞ D-C cycles."""
+    """Demo infinite quantum evolution using ∞ cycles."""
     print("♾️  INFINITE QUANTUM EVOLUTION DEMO")
     print("=" * 38)
     
@@ -168,7 +166,7 @@ def demo_infinite_quantum_evolution():
     wave = QuantumWaveFunction(WaveFunctionType.HARMONIC, (15, 15, 15), 
                               ContainmentType.GENERAL)
     
-    print("Testing infinite D-C evolution...")
+    print("Testing infinite evolution...")
     
     # Test with large number to simulate infinity
     keya_program = """
@@ -186,7 +184,7 @@ matrix infinite_quantum {
         result = wave.engine.execute_program(keya_program.strip())
         if result:
             print("✅ Infinite quantum evolution simulation successful!")
-            print("   📊 Large-scale D-C cycles completed")
+            print("   📊 Large-scale cycles completed")
             print("   🌀 Quantum system evolved through extended time")
         else:
             print("❌ Infinite evolution simulation failed")
@@ -212,7 +210,7 @@ def create_visual_demo(demo_type: str):
         elif demo_type == "evolution":
             print("🌊 Loading wave function evolution...")
             renderer = create_quantum_demo("evolution")
-            print("✅ Real-time D-C evolution animation created!")
+            print("✅ Real-time evolution animation created!")
             renderer.show()
             
         elif demo_type == "superposition":
@@ -222,9 +220,9 @@ def create_visual_demo(demo_type: str):
             renderer.show()
             
         elif demo_type == "dc_orbital":
-            print("🌀 Loading D-C orbital evolution...")
+            print("🌀 Loading orbital evolution...")
             renderer = create_quantum_demo("dc_orbital")
-            print("✅ D-C orbital animation created!")
+            print("✅ orbital animation created!")
             renderer.show()
             
         else:
@@ -240,9 +238,9 @@ def create_visual_demo(demo_type: str):
 
 def main():
     """Main quantum phenomena demo."""
-    print("🌌 KEYA D-C QUANTUM PHENOMENA RENDERER 🌌")
+    print("🌌 KEYA QUANTUM PHENOMENA RENDERER 🌌")
     print("=" * 50)
-    print("Mathematical D-C operators meet quantum mechanics!")
+    print("Mathematical operators meet quantum mechanics!")
     print()
     
     print("Select a demo:")
@@ -250,11 +248,11 @@ def main():
     print("2. Hydrogen Orbitals Demo (console)")  
     print("3. Quantum Superposition (console)")
     print("4. Wave Collapse Simulation (console)")
-    print("5. Infinite Evolution (∞ D-C cycles)")
+    print("5. Infinite Evolution (∞ cycles)")
     print("6. 3D Orbital Visualization (GUI)")
     print("7. Wave Evolution Animation (GUI)")
     print("8. Superposition Visualization (GUI)")
-    print("9. D-C Orbital Evolution (GUI)")
+    print("9. Orbital Evolution (GUI)")
     print("0. Run All Console Demos")
     
     try:

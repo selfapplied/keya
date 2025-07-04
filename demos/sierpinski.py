@@ -1,12 +1,12 @@
 """
-Example: Prime-counting Analysis using Keya D-C Operators in Sierpinski Framework
+Example: Prime-counting Analysis using Keya Operators in Sierpinski Framework
 
-This demo demonstrates how Keya D-C operators can be applied to number theory,
+This demo demonstrates how Keya operators can be applied to number theory,
 specifically analyzing prime distributions within Sierpinski triangle structures.
-We show that prime-counting functions exhibit D-C behavior through:
+We show that prime-counting functions exhibit behavior through:
 - Diagonalization of prime gaps and irregularities
 - Containment of infinite prime sequences into finite grids
-- D-C cycles that reveal hidden prime number patterns
+- cycles that reveal hidden prime number patterns
 """
 
 import sys
@@ -23,8 +23,6 @@ from matplotlib.gridspec import GridSpec
 import jax.numpy as jnp
 from typing import Dict, Any
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from keya.core.engine import Engine
 from keya.core.operators import D_operator as Wild_operator, C_operator as Containment_operator, DC_cycle as WildTame_cycle
@@ -35,7 +33,7 @@ DC_cycle = WildTame_cycle
 
 
 class PrimeSierpinskiDCAnalyzer:
-    """Prime number analysis using Keya D-C operators within Sierpinski framework."""
+    """Prime number analysis using Keya operators within Sierpinski framework."""
     
     def __init__(self, max_depth: int = 16) -> None:
         self.max_depth = max_depth
@@ -48,7 +46,7 @@ class PrimeSierpinskiDCAnalyzer:
         self.log_derivatives = self.compute_log_derivatives()
         self.anomalies = self.compute_anomalies()
         
-        # Initialize Keya D-C engine
+        # Initialize Keya engine
         self.engine = Engine()
         self.dc_processed_data = {}
         
@@ -114,19 +112,19 @@ class PrimeSierpinskiDCAnalyzer:
         return {k: float(self.log_derivatives[k] - (2**k) / k) for k in self.depths[:-1]}
 
     def apply_dc_operators_to_primes(self) -> Dict[str, Any]:
-        """Apply Keya D-C operators to prime distribution data."""
-        print("\n🧮 APPLYING D-C OPERATORS TO PRIME DISTRIBUTIONS")
+        """Apply Keya operators to prime distribution data."""
+        print("\n🧮 APPLYING OPERATORS TO PRIME DISTRIBUTIONS")
         print("-" * 50)
-        print("Testing claim: 'D-C operators diagonalize prime gaps and irregularities'")
+        print("Testing claim: 'operators diagonalize prime gaps and irregularities'")
         
-        # Convert prime data to matrix format for D-C processing
+        # Convert prime data to matrix format for processing
         prime_values = np.array([self.log_derivatives[k] for k in self.depths[:-1]])
         anomaly_values = np.array([self.anomalies[k] for k in self.depths[:-1]])
         
         print(f"Original prime derivatives range: [{np.min(prime_values):.1f}, {np.max(prime_values):.1f}]")
         print(f"Original anomaly range: [{np.min(anomaly_values):.1f}, {np.max(anomaly_values):.1f}]")
         
-        # Create matrices from prime data (make them square for D-C operators)
+        # Create matrices from prime data (make them square for operators)
         size = max(8, len(prime_values))  # Ensure reasonable matrix size
         prime_matrix = jnp.zeros((size, size))
         anomaly_matrix = jnp.zeros((size, size))
@@ -138,7 +136,7 @@ class PrimeSierpinskiDCAnalyzer:
         for i, val in enumerate(anomaly_values[:size]):
             anomaly_matrix = anomaly_matrix.at[i, i].set(int(abs(val) * 100) % 5)  # Convert to glyph range [0-4]
         
-        print(f"Matrix size for D-C processing: {size}x{size}")
+        print(f"Matrix size for processing: {size}x{size}")
         
         # Apply Ϟ-operator (diagonalize irregularities)
         print("\n  🔧 Ϟ-operator: Diagonalizing prime gaps...")
@@ -172,8 +170,8 @@ class PrimeSierpinskiDCAnalyzer:
         print(f"     Prime variance after C: {prime_var_after_c:.4f}")
         print(f"     Anomaly variance after C: {anomaly_var_after_c:.4f}")
         
-        # Apply full D-C cycle
-        print("\n  🔄 DC-cycle: Complete D-C evolution...")
+        # Apply full cycle
+        print("\n  🔄 DC-cycle: Complete evolution...")
         dc_primes = DC_cycle(prime_matrix, "binary", max_iterations=10)
         dc_anomalies = DC_cycle(anomaly_matrix, "binary", max_iterations=10)
         
@@ -192,9 +190,9 @@ class PrimeSierpinskiDCAnalyzer:
         
         # Test claim validation
         if primes_variance_reduction > 1.5 or anomalies_variance_reduction > 1.5:
-            print("✅ CLAIM VALIDATED: D-C operators reduce variance in prime distributions")
+            print("✅ CLAIM VALIDATED: operators reduce variance in prime distributions")
         else:
-            print("❌ CLAIM FAILED: D-C operators did not significantly reduce variance")
+            print("❌ CLAIM FAILED: operators did not significantly reduce variance")
         
         # Test for diagonalization effect
         original_off_diag = np.sum(np.abs(prime_matrix - np.diag(np.diag(prime_matrix))))
@@ -202,7 +200,7 @@ class PrimeSierpinskiDCAnalyzer:
         
         print(f"     Off-diagonal sum: {original_off_diag:.1f} → {dc_off_diag:.1f}")
         if dc_off_diag < original_off_diag:
-            print("✅ CLAIM VALIDATED: D-C operators enhance diagonalization")
+            print("✅ CLAIM VALIDATED: operators enhance diagonalization")
         else:
             print("❓ CLAIM UNCERTAIN: Diagonalization effect unclear")
         
@@ -220,10 +218,10 @@ class PrimeSierpinskiDCAnalyzer:
         }
 
     def analyze_prime_dc_convergence(self) -> dict[str, Any]:
-        """Analyze how D-C operators affect prime distribution convergence."""
-        print("\n📈 ANALYZING D-C CONVERGENCE PROPERTIES")
+        """Analyze how operators affect prime distribution convergence."""
+        print("\n📈 ANALYZING CONVERGENCE PROPERTIES")
         print("-" * 50)
-        print("Testing claim: 'D-C cycles reveal hidden prime number patterns'")
+        print("Testing claim: 'cycles reveal hidden prime number patterns'")
         
         # Test different containment rules
         containment_results = {}
@@ -240,7 +238,7 @@ class PrimeSierpinskiDCAnalyzer:
             for i, val in enumerate(prime_values[:size]):
                 matrix = matrix.at[i, i].set(int(abs(val) * 100) % 5)
             
-            # Apply multiple D-C cycles
+            # Apply multiple cycles
             steps_data = []
             current_matrix = matrix
             initial_variance = float(np.var(np.diag(matrix)))
@@ -314,7 +312,7 @@ class PrimeSierpinskiDCAnalyzer:
         return fd
 
     def validate_fractional_derivatives(self) -> None:
-        """Validate fractional derivative computations and D-C enhancement."""
+        """Validate fractional derivative computations and enhancement."""
         print("\n🔬 VALIDATING FRACTIONAL DERIVATIVES")
         print("-" * 50)
         
@@ -327,7 +325,7 @@ class PrimeSierpinskiDCAnalyzer:
             if fd:
                 values = list(fd.values())
                 
-                # Apply D-C processing to fractional derivatives
+                # Apply processing to fractional derivatives
                 size = max(8, len(values))
                 fd_matrix = jnp.zeros((size, size))
                 for i, val in enumerate(values[:size]):
@@ -349,30 +347,30 @@ class PrimeSierpinskiDCAnalyzer:
                 
                 print(f"α={alpha}: variance {original_var:.4f} → {dc_var:.4f} (enhancement: {enhancement_ratio:.2f}x)")
         
-        # Test claim about D-C enhancement
+        # Test claim about enhancement
         avg_enhancement = np.mean([r['enhancement'] for r in results.values()])
-        print(f"\nAverage D-C enhancement ratio: {avg_enhancement:.2f}x")
+        print(f"\nAverage enhancement ratio: {avg_enhancement:.2f}x")
         
         if avg_enhancement > 1.2:
-            print("✅ CLAIM VALIDATED: D-C processing enhances fractional derivatives")
+            print("✅ CLAIM VALIDATED: processing enhances fractional derivatives")
         else:
-            print("❓ CLAIM UNCERTAIN: D-C enhancement is marginal")
+            print("❓ CLAIM UNCERTAIN: enhancement is marginal")
 
     def visualize_dc_prime_analysis(self) -> None:
-        """Create comprehensive visualization of D-C prime analysis."""
+        """Create comprehensive visualization of prime analysis."""
         
-        # Apply D-C operators
+        # Apply operators
         self.dc_processed_data = self.apply_dc_operators_to_primes()
         convergence_data = self.analyze_prime_dc_convergence()
         
         fig = plt.figure(figsize=(20, 24))
         gs = GridSpec(6, 3, figure=fig, height_ratios=[1.5, 1, 1, 1, 1, 1])
 
-        # Main Sierpinski visualization with D-C overlays
+        # Main Sierpinski visualization with overlays
         ax1 = fig.add_subplot(gs[0, :])
         self.plot_sierpinski_dc_prime_sparks(ax1)
 
-        # D-C operator effects on primes
+        # operator effects on primes
         ax2 = fig.add_subplot(gs[1, 0])
         self.plot_dc_operator_effects(ax2)
         
@@ -382,7 +380,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax4 = fig.add_subplot(gs[1, 2])
         self.plot_dc_variance_reduction(ax4)
 
-        # Traditional analysis enhanced with D-C insights
+        # Traditional analysis enhanced with insights
         ax5 = fig.add_subplot(gs[2, 0])
         self.plot_log_derivative_comparison(ax5)
 
@@ -392,15 +390,15 @@ class PrimeSierpinskiDCAnalyzer:
         ax7 = fig.add_subplot(gs[2, 2])
         self.plot_dc_convergence_analysis(ax7, convergence_data)
 
-        # Fractional derivatives and D-C evolution
+        # Fractional derivatives and evolution
         ax8 = fig.add_subplot(gs[3, :])
         self.plot_fractional_derivatives_with_dc(ax8)
 
-        # D-C containment comparison
+        # containment comparison
         ax9 = fig.add_subplot(gs[4, :])
         self.plot_containment_type_comparison(ax9, convergence_data)
 
-        # Spectral analysis with D-C filtering
+        # Spectral analysis with filtering
         ax10 = fig.add_subplot(gs[5, :])
         self.plot_dc_filtered_spectrum(ax10)
 
@@ -410,11 +408,11 @@ class PrimeSierpinskiDCAnalyzer:
         os.makedirs('.out/visualizations', exist_ok=True)
         out_fn = ".out/visualizations/prime_sierpinski_dc.png"
         plt.savefig(out_fn, dpi=300, bbox_inches="tight")
-        print(f"Saved D-C prime analysis: {out_fn}")
+        print(f"Saved prime analysis: {out_fn}")
         plt.close()
 
     def plot_sierpinski_dc_prime_sparks(self, ax: Axes) -> None:
-        """Plot Sierpinski pattern with D-C processed prime sparks."""
+        """Plot Sierpinski pattern with processed prime sparks."""
         size = 2**self.max_depth
         img = np.zeros((size, self.max_depth))
 
@@ -437,13 +435,13 @@ class PrimeSierpinskiDCAnalyzer:
         positions = [2**k for k in depths]
         original_values = [self.log_derivatives[k] for k in depths]
         
-        # D-C processed data
+        # processed data
         if 'dc_primes' in self.dc_processed_data:
             dc_values = self.dc_processed_data['dc_primes']
         else:
             dc_values = original_values
 
-        # Plot both original and D-C processed
+        # Plot both original and processed
         # Ensure we have valid data and avoid divide by zero
         if not original_values or max(original_values) == 0:
             scale = 1.0
@@ -460,12 +458,12 @@ class PrimeSierpinskiDCAnalyzer:
         
         ax.scatter(positions, [d + 0.2 for d in depths], s=dc_sizes, 
                   c=dc_values[:len(depths)], cmap="viridis", alpha=0.8,
-                  edgecolors='black', linewidth=0.5, marker='s', label='D-C Processed', zorder=10)
+                  edgecolors='black', linewidth=0.5, marker='s', label='Processed', zorder=10)
 
         ax.set_xscale("log")
         ax.set_xlabel("n (log scale)")
         ax.set_ylabel("Depth (k)")
-        ax.set_title("Sierpinski Sieve with D-C Prime Analysis")
+        ax.set_title("Sierpinski Sieve with Prime Analysis")
         ax.grid(True, alpha=0.2)
         ax.legend()
 
@@ -485,12 +483,12 @@ class PrimeSierpinskiDCAnalyzer:
         
         ax.set_xlabel("Depth (k)")
         ax.set_ylabel("Prime Density")
-        ax.set_title("D-C Operator Effects")
+        ax.set_title("Operator Effects")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
     def plot_prime_anomaly_dc_evolution(self, ax: Axes) -> None:
-        """Show how D-C evolution affects prime anomalies."""
+        """Show how evolution affects prime anomalies."""
         if not self.dc_processed_data:
             return
             
@@ -502,17 +500,17 @@ class PrimeSierpinskiDCAnalyzer:
         ax.bar([d - 0.2 for d in depths], original, width=0.4, 
                alpha=0.7, label='Original Anomalies', color='red')
         ax.bar([d + 0.2 for d in depths], dc_evolved, width=0.4, 
-               alpha=0.7, label='D-C Evolved', color='blue')
+               alpha=0.7, label='Evolved', color='blue')
         
         ax.axhline(0, color="black", lw=1)
         ax.set_xlabel("Depth (k)")
         ax.set_ylabel("Anomaly Magnitude")
-        ax.set_title("Prime Anomaly D-C Evolution")
+        ax.set_title("Prime Anomaly Evolution")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
     def plot_dc_variance_reduction(self, ax: Axes) -> None:
-        """Show variance reduction from D-C processing."""
+        """Show variance reduction from processing."""
         if not self.dc_processed_data:
             return
             
@@ -533,7 +531,7 @@ class PrimeSierpinskiDCAnalyzer:
         
         ax.axhline(1, color="red", linestyle="--", alpha=0.7, label="No change")
         ax.set_ylabel("Variance Reduction Ratio")
-        ax.set_title("D-C Variance Reduction")
+        ax.set_title("Variance Reduction")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
@@ -544,9 +542,9 @@ class PrimeSierpinskiDCAnalyzer:
             variances = [d['variance'] for d in data]
             ax.plot(steps, variances, 'o-', label=f'{containment_type}', linewidth=2, markersize=4)
         
-        ax.set_xlabel("D-C Evolution Steps")
+        ax.set_xlabel("Evolution Steps")
         ax.set_ylabel("Variance")
-        ax.set_title("D-C Convergence by Containment Type")
+        ax.set_title("Convergence by Containment Type")
         ax.set_yscale('log')
         ax.legend()
         ax.grid(True, alpha=0.3)
@@ -580,7 +578,7 @@ class PrimeSierpinskiDCAnalyzer:
         ax.grid(True, alpha=0.3)
 
     def plot_fractional_derivatives_with_dc(self, ax: Axes) -> None:
-        """Plot fractional derivatives with D-C operator enhancement."""
+        """Plot fractional derivatives with operator enhancement."""
         alphas = [0.25, 0.5, 0.75, 1.0]
         
         for alpha in alphas:
@@ -588,7 +586,7 @@ class PrimeSierpinskiDCAnalyzer:
             ks = sorted(fd.keys())
             values = [fd[k] for k in ks]
             
-            # Apply D-C processing to fractional derivatives
+            # Apply processing to fractional derivatives
             if values:
                 # Create matrix from fractional derivative values
                 size = max(8, len(values))
@@ -599,14 +597,14 @@ class PrimeSierpinskiDCAnalyzer:
                 dc_fd_matrix = DC_cycle(fd_matrix, "binary", max_iterations=3)
                 dc_fd_vals = np.array([dc_fd_matrix[i, i] for i in range(min(len(values), size))])
                 
-                # Plot both original and D-C processed
+                # Plot both original and processed
                 ax.plot(ks, values, 'o-', alpha=0.5, label=f'α={alpha} (orig)', linewidth=1)
                 ax.plot(ks, dc_fd_vals[:len(ks)], 's-', alpha=0.8, 
-                       label=f'α={alpha} (D-C)', linewidth=2, markersize=3)
+                       label=f'α={alpha} ()', linewidth=2, markersize=3)
 
         ax.set_xlabel("Depth (k)")
         ax.set_ylabel("Fractional Derivative")
-        ax.set_title("Fractional Sieving: Grünwald–Letnikov with D-C Enhancement")
+        ax.set_title("Fractional Sieving: Grünwald–Letnikov with Enhancement")
         ax.legend(ncol=2)
         ax.grid(True, alpha=0.3)
 
@@ -630,19 +628,19 @@ class PrimeSierpinskiDCAnalyzer:
                    f'{variance:.2e}', ha='center', va='bottom', fontweight='bold', rotation=45)
         
         ax.set_ylabel("Final Variance")
-        ax.set_title("D-C Containment Type Effectiveness")
+        ax.set_title("Containment Type Effectiveness")
         ax.set_yscale('log')
         ax.grid(True, alpha=0.3)
 
     def plot_dc_filtered_spectrum(self, ax: Axes) -> None:
-        """FFT power spectrum comparison: original vs D-C filtered."""
+        """FFT power spectrum comparison: original vs filtered."""
         vals_orig = [self.anomalies[k] for k in self.anomalies]
         
         # Original spectrum
         freq_orig = np.fft.rfftfreq(len(vals_orig))
         power_orig = np.abs(np.fft.rfft(vals_orig)) ** 2
         
-        # D-C filtered spectrum
+        # filtered spectrum
         if 'dc_anomalies' in self.dc_processed_data:
             vals_dc = self.dc_processed_data['dc_anomalies'][:len(vals_orig)]
             power_dc = np.abs(np.fft.rfft(vals_dc)) ** 2
@@ -650,7 +648,7 @@ class PrimeSierpinskiDCAnalyzer:
             power_dc = power_orig
 
         ax.plot(freq_orig, power_orig, 'b-', alpha=0.7, linewidth=2, label='Original Spectrum')
-        ax.plot(freq_orig, power_dc, 'r-', alpha=0.8, linewidth=2, label='D-C Filtered')
+        ax.plot(freq_orig, power_dc, 'r-', alpha=0.8, linewidth=2, label='Filtered')
         
         # Mark peaks
         peak_orig = freq_orig[np.argmax(power_orig)]
@@ -661,21 +659,21 @@ class PrimeSierpinskiDCAnalyzer:
         
         ax.set_xlabel("Frequency")
         ax.set_ylabel("Power")
-        ax.set_title("Spectral Analysis: Original vs D-C Filtered Prime Anomalies")
+        ax.set_title("Spectral Analysis: Original vs Filtered Prime Anomalies")
         ax.set_yscale("log")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
 
 def main():
-    """Main demonstration of prime-Sierpinski D-C analysis."""
-    print("🔢 Prime Numbers in Sierpinski Framework with Keya D-C Operators")
+    """Main demonstration of prime-Sierpinski analysis."""
+    print("🔢 Prime Numbers in Sierpinski Framework with Keya Operators")
     print("=" * 70)
-    print("This demo validates key claims about D-C operator effects on prime distributions:")
-    print("  1. D-C operators diagonalize prime gaps and irregularities")
+    print("This demo validates key claims about operator effects on prime distributions:")
+    print("  1. operators diagonalize prime gaps and irregularities")
     print("  2. Containment of infinite prime sequences into finite grids")
-    print("  3. D-C cycles reveal hidden prime number patterns")
-    print("  4. Variance reduction through D-C processing")
+    print("  3. cycles reveal hidden prime number patterns")
+    print("  4. Variance reduction through processing")
     print("  5. Enhanced fractional derivative analysis")
     
     # Create analyzer
@@ -722,10 +720,10 @@ def main():
         else:
             print(f"❓ PATTERN UNCERTAIN: Deviation {pattern_deviation:.3f} from expected pattern")
     
-    # Run comprehensive D-C analysis
+    # Run comprehensive analysis
     analyzer.visualize_dc_prime_analysis()
     
-    print("\n✅ Prime-Sierpinski D-C analysis complete!")
+    print("\n✅ Prime-Sierpinski analysis complete!")
     print("📁 Check .out/visualizations/prime_sierpinski_dc.png")
     
     # Summary validation results
@@ -745,53 +743,53 @@ def main():
         
         if prime_reduction > 1.5 or anomaly_reduction > 1.5:
             claims_validated += 1
-            print("  ✅ CLAIM 1: D-C operators reduce variance - VALIDATED")
+            print("  ✅ CLAIM 1: operators reduce variance - VALIDATED")
         else:
-            print("  ❌ CLAIM 1: D-C operators reduce variance - FAILED")
+            print("  ❌ CLAIM 1: operators reduce variance - FAILED")
     
     # Check diagonalization claim
-    print("\n🔧 D-C Operator Effects:")
+    print("\n🔧 Operator Effects:")
     print("  • Matrix diagonalization enhances prime structure analysis")
     print("  • Containment operators stabilize chaotic distributions")
     claims_validated += 1  # Assume validated based on processing completion
-    print("  ✅ CLAIM 2: D-C operators enable structural analysis - VALIDATED")
+    print("  ✅ CLAIM 2: operators enable structural analysis - VALIDATED")
     
     # Check convergence claim  
     print("\n📈 Convergence Properties:")
     print("  • Different containment rules show varied effectiveness")
-    print("  • Iterative D-C cycles demonstrate pattern emergence")
+    print("  • Iterative cycles demonstrate pattern emergence")
     claims_validated += 1
-    print("  ✅ CLAIM 3: D-C cycles reveal patterns - VALIDATED")
+    print("  ✅ CLAIM 3: cycles reveal patterns - VALIDATED")
     
     # Check fractional derivative enhancement
     print("\n🧮 Fractional Derivative Enhancement:")
     print("  • Grünwald–Letnikov derivatives computed for multiple α values")
-    print("  • D-C processing applied to fractional derivatives")
+    print("  • processing applied to fractional derivatives")
     claims_validated += 1
-    print("  ✅ CLAIM 4: Fractional derivative D-C enhancement - VALIDATED")
+    print("  ✅ CLAIM 4: Fractional derivative enhancement - VALIDATED")
     
     # Check Sierpinski framework integration
     print("\n🔺 Sierpinski Framework Integration:")
     print("  • Prime distributions mapped onto Sierpinski structure")  
-    print("  • D-C operators applied within triangle geometry")
+    print("  • operators applied within triangle geometry")
     claims_validated += 1
-    print("  ✅ CLAIM 5: Sierpinski + D-C framework - VALIDATED")
+    print("  ✅ CLAIM 5: Sierpinski + framework - VALIDATED")
     
     print(f"\n🎯 FINAL SCORE: {claims_validated}/{total_claims} claims validated")
     
     if claims_validated >= 4:
-        print("🌟 EXCELLENT: Strong validation of D-C theory in prime analysis")
+        print("🌟 EXCELLENT: Strong validation of theory in prime analysis")
     elif claims_validated >= 3:
         print("👍 GOOD: Moderate validation with some promising results")
     else:
         print("⚠️  WEAK: Limited validation, theory needs refinement")
     
     print("\n💡 Key Insights:")
-    print("  • D-C operators provide novel framework for number theory")
+    print("  • operators provide novel framework for number theory")
     print("  • Containment rules affect convergence behavior") 
     print("  • Diagonalization exposes hidden prime structures")
     print("  • Sierpinski geometry enhances pattern recognition")
-    print("  • Fractional derivatives gain new meaning through D-C processing")
+    print("  • Fractional derivatives gain new meaning through processing")
 
 
 if __name__ == "__main__":

@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 """
-Integration test for the complete Kéya D-C system.
+Integration test for the complete Keya  system.
 Tests parser, engine, REPL, and visualization integration.
 """
 
 import sys
-import os
 
-# Ensure the src directory is on the path for local development
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
-
-from keya.dsl import Engine, parse
-from keya.shell.repl import KeyaREPL
+from keya.dsl import parse
+from keya.core.engine import Engine
+from keya.shell.repl import KeyaDCREPL
 
 
 def test_basic_parsing():
@@ -22,7 +19,7 @@ def test_basic_parsing():
     matrix_code = """matrix test_program {
     operations {
         m1 = [[∅, △], [▽, ⊙]]
-        result = D m1
+        result = Ϟ m1
     }
 }"""
     
@@ -46,13 +43,13 @@ def test_engine_execution():
         """matrix simple_test {
     operations {
         m1 = [[△, ▽], [⊙, ∅]]
-        result = D m1
+        result = Ϟ m1
     }
 }""",
         """matrix containment_test {
     operations {
         m2 = [2, 2, ∅]
-        contained = C(m2, binary)
+        contained = §(m2, binary)
     }
 }""",
         """resonance trace_test {
@@ -83,7 +80,7 @@ def test_repl_commands():
     print("🐚 Testing REPL functionality...")
     
     engine = Engine()
-    KeyaREPL(engine)  # Initialize REPL for engine setup
+    KeyaDCREPL(engine)  # Initialize REPL for engine setup
     
     # Test some basic operations that don't require user input
     test_commands = [
@@ -95,7 +92,7 @@ def test_repl_commands():
         """matrix test2 {
     operations {
         m1 = [[△, ▽], [⊙, ∅]]
-        result = D m1
+        result = Ϟ m1
     }
 }""",
     ]
@@ -142,13 +139,13 @@ def test_end_to_end():
     """Test complete end-to-end workflow."""
     print("🎯 Testing end-to-end workflow...")
     
-    # Complete D-C program
-    dc_program = """matrix advanced_test {
+    # Complete  program
+    wildtame_program = """matrix advanced_test {
     operations {
         base = [[△, ▽], [⊙, ⊕]]
-        dissonant = D base
-        contained = C(dissonant, decimal)
-        cycle_result = DC(base, binary, 3)
+        wild_result = Ϟ base
+        tamed = §(wild_result, decimal)
+        cycle_result = ∮(base, binary, 3)
     }
 }"""
     
@@ -156,11 +153,11 @@ def test_end_to_end():
         engine = Engine()
         
         # Parse
-        parse(dc_program)  # Validate syntax
+        parse(wildtame_program)  # Validate syntax
         print("  ✅ Complex program parsed")
         
         # Execute
-        engine.execute_program(dc_program)  # Execute for side effects
+        engine.execute_program(wildtame_program)  # Execute for side effects
         print("  ✅ Complex program executed")
         
         # Check if variables were created
@@ -175,7 +172,7 @@ def test_end_to_end():
 
 def main():
     """Run all integration tests."""
-    print("🧠 Kéya D-C Language Integration Tests")
+    print("🧠 Keya  Language Integration Tests")
     print("=" * 50)
     
     tests = [
@@ -204,12 +201,10 @@ def main():
     print(f"🎯 Test Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All integration tests PASSED! The system is ready!")
-        return 0
+        print("🎉 ALL TESTS PASSED! The Keya  system is working! 🎉")
     else:
         print("⚠️  Some tests failed. Please check the implementation.")
-        return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    main() 

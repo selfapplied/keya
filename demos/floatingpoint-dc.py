@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-FLOATING-POINT AS D-C OPERATIONS: Testing Deepseek's Insight
+FLOATING-POINT AS OPERATIONS: Testing Deepseek's Insight
 
 This demo tests the hypothesis that floating-point representation 
-is a fundamental D-C operation by:
+is a fundamental operation by:
 
 1. Measuring quantization effects in IEEE 754
 2. Verifying glyph mapping as containment operation
-3. Testing rounding as micro D-C cycles
+3. Testing rounding as micro cycles
 4. Analyzing special values as fixed points
-5. Comparing with keya D-C operators
+5. Comparing with keya operators
 
 All claims are tested with numerical verification.
 Output files are saved to .out/ directory structure.
@@ -17,8 +17,7 @@ Output files are saved to .out/ directory structure.
 
 import sys
 import os
-# Add parent directory's src to path since we're in demos/ subdirectory  
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
 
 import numpy as np
 import matplotlib
@@ -127,8 +126,8 @@ def test_glyph_quantization_properties() -> Dict[str, bool]:
 
 
 def test_rounding_as_dc_cycles() -> Dict[str, bool]:
-    """Test if floating-point rounding behaves like D-C operations."""
-    print("\nTesting rounding as D-C cycles...")
+    """Test if floating-point rounding behaves like operations."""
+    print("\nTesting rounding as cycles...")
     
     # Test classic 0.1 + 0.2 != 0.3 example
     a, b, c = 0.1, 0.2, 0.3
@@ -164,7 +163,7 @@ def test_rounding_as_dc_cycles() -> Dict[str, bool]:
 
 
 def test_special_values_as_fixed_points() -> Dict[str, bool]:
-    """Test if special values behave as D-C fixed points."""
+    """Test if special values behave as fixed points."""
     print("\nTesting special values as fixed points...")
     
     # Test NaN propagation (should absorb operations)
@@ -205,14 +204,14 @@ def test_special_values_as_fixed_points() -> Dict[str, bool]:
 
 
 def test_keya_dc_correspondence() -> Dict[str, bool]:
-    """Test if keya D-C operators correspond to floating-point operations."""
-    print("\nTesting keya D-C correspondence...")
+    """Test if keya operators correspond to floating-point operations."""
+    print("\nTesting keya correspondence...")
     
     try:
         # Create test matrices
         test_matrix = np.random.uniform(-2, 3, (6, 6))
         
-        # Apply keya D-C operations
+        # Apply keya operations
         keya_program = """
 matrix correspondence_test {
     ops {
@@ -287,7 +286,7 @@ def create_test_visualizations(test_results: Dict):
     
     # Summary plot
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 10))
-    fig.suptitle("Floating-Point D-C Operation Tests", fontsize=14)
+    fig.suptitle("Floating-Point Operation Tests", fontsize=14)
     
     # Test 1: IEEE 754 quantization
     ieee_data = test_results['ieee754']
@@ -337,8 +336,8 @@ def create_test_visualizations(test_results: Dict):
 
 
 def main():
-    """Run rigorous tests of floating-point D-C claims."""
-    print("TESTING FLOATING-POINT AS D-C OPERATIONS")
+    """Run rigorous tests of floating-point claims."""
+    print("TESTING FLOATING-POINT AS OPERATIONS")
     print("=" * 50)
     
     # Run all tests
@@ -381,9 +380,9 @@ def main():
     
     # Scientific conclusion
     if passed_tests / total_tests > 0.7:
-        print("\nCONCLUSION: Evidence supports floating-point as D-C operations")
+        print("\nCONCLUSION: Evidence supports floating-point as operations")
     else:
-        print("\nCONCLUSION: Insufficient evidence for floating-point D-C hypothesis")
+        print("\nCONCLUSION: Insufficient evidence for floating-point hypothesis")
 
 
 if __name__ == "__main__":

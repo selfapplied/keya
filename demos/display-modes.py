@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
-"""Demo of different display modes in Kéya D-C REPL."""
+"""Demo of different display modes in Kéya REPL."""
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-from src.keya.core.engine import Engine
-from src.keya.shell.repl import KeyaDCREPL
+from keya.core.engine import Engine
+from keya.shell.repl import KeyaDCREPL
 
 def demo_display_modes():
     """Demo different display modes."""
-    print("🎮 Kéya D-C Display Modes Demo")
+    print("🎮 Kéya Display Modes Demo")
     print("=" * 40)
     
     # Create engine and REPL

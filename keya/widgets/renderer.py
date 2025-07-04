@@ -1,4 +1,4 @@
-"""Widget Renderer for Keya D-C Cellular Automata."""
+"""Widget Renderer for Keya Cellular Automata."""
 
 from typing import Tuple, Optional, Any
 
@@ -20,7 +20,7 @@ class WidgetRenderer:
         
         # Set up the matplotlib figure
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
-        self.fig.suptitle("Keya D-C Cellular Automata Widget", fontsize=16)
+        self.fig.suptitle("Keya Cellular Automata Widget", fontsize=16)
         
         # Create custom colormap for glyphs
         self.colormap = ListedColormap([
@@ -172,11 +172,17 @@ class WidgetRenderer:
         if self.widget.state.evolution_active:
             self.widget.step_evolution()
         self.update_display()
-        return [self.image, self.text_display]
+        # Both image and text_display are guaranteed to be Artists after update_display()
+        artists = []
+        if self.image is not None:
+            artists.append(self.image)
+        if self.text_display is not None:
+            artists.append(self.text_display)
+        return artists
     
     def show(self, auto_evolve: bool = False):
         """Show the widget renderer window."""
-        print("🎮 KEYA D-C CELLULAR AUTOMATA WIDGET 🎮")
+        print("🎮 KEYA CELLULAR AUTOMATA WIDGET 🎮")
         print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print("Controls:")
         print("  SPACE  - Toggle evolution")

@@ -1,5 +1,5 @@
 """
-Quantum D-C Operators: The natural quantum evolution of keya D-C operators.
+Quantum Operators: The natural quantum evolution of keya operators.
 
 This module implements quantum-mechanically correct versions of D and C operators
 that naturally preserve probability normalization while enabling quantum evolution.
@@ -11,10 +11,10 @@ import numpy as np
 
 
 class QuantumDCOperators:
-    """Quantum-correct D-C operators that preserve unitarity and normalization."""
+    """Quantum-correct operators that preserve unitarity and normalization."""
     
     def __init__(self, hbar: float = 1.0):
-        """Initialize quantum D-C operators.
+        """Initialize quantum operators.
         
         Args:
             hbar: Reduced Planck constant (ℏ) for time evolution scaling
@@ -178,12 +178,12 @@ class QuantumDCOperators:
 
 
 def demonstrate_quantum_dc_emergence():
-    """Demonstrate how quantum mechanics emerges from D-C operators."""
+    """Demonstrate how quantum mechanics emerges from operators."""
     
-    print("🌌 QUANTUM MECHANICS EMERGING FROM KEYA D-C")
+    print("🌌 QUANTUM MECHANICS EMERGING FROM KEYA ")
     print("=" * 50)
     
-    # Initialize quantum D-C operators
+    # Initialize quantum operators
     qdc = QuantumDCOperators()
     
     # Start from "nothing" - create initial state

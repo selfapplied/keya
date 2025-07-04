@@ -1,4 +1,4 @@
-"""Quantum Wave Function Representation using Keya D-C Operators."""
+"""Quantum Wave Function Representation using Keya Operators."""
 
 import cmath
 import math
@@ -40,7 +40,7 @@ class QuantumState:
 
 
 class QuantumWaveFunction:
-    """A quantum wave function represented using keya D-C mathematical operators."""
+    """A quantum wave function represented using keya mathematical operators."""
     
     def __init__(self,
                  wave_type: WaveFunctionType = WaveFunctionType.GAUSSIAN,
@@ -53,7 +53,7 @@ class QuantumWaveFunction:
         self.containment_type = containment_type
         self.energy_level = energy_level
         
-        # Initialize keya D-C engine for quantum evolution
+        # Initialize keya engine for quantum evolution
         self.engine = Engine()
         
         # 3D grid for wave function
@@ -211,17 +211,17 @@ class QuantumWaveFunction:
         self.psi_imag = (self.psi_imag + temp_imag) / math.sqrt(2)
     
     def apply_dc_evolution(self, time_steps: int = 1) -> bool:
-        """Evolve the wave function using keya D-C operators."""
+        """Evolve the wave function using keya operators."""
         
-        # Convert wave function to matrix for D-C processing
+        # Convert wave function to matrix for processing
         # Use probability density as the basis for evolution
         prob_density = self.get_probability_density_2d()
         
-        # Create keya D-C program for quantum evolution
+        # Create keya program for quantum evolution
         keya_program = f"""
 matrix quantum_evolution {{
     time_step {{
-        evolved_psi = DC(psi_matrix, {self.containment_type.value}, {time_steps})
+        evolved_psi = ∮(psi_matrix, {self.containment_type.value}, {time_steps})
     }}
 }}
 """
@@ -230,7 +230,7 @@ matrix quantum_evolution {{
             # Set wave function as engine variable
             self.engine.variables['psi_matrix'] = prob_density
             
-            # Execute D-C evolution
+            # Execute evolution
             self.engine.execute_program(keya_program.strip())
             
             # Get evolved state

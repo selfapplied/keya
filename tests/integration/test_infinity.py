@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""Test infinity support in keya D-C language."""
+"""Test infinity support in keya  language."""
 
-import sys
-sys.path.append('src')
 
-from keya.dsl import parse, Engine
+from keya.dsl import parse, MatrixAssignment, WildTameCycle
+from keya.core.engine import Engine
+from typing import cast
 
 
 def test_infinity_parsing():
-    """Test that infinity (∞) can be parsed in DC cycles."""
+    """Test that infinity (∞) can be parsed in  cycles."""
     
     # Test program with infinite iterations
     program = """
 matrix CellularAutomata {
     evolution {
         grid = [3, 3, ∅]
-        result = DC(grid, binary, ∞)
+        result = ∮(grid, binary, ∞)
     }
 }
 """
@@ -26,13 +26,13 @@ matrix CellularAutomata {
         print("✅ Infinity parsing successful!")
         
         # Check that the AST contains the infinity value
-        assignment = ast.sections[0].statements[1]  # result = DC(...)
-        if hasattr(assignment, 'value'):
-            dc_cycle = assignment.value
-            print(f"   Max iterations: {dc_cycle.max_iterations}")
-            print(f"   Is infinity: {dc_cycle.max_iterations == float('inf')}")
+        assignment = ast.sections[0].statements[1]  # result = ∮(...)
+        if isinstance(assignment, MatrixAssignment) and isinstance(assignment.value, WildTameCycle):
+            wildtame_cycle = cast(WildTameCycle, assignment.value)
+            print(f"   Max iterations: {wildtame_cycle.max_iterations}")
+            print(f"   Is infinity: {wildtame_cycle.max_iterations == float('inf')}")
         else:
-            print("   Could not access DC cycle value")
+            print("   Could not access  cycle value")
         
         return ast
     except Exception as e:
@@ -41,7 +41,7 @@ matrix CellularAutomata {
 
 
 def test_infinity_execution():
-    """Test that infinite DC cycles execute properly."""
+    """Test that infinite  cycles execute properly."""
     
     print("\n🔥 Testing infinity execution...")
     
@@ -52,7 +52,7 @@ def test_infinity_execution():
 matrix Test {
     demo {
         grid = [2, 2, △]
-        result = DC(grid, binary, 3)
+        result = ∮(grid, binary, 3)
     }
 }
 """
@@ -67,7 +67,7 @@ matrix Test {
 matrix CellularTest {
     infinite_evolution {
         grid = [2, 2, △]  
-        cellular = DC(grid, binary, ∞)
+        cellular = ∮(grid, binary, ∞)
     }
 }
 """

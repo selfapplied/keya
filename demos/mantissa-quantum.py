@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Rigorous Testing of Mantissa-Quantum Normalization Equivalence via Keya D-C Operators
+Rigorous Testing of Mantissa-Quantum Normalization Equivalence via Keya Operators
 
 This demo provides scientific validation of the claim that floating-point mantissa 
 normalization and quantum wave function normalization are manifestations of the 
-same underlying D-C mathematical principle.
+same underlying mathematical principle.
 """
 
 import sys
@@ -15,8 +15,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from typing import Dict, Any
 
-# Add parent directory's src to path since we're in demos/ subdirectory
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from keya.quantum.quantumdc import QuantumDCOperators
 
 
@@ -219,11 +217,11 @@ class MantissaQuantumValidator:
         return result
     
     def test_dc_operator_conservation(self) -> Dict[str, Any]:
-        """Test 4: Verify D-C operators preserve normalization principles."""
-        print("\n🧪 TEST 4: D-C Operator Conservation")
+        """Test 4: Verify operators preserve normalization principles."""
+        print("\n🧪 TEST 4: Operator Conservation")
         print("-" * 50)
         
-        # Test that D-C cycles preserve the normalization property
+        # Test that cycles preserve the normalization property
         initial_states = [
             np.array([1.0, 0.0], dtype=complex),
             np.array([0.5, 0.8, 1.2], dtype=complex),
@@ -239,7 +237,7 @@ class MantissaQuantumValidator:
             psi_normalized = self.qdc.quantum_containment(psi, 'probability')
             prob_initial = np.sum(np.abs(psi_normalized)**2)
             
-            # Apply D-C cycles
+            # Apply cycles
             evolved_states = []
             probabilities = [prob_initial]
             
@@ -308,7 +306,7 @@ class MantissaQuantumValidator:
         print(f"Test 1 (Mantissa Properties): {'✅ PASS' if test1['pass'] else '❌ FAIL'}")
         print(f"Test 2 (Quantum Properties): {'✅ PASS' if test2['pass'] else '❌ FAIL'}")
         print(f"Test 3 (Equivalence): {'✅ PASS' if test3['pass'] else '❌ FAIL'}")
-        print(f"Test 4 (D-C Conservation): {'✅ PASS' if test4['pass'] else '❌ FAIL'}")
+        print(f"Test 4 (Conservation): {'✅ PASS' if test4['pass'] else '❌ FAIL'}")
         print(f"\n🏆 COMPREHENSIVE VALIDATION: {'✅ PASS' if all_tests_pass else '❌ FAIL'}")
         
         if all_tests_pass:
@@ -316,8 +314,8 @@ class MantissaQuantumValidator:
             print("   ✓ Mantissa normalization follows precise mathematical laws")
             print("   ✓ Quantum normalization preserves probability unitarity")
             print("   ✓ Both normalizations exhibit equivalent scaling principles")
-            print("   ✓ D-C operators conserve normalization properties")
-            print("   ✓ HYPOTHESIS VALIDATED: Mantissa ≡ Quantum via D-C operators")
+            print("   ✓ operators conserve normalization properties")
+            print("   ✓ HYPOTHESIS VALIDATED: Mantissa ≡ Quantum via operators")
         
         return results
     
@@ -362,21 +360,21 @@ class MantissaQuantumValidator:
         axes[0, 2].set_xticks(range(len(float_vals)))
         axes[0, 2].set_xticklabels([f'{v:.1f}' for v in float_vals])
         
-        # Plot 4: D-C conservation over time
+        # Plot 4: conservation over time
         conservation_data = results['dc_conservation']['conservation_data']
         for i, data in enumerate(conservation_data[:3]):  # Show first 3 states
             probabilities = data['probabilities']
             axes[1, 0].plot(probabilities, 'o-', label=f'State {i+1}', markersize=4)
         
         axes[1, 0].axhline(y=1.0, color='red', linestyle='--', alpha=0.7, label='Perfect Conservation')
-        axes[1, 0].set_title('D-C Probability Conservation')
-        axes[1, 0].set_xlabel('D-C Cycle')
+        axes[1, 0].set_title('Probability Conservation')
+        axes[1, 0].set_xlabel('Cycle')
         axes[1, 0].set_ylabel('Total Probability')
         axes[1, 0].legend()
         axes[1, 0].grid(True, alpha=0.3)
         
         # Plot 5: Test summary
-        test_names = ['Mantissa\nProperties', 'Quantum\nProperties', 'Equivalence\nPrinciple', 'D-C\nConservation']
+        test_names = ['Mantissa\nProperties', 'Quantum\nProperties', 'Equivalence\nPrinciple', '\nConservation']
         test_results = [
             results['mantissa_properties']['pass'],
             results['quantum_properties']['pass'], 
@@ -401,7 +399,7 @@ class MantissaQuantumValidator:
         axes[1, 1].grid(True, alpha=0.3)
         
         # Plot 6: Error magnitude comparison
-        error_types = ['Mantissa\nReconstruction', 'Quantum\nNormalization', 'Equivalence\nScaling', 'D-C\nConservation']
+        error_types = ['Mantissa\nReconstruction', 'Quantum\nNormalization', 'Equivalence\nScaling', '\nConservation']
         error_magnitudes = [
             results['mantissa_properties']['max_reconstruction_error'],
             results['quantum_properties']['max_probability_error'],
@@ -440,7 +438,7 @@ def main():
         print("\n🎉 SCIENTIFIC VALIDATION COMPLETE")
         print("📈 All hypotheses validated with measurable precision")
         print("🔗 Mantissa-Quantum connection rigorously established")
-        print("⚛️  D-C operators confirmed as universal normalization principle")
+        print("⚛️  operators confirmed as universal normalization principle")
     else:
         print("\n⚠️  VALIDATION INCOMPLETE") 
         print("📉 Some tests failed - hypothesis requires refinement")

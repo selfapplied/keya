@@ -1,4 +1,4 @@
-"""Electron Orbital Visualization using Keya D-C Operators."""
+"""Electron Orbital Visualization using Keya Operators."""
 
 from enum import Enum
 from typing import Dict, Optional, Tuple
@@ -26,7 +26,7 @@ class OrbitalType(Enum):
 
 
 class ElectronOrbital:
-    """Represents an electron orbital in a hydrogen atom using keya D-C mathematics."""
+    """Represents an electron orbital in a hydrogen atom using keya mathematics."""
     
     def __init__(self,
                  orbital_type: OrbitalType = OrbitalType.S_1S,
@@ -55,7 +55,7 @@ class ElectronOrbital:
         # Normalize
         self._normalize()
         
-        # Set up D-C evolution for orbital dynamics
+        # Set up evolution for orbital dynamics
         self.dc_wave_function = self._create_dc_wave_function()
         
     def _parse_quantum_numbers(self, orbital_type: OrbitalType) -> Tuple[int, int, int]:
@@ -161,9 +161,9 @@ class ElectronOrbital:
             self.probability_density = np.abs(self.wave_function)**2
     
     def _create_dc_wave_function(self) -> QuantumWaveFunction:
-        """Create a keya D-C wave function for orbital evolution."""
+        """Create a keya wave function for orbital evolution."""
         
-        # Use a smaller grid for D-C evolution
+        # Use a smaller grid for evolution
         dc_size = min(50, self.grid_size)
         
         dc_wave = QuantumWaveFunction(
@@ -179,8 +179,8 @@ class ElectronOrbital:
         return dc_wave
     
     def _copy_to_dc_wave_function(self, dc_wave: QuantumWaveFunction):
-        """Copy orbital data to D-C wave function."""
-        # Downsample the orbital to fit D-C grid
+        """Copy orbital data to wave function."""
+        # Downsample the orbital to fit grid
         skip = max(1, self.grid_size // dc_wave.nx)
         
         for i in range(dc_wave.nx):
@@ -200,23 +200,23 @@ class ElectronOrbital:
                         dc_wave.psi_imag[i, j, k] = np.imag(self.wave_function[orig_i, orig_j, orig_k])
     
     def evolve_with_dc_operators(self, steps: int = 10) -> bool:
-        """Evolve the orbital using keya D-C operators."""
+        """Evolve the orbital using keya operators."""
         
-        print(f"🌀 Evolving {self.orbital_type.value} orbital with D-C operators...")
+        print(f"🌀 Evolving {self.orbital_type.value} orbital with operators...")
         
         success = self.dc_wave_function.apply_dc_evolution(steps)
         
         if success:
-            print(f"✅ D-C evolution completed ({steps} steps)")
-            # Update main orbital from evolved D-C state
+            print(f"✅ evolution completed ({steps} steps)")
+            # Update main orbital from evolved state
             self._copy_from_dc_wave_function()
             return True
         else:
-            print("❌ D-C evolution failed")
+            print("❌ evolution failed")
             return False
     
     def _copy_from_dc_wave_function(self):
-        """Copy evolved D-C state back to main orbital."""
+        """Copy evolved state back to main orbital."""
         # This is a simplified version - in practice you'd want proper interpolation
         dc_prob = self.dc_wave_function.get_probability_density_3d()
         

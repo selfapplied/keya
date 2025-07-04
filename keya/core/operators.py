@@ -66,7 +66,7 @@ def apply_glyph_transform(matrix: jnp.ndarray, transform_fn: Callable[[int], int
     return vectorized_transform(matrix)
 
 
-# --- Fundamental D-C Operators ---
+# --- Fundamental Operators ---
 
 
 def D_operator(matrix: jnp.ndarray) -> jnp.ndarray:
@@ -221,12 +221,12 @@ def compute_resonance_trace(matrix: jnp.ndarray) -> float:
     return total_dissonance / max(max_positions, 1)
 
 
-# --- Composite D-C Operations ---
+# --- Composite Operations ---
 
 
 def DC_cycle(matrix: jnp.ndarray, containment_rule: str = "binary", max_iterations: int = 100) -> jnp.ndarray:
     """
-    Apply D-C cycles until resonance equilibrium is reached.
+    Apply cycles until resonance equilibrium is reached.
 
     This is the fundamental process that generates stable symbolic structures
     from initial uniform fields.
@@ -440,7 +440,7 @@ def matrix_binary_add(matrix_a: jnp.ndarray, matrix_b: jnp.ndarray) -> jnp.ndarr
     """
     Add two matrices as binary numbers using emergent base system.
 
-    This demonstrates actual arithmetic using the D-C generated patterns.
+    This demonstrates actual arithmetic using the generated patterns.
     """
     # Convert matrices to binary numbers
     num_a = matrix_to_binary_number(matrix_a)
@@ -470,7 +470,7 @@ def verify_base_emergence(test_size: int = 4) -> bool:
     """
     Verify that the emergent base system actually performs correct arithmetic.
 
-    Tests whether the D-C generated patterns can represent numbers and
+    Tests whether the generated patterns can represent numbers and
     perform arithmetic operations correctly.
     """
     # Create two small numbers in matrix form

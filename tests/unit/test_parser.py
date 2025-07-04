@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
-"""Test the keya D-C parser implementation."""
+"""Test the keya  parser implementation."""
 
-import sys
-import os
-
-# Ensure the src directory is on the path for local development
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
 
 from keya.dsl import (
-    ContainmentOp,
-    DCCycle,
-    DissonanceOp,
+    TameOp,
+    WildTameCycle,
+    WildOp,
     Glyph,
     GlyphLiteral,
     GrammarProgram,
@@ -26,13 +21,13 @@ from keya.dsl import (
 def test_basic_parsing():
     """Test basic parser functionality."""
     
-    print("Testing D-C Parser...")
+    print("Testing  Parser...")
     
-    # Test 1: Simple matrix program with D operator
-    print("\n1. Testing matrix program with D operator:")
+    # Test 1: Simple matrix program with Ϟ operator
+    print("\n1. Testing matrix program with Ϟ operator:")
     code1 = """matrix test_matrix {
         operations {
-            result = D [2, 2, ∅]
+            result = Ϟ [2, 2, ∅]
         }
     }"""
     
@@ -72,7 +67,7 @@ def test_basic_parsing():
         analysis {
             verify arithmetic 10
             verify strings
-            trace D([3, 3, ▽])
+            trace Ϟ([3, 3, ▽])
         }
     }"""
     
@@ -85,71 +80,71 @@ def test_basic_parsing():
         print(f"✗ Failed: {e}")
 
 
-def test_dc_operations():
-    """Test D-C specific operations."""
+def test_wildtame_operations():
+    """Test  specific operations."""
     
-    print("\n\nTesting D-C Operations...")
+    print("\n\nTesting  Operations...")
     
-    # Test 4: D operator
-    print("\n4. Testing D operator:")
-    code4 = """matrix d_test {
+    # Test 4: Ϟ operator
+    print("\n4. Testing Ϟ operator:")
+    code4 = """matrix wild_test {
         ops {
             matrix1 = [2, 2, ▽]
-            result = D matrix1
+            result = Ϟ matrix1
         }
     }"""
     
     try:
         ast4 = parse(code4)
-        print("✓ D operator parsed successfully")
-        # Check that we have DissonanceOp in the AST
+        print("✓ Ϟ operator parsed successfully")
+        # Check that we have WildOp in the AST
         statements = ast4.sections[0].statements
-        d_op_found = any(isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, DissonanceOp) 
+        wild_op_found = any(isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, WildOp) 
                         for stmt in statements)
-        if d_op_found:
-            print("  ✓ DissonanceOp found in AST")
+        if wild_op_found:
+            print("  ✓ WildOp found in AST")
     except Exception as e:
         print(f"✗ Failed: {e}")
     
-    # Test 5: C operator with containment type
-    print("\n5. Testing C operator:")
-    code5 = """matrix c_test {
+    # Test 5: § operator with containment type
+    print("\n5. Testing § operator:")
+    code5 = """matrix tame_test {
         ops {
             matrix1 = [3, 3, ⊙]
-            result = C(matrix1, binary)
+            result = §(matrix1, binary)
         }
     }"""
     
     try:
         ast5 = parse(code5)
-        print("✓ C operator parsed successfully")
-        # Check for ContainmentOp
+        print("✓ § operator parsed successfully")
+        # Check for TameOp
         statements = ast5.sections[0].statements
-        c_op_found = any(isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, ContainmentOp) 
+        tame_op_found = any(isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, TameOp) 
                         for stmt in statements)
-        if c_op_found:
-            print("  ✓ ContainmentOp found in AST")
+        if tame_op_found:
+            print("  ✓ TameOp found in AST")
     except Exception as e:
         print(f"✗ Failed: {e}")
     
-    # Test 6: DC cycle
-    print("\n6. Testing DC cycle:")
-    code6 = """matrix dc_test {
+    # Test 6: ∮ cycle
+    print("\n6. Testing ∮ cycle:")
+    code6 = """matrix wildtame_test {
         ops {
             matrix1 = [4, 4, △]
-            result = DC(matrix1, decimal, 5)
+            result = ∮(matrix1, decimal, 5)
         }
     }"""
     
     try:
         ast6 = parse(code6)
-        print("✓ DC cycle parsed successfully")
-        # Check for DCCycle
+        print("✓ ∮ cycle parsed successfully")
+        # Check for WildTameCycle
         statements = ast6.sections[0].statements
-        dc_cycle_found = any(hasattr(stmt, 'value') and isinstance(stmt.value, DCCycle) 
+        wildtame_cycle_found = any(isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, WildTameCycle) 
                             for stmt in statements)
-        if dc_cycle_found:
-            print("  ✓ DCCycle found in AST")
+        if wildtame_cycle_found:
+            print("  ✓ WildTameCycle found in AST")
     except Exception as e:
         print(f"✗ Failed: {e}")
 
@@ -177,7 +172,10 @@ def test_glyph_literals():
         
         # Verify all glyph types are recognized
         statements = ast7.sections[0].statements
-        glyph_literals = [stmt.value for stmt in statements if hasattr(stmt, 'value') and isinstance(stmt.value, GlyphLiteral)]
+        glyph_literals = []
+        for stmt in statements:
+            if isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, GlyphLiteral):
+                glyph_literals.append(stmt.value)
         
         glyph_types = {gl.glyph for gl in glyph_literals}
         expected_glyphs = {Glyph.VOID, Glyph.DOWN, Glyph.UP, Glyph.UNITY, Glyph.FLOW}
@@ -211,7 +209,10 @@ def test_matrix_literals():
         print("✓ Matrix literals parsed successfully")
         
         statements = ast8.sections[0].statements
-        matrix_literals = [stmt.value for stmt in statements if hasattr(stmt, 'value') and isinstance(stmt.value, MatrixLiteral)]
+        matrix_literals = []
+        for stmt in statements:
+            if isinstance(stmt, MatrixAssignment) and isinstance(stmt.value, MatrixLiteral):
+                matrix_literals.append(stmt.value)
         
         if len(matrix_literals) == 2:
             print(f"  ✓ Found {len(matrix_literals)} matrix literals")
@@ -234,8 +235,8 @@ def test_error_handling():
     invalid_codes = [
         "invalid_program_type test {}",  # Invalid program type
         "matrix test { invalid_glyph = ◊ }",  # Invalid glyph
-        "matrix test { incomplete = D }",  # Incomplete D operator
-        "matrix test { bad_containment = C(matrix1, invalid_type) }",  # Invalid containment type
+        "matrix test { incomplete = Ϟ }",  # Incomplete Ϟ operator
+        "matrix test { bad_containment = §(matrix1, invalid_type) }",  # Invalid containment type
     ]
     
     for i, code in enumerate(invalid_codes):
@@ -250,11 +251,11 @@ def test_error_handling():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("KEYA D-C PARSER TEST SUITE")
+    print("KEYA WILD-TAME PARSER TEST SUITE")
     print("=" * 60)
     
     test_basic_parsing()
-    test_dc_operations()
+    test_wildtame_operations()
     test_glyph_literals()
     test_matrix_literals()
     test_error_handling()

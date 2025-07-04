@@ -11,7 +11,7 @@ matrix symbol_demo {
     mixed = [[∅, ▽], [△, ⊙]]
     
     # Apply D-C evolution on numeric interpretation
-    evolved = DC(mixed, binary, 3)
+    evolved = WT(mixed, binary, 3)
   }
 }
 
@@ -22,4 +22,4 @@ grammar symbol_mappings {
   △ → ⊙
   ⊙ → ∅
   ⊕ → [▽, △]
-} 
+}

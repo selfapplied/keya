@@ -210,7 +210,7 @@ class QuantumWaveFunction:
         self.psi_real = (self.psi_real + temp_real) / math.sqrt(2)
         self.psi_imag = (self.psi_imag + temp_imag) / math.sqrt(2)
     
-    def apply_dc_evolution(self, time_steps: int = 1) -> bool:
+    def apply_wild_tame_evolution(self, time_steps: int = 1) -> bool:
         """Evolve the wave function using keya operators."""
         
         # Convert wave function to matrix for processing
@@ -247,9 +247,31 @@ matrix quantum_evolution {{
             
         return False
     
+    def plot_wave_function(self, ax, title=""):
+        """Plot the 3D probability density of the wave function."""
+        prob_density = self.get_probability_density_3d()
+        
+        # Threshold to remove "quantum foam" of low-probability points
+        threshold = 0.05 * np.max(prob_density)
+        mask = prob_density > threshold
+
+        # Create a meshgrid for plotting
+        x = np.linspace(0, self.dimensions[0], self.dimensions[0])
+        y = np.linspace(0, self.dimensions[1], self.dimensions[1])
+        z = np.linspace(0, self.dimensions[2], self.dimensions[2])
+        x, y, z = np.meshgrid(x, y, z)
+
+        # Use scatter plot for visualization, applying the mask
+        ax.scatter(x[mask], y[mask], z[mask], c=prob_density[mask].flatten(), marker='.', alpha=0.5, cmap='viridis')
+        
+        ax.set_title(title)
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+
     def _update_from_evolved_matrix(self, evolved_matrix: np.ndarray):
-        """Update 3D wave function from 2D evolved matrix."""
-        # Simple approach: update the central slice
+        """Update wave function from evolved matrix (2D to 3D)."""
+        # Simple projection for now
         if evolved_matrix.shape[0] <= self.nx and evolved_matrix.shape[1] <= self.ny:
             z_center = self.nz // 2
             

@@ -12,8 +12,9 @@ import jax.numpy as jnp
 from keya.core.operators import (
     BINARY_GRAMMAR,
     SIMPLE_GRAMMAR,
-    D_operator,
+    Wild_operator,
     Glyph,
+    INT_TO_GLYPH,
     Grammar,
     apply_string_grammar_matrix,
     create_glyph_matrix,
@@ -31,15 +32,17 @@ def print_matrix(matrix: jnp.ndarray, title: str):
     """Print a glyph matrix with readable symbols."""
     print(f"\n{title}:")
     symbols = {
-        Glyph.VOID.value: "∅",
-        Glyph.DOWN.value: "▽", 
-        Glyph.UP.value: "△",
-        Glyph.UNITY.value: "⊙",
-        Glyph.FLOW.value: "⊕"
+        Glyph.VOID: "∅",
+        Glyph.DOWN: "▽",
+        Glyph.UP: "△",
+        Glyph.UNITY: "⊙",
+        Glyph.FLOW: "⊕",
     }
-    
+
     for row in matrix:
-        row_str = " ".join(symbols.get(int(val), "?") for val in row)
+        row_str = " ".join(
+            symbols.get(INT_TO_GLYPH.get(int(val), Glyph.VOID), "?") for val in row
+        )
         print(f"  {row_str}")
 
 def test_basic_grammars():
@@ -165,20 +168,20 @@ def test_string_operations():
     assert concat_string[:len(string1_part)] == string1_part, "First string not preserved"
     print("✅ String concatenation works correctly")
 
-def test_dc_string_integration():
+def test_string_integration():
     """Test string generation integrated with operators."""
     print("\n=== TESTING STRING INTEGRATION ===")
     
-    # Start with uniform field, apply , then custom string grammar
+    # Start with uniform field, apply Wild operator, then custom string grammar
     uniform_field = create_glyph_matrix((4, 8), Glyph.VOID)
     print_matrix(uniform_field, "Initial uniform field")
     
-    # Apply D operator to create diagonal seeds
-    dissonant = D_operator(uniform_field)
-    print_matrix(dissonant, "After D operator (diagonal seeds)")
+    # Apply Wild operator to create diagonal seeds
+    wild = Wild_operator(uniform_field)
+    print_matrix(wild, "After Wild operator (diagonal seeds)")
     
     # Apply custom string grammar instead of basic containment
-    string_result = apply_string_grammar_matrix(dissonant, SIMPLE_GRAMMAR)
+    string_result = apply_string_grammar_matrix(wild, SIMPLE_GRAMMAR)
     print_matrix(string_result, "After string grammar application")
     
     # Extract and analyze the generated strings
@@ -233,9 +236,9 @@ if __name__ == "__main__":
     try:
         test_basic_grammars()
         test_language_generation()
-        test_pattern_recognition() 
+        test_pattern_recognition()
         test_string_operations()
-        test_dc_string_integration()
+        test_string_integration()
         test_custom_grammar()
         test_comprehensive_verification()
         

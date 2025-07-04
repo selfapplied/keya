@@ -10,10 +10,12 @@ All claims are verified with assertions and observable tests.
 import jax.numpy as jnp
 
 from keya.core.operators import (
-    C_operator,
-    D_operator,
-    DC_cycle,
+    Tame_operator,
+    Wild_operator,
+    Wild_closure,
     Glyph,
+    GLYPH_TO_INT,
+    INT_TO_GLYPH,
     compute_resonance_trace,
     create_glyph_matrix,
 )
@@ -23,64 +25,64 @@ def print_matrix(matrix: jnp.ndarray, title: str):
     """Print a glyph matrix with readable symbols."""
     print(f"\n{title}:")
     symbols = {
-        Glyph.VOID.value: "∅",
-        Glyph.DOWN.value: "▽", 
-        Glyph.UP.value: "△",
-        Glyph.UNITY.value: "⊙",
-        Glyph.FLOW.value: "⊕"
+        Glyph.VOID: "∅",
+        Glyph.DOWN: "▽", 
+        Glyph.UP: "△",
+        Glyph.UNITY: "⊙",
+        Glyph.FLOW: "⊕"
     }
     
     for row in matrix:
-        row_str = " ".join(symbols.get(int(val), "?") for val in row)
+        row_str = " ".join(symbols.get(INT_TO_GLYPH.get(int(val), Glyph.VOID), "?") for val in row)
         print(f"  {row_str}")
 
-def test_d_operator_basic():
-    """Test that D operator actually flips diagonal elements as claimed."""
-    print("=== TESTING D OPERATOR ===")
+def test_wild_operator_basic():
+    """Test that Wild operator actually flips diagonal elements as claimed."""
+    print("=== TESTING Wild OPERATOR ===")
     
-    # Test 1: D should flip VOID to DOWN on diagonal
+    # Test 1: Wild should flip VOID to DOWN on diagonal
     uniform_void = create_glyph_matrix((3, 3), Glyph.VOID)
-    result = D_operator(uniform_void)
+    result = Wild_operator(uniform_void)
     
     print_matrix(uniform_void, "Input: Uniform void")
-    print_matrix(result, "Output: After D operator")
+    print_matrix(result, "Output: After Wild operator")
     
     # Verify diagonal elements changed
     for i in range(3):
-        assert result[i, i] == Glyph.DOWN.value, f"Diagonal [{i},{i}] should be DOWN, got {result[i, i]}"
+        assert result[i, i] == GLYPH_TO_INT[Glyph.DOWN], f"Diagonal [{i},{i}] should be DOWN, got {result[i, i]}"
     
     # Verify non-diagonal elements unchanged
-    assert result[0, 1] == Glyph.VOID.value, "Non-diagonal should be unchanged"
-    assert result[1, 0] == Glyph.VOID.value, "Non-diagonal should be unchanged"
+    assert result[0, 1] == GLYPH_TO_INT[Glyph.VOID], "Non-diagonal should be unchanged"
+    assert result[1, 0] == GLYPH_TO_INT[Glyph.VOID], "Non-diagonal should be unchanged"
     
-    print("✅ D operator correctly flips diagonal elements")
+    print("✅ Wild operator correctly flips diagonal elements")
     
     # Test 2: DOWN should flip to UP
     uniform_down = create_glyph_matrix((2, 2), Glyph.DOWN)
-    result2 = D_operator(uniform_down)
+    result2 = Wild_operator(uniform_down)
     
     for i in range(2):
-        assert result2[i, i] == Glyph.UP.value, "DOWN diagonal should flip to UP"
+        assert result2[i, i] == GLYPH_TO_INT[Glyph.UP], "DOWN diagonal should flip to UP"
     
-    print("✅ D operator correctly transforms DOWN → UP on diagonal")
+    print("✅ Wild operator correctly transforms DOWN → UP on diagonal")
 
-def test_c_operator_binary():
-    """Test that C operator with binary rule creates the claimed 2x2 pattern."""
-    print("\n=== TESTING C OPERATOR (BINARY) ===")
+def test_tame_operator_binary():
+    """Test that Tame operator with binary rule creates the claimed 2x2 pattern."""
+    print("\n=== TESTING Tame OPERATOR (BINARY) ===")
     
-    # Start with a matrix that has some dissonance
+    # Start with a matrix that has some wildness
     test_matrix = create_glyph_matrix((4, 4), Glyph.VOID)
-    test_matrix = D_operator(test_matrix)  # Add some diagonal DOWN elements
+    test_matrix = Wild_operator(test_matrix)  # Add some diagonal DOWN elements
     
-    print_matrix(test_matrix, "Input: After D operator")
+    print_matrix(test_matrix, "Input: After Wild operator")
     
-    result = C_operator(test_matrix, "binary")
-    print_matrix(result, "Output: After C operator (binary)")
+    result = Tame_operator(test_matrix, "binary")
+    print_matrix(result, "Output: After Tame operator (binary)")
     
     # Test the claimed 2x2 attractor pattern
     expected_pattern = jnp.array([
-        [Glyph.UNITY.value, Glyph.DOWN.value],
-        [Glyph.DOWN.value, Glyph.UNITY.value]
+        [GLYPH_TO_INT[Glyph.UNITY], GLYPH_TO_INT[Glyph.DOWN]],
+        [GLYPH_TO_INT[Glyph.DOWN], GLYPH_TO_INT[Glyph.UNITY]]
     ])
     
     # Check if 2x2 blocks match the pattern
@@ -92,7 +94,7 @@ def test_c_operator_binary():
                 pattern_found = False
     
     assert pattern_found, "Binary containment should create repeating 2x2 UNITY/DOWN pattern"
-    print("✅ C operator (binary) creates consistent 2x2 attractor pattern")
+    print("✅ Tame operator (binary) creates consistent 2x2 attractor pattern")
 
 def test_string_containment():
     """Test that string containment actually propagates patterns horizontally."""
@@ -101,22 +103,22 @@ def test_string_containment():
     # Create a matrix with diagonal seeds
     seed_matrix = create_glyph_matrix((3, 6), Glyph.VOID)
     for i in range(3):
-        seed_matrix = seed_matrix.at[i, i].set(Glyph.DOWN.value)
+        seed_matrix = seed_matrix.at[i, i].set(GLYPH_TO_INT[Glyph.DOWN])
     
     print_matrix(seed_matrix, "Input: Diagonal seeds")
     
-    result = C_operator(seed_matrix, "string")
+    result = Tame_operator(seed_matrix, "string")
     print_matrix(result, "Output: After string containment")
     
     # Test that patterns propagate horizontally from diagonal
     # Row 0 should start with DOWN at position 0
-    assert result[0, 0] == Glyph.DOWN.value, "Row 0 should start with DOWN"
+    assert result[0, 0] == GLYPH_TO_INT[Glyph.DOWN], "Row 0 should start with DOWN"
     
     # Check that there's actual propagation (not just the original seeds)
     propagation_occurred = False
     for i in range(3):
         for j in range(i+1, 6):
-            if result[i, j] != Glyph.VOID.value:
+            if result[i, j] != GLYPH_TO_INT[Glyph.VOID]:
                 propagation_occurred = True
                 break
     
@@ -132,10 +134,10 @@ def test_resonance_trace():
     trace1 = compute_resonance_trace(uniform)
     print(f"Uniform void field resonance: {trace1:.3f}")
     
-    # Test 2: After D operator, resonance should change
-    dissonant = D_operator(uniform)
-    trace2 = compute_resonance_trace(dissonant)
-    print(f"After D operator resonance: {trace2:.3f}")
+    # Test 2: After Wild operator, resonance should change
+    wild = Wild_operator(uniform)
+    trace2 = compute_resonance_trace(wild)
+    print(f"After Wild operator resonance: {trace2:.3f}")
     
     # Test 3: Resonance should be measurable and finite
     assert 0.0 <= trace1 <= 1.0, f"Resonance trace should be normalized, got {trace1}"
@@ -143,8 +145,8 @@ def test_resonance_trace():
     
     print("✅ Resonance trace produces normalized values")
 
-def test_dc_cycle_convergence():
-    """Test that DC cycles actually converge to some stable state."""
+def test_wild_closure_convergence():
+    """Test that Wild-Tame cycles actually converge to some stable state."""
     print("\n=== TESTING CYCLE CONVERGENCE ===")
     
     initial = create_glyph_matrix((4, 4), Glyph.UP)
@@ -155,32 +157,32 @@ def test_dc_cycle_convergence():
     current = initial
     
     for i in range(5):
-        dissonant = D_operator(current)
-        contained = C_operator(dissonant, "binary")
-        resonance = compute_resonance_trace(contained)
+        wild = Wild_operator(current)
+        tamed = Tame_operator(wild, "binary")
+        resonance = compute_resonance_trace(tamed)
         resonances.append(resonance)
-        current = contained
+        current = tamed
     
     print(f"Resonance evolution: {[f'{r:.3f}' for r in resonances]}")
     
     # Test that the process is deterministic (same result each time)
-    final1 = DC_cycle(initial, "binary", max_iterations=10)
-    final2 = DC_cycle(initial, "binary", max_iterations=10)
+    final1 = Wild_closure(initial, "binary", max_iterations=10)
+    final2 = Wild_closure(initial, "binary", max_iterations=10)
     
-    assert jnp.array_equal(final1, final2), "DC cycle should be deterministic"
-    print("✅ DC cycle is deterministic")
+    assert jnp.array_equal(final1, final2), "Wild-Tame cycle should be deterministic"
+    print("✅ Wild-Tame cycle is deterministic")
     
     # Test that we reach some stable configuration
     # (Not necessarily equilibrium, but at least no longer changing)
-    penultimate = DC_cycle(initial, "binary", max_iterations=9)
-    final = DC_cycle(initial, "binary", max_iterations=10)
+    penultimate = Wild_closure(initial, "binary", max_iterations=9)
+    final = Wild_closure(initial, "binary", max_iterations=10)
     
     # If they're the same, we've reached a fixed point
     reached_fixed_point = jnp.array_equal(penultimate, final)
     if reached_fixed_point:
-        print("✅ DC cycle reaches fixed point")
+        print("✅ Wild-Tame cycle reaches fixed point")
     else:
-        print("⚠️  DC cycle has not yet converged in 10 iterations")
+        print("⚠️  Wild-Tame cycle has not yet converged in 10 iterations")
 
 def test_operator_properties():
     """Test basic mathematical properties of the operators."""
@@ -189,42 +191,42 @@ def test_operator_properties():
     # Test that operators preserve matrix dimensions
     test_matrix = create_glyph_matrix((5, 7), Glyph.DOWN)
     
-    d_result = D_operator(test_matrix)
-    assert d_result.shape == test_matrix.shape, "D operator should preserve dimensions"
+    d_result = Wild_operator(test_matrix)
+    assert d_result.shape == test_matrix.shape, "Wild operator should preserve dimensions"
     
-    c_result = C_operator(test_matrix, "binary")
-    assert c_result.shape == test_matrix.shape, "C operator should preserve dimensions"
+    c_result = Tame_operator(test_matrix, "binary")
+    assert c_result.shape == test_matrix.shape, "Tame operator should preserve dimensions"
     
     print("✅ Operators preserve matrix dimensions")
     
     # Test that D operator is idempotent on diagonal-fixed glyphs
     unity_matrix = create_glyph_matrix((3, 3), Glyph.UNITY)
-    d_unity = D_operator(unity_matrix)
-    D_operator(d_unity)  # Apply D operator twice for testing
+    d_unity = Wild_operator(unity_matrix)
+    Wild_operator(d_unity)  # Apply Wild operator twice for testing
     
     # UNITY should be a fixed point under omega transformation
-    diagonal_unchanged = all(d_unity[i, i] == Glyph.UNITY.value for i in range(3))
-    assert diagonal_unchanged, "UNITY should be fixed point under D operator"
+    diagonal_unchanged = all(d_unity[i, i] == GLYPH_TO_INT[Glyph.UNITY] for i in range(3))
+    assert diagonal_unchanged, "UNITY should be fixed point under Wild operator"
     
-    print("✅ D operator respects fixed points")
+    print("✅ Wild operator respects fixed points")
 
 if __name__ == "__main__":
     print("Testing operators with rigorous verification...")
     print("No ungrounded claims - only observable behavior.\n")
     
     # Run all tests
-    test_d_operator_basic()
-    test_c_operator_binary()
+    test_wild_operator_basic()
+    test_tame_operator_binary()
     test_string_containment()
     test_resonance_trace()
-    test_dc_cycle_convergence()
+    test_wild_closure_convergence()
     test_operator_properties()
     
     print("\n=== VERIFIED CONCLUSIONS ===")
-    print("✅ D operator flips diagonal elements according to omega transformation")
-    print("✅ C operator (binary) creates repeating 2x2 patterns")
+    print("✅ Wild operator flips diagonal elements according to omega transformation")
+    print("✅ Tame operator (binary) creates repeating 2x2 patterns")
     print("✅ String containment propagates patterns horizontally")
     print("✅ Resonance trace provides normalized dissonance measurement")
-    print("✅ DC cycles are deterministic")
+    print("✅ Wild-Tame cycles are deterministic")
     print("✅ Operators preserve mathematical properties")
     print("\nAll tests passed. The operator implementation is mathematically sound.") 

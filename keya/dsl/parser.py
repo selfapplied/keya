@@ -241,18 +241,19 @@ class Parser:
     def parse_matrix_program(self) -> MatrixProgram:
         """Parse a matrix program."""
         
-        self.consume('MATRIX')  # Consume the MATRIX token that was matched
+        self.consume('MATRIX')
         name_token = self.consume('IDENTIFIER')
         self.skip_newlines()
-        self.consume('LBRACE')  # Consume opening brace for the program
+        self.consume('LBRACE')
         self.skip_newlines()
         
         sections = []
         while not self.match('RBRACE'):
             sections.append(self.parse_section())
             self.skip_newlines()
+            
+        self.consume('RBRACE')
         
-        self.consume('RBRACE')  # Consume closing brace for the program
         return MatrixProgram(name=name_token.value, sections=sections)
     
     def parse_grammar_program(self) -> GrammarProgram:
@@ -290,9 +291,14 @@ class Parser:
         return ResonanceProgram(name=name_token.value, sections=sections)
     
     def parse_section(self) -> Section:
-        """Parse a section within a program."""
+        """Parse a program section."""
         
-        name_token = self.consume('IDENTIFIER')
+        if self.match('IDENTIFIER'):
+            name_token = self.consume('IDENTIFIER')
+            name = name_token.value
+        else:
+            raise ParseError("Expected section header")
+            
         self.skip_newlines()
         self.consume('LBRACE')
         self.skip_newlines()
@@ -301,42 +307,19 @@ class Parser:
         while not self.match('RBRACE'):
             statements.append(self.parse_statement())
             self.skip_newlines()
-        
+            
         self.consume('RBRACE')
+        self.skip_newlines()
         
-        return Section(name=name_token.value, statements=statements)
+        return Section(name, statements)
     
     def parse_statement(self) -> Statement:
-        """Parse a statement."""
+        """Parse a single statement."""
         
-        if self.match('VERIFY'):
-            return self.parse_verify_statement()
-        elif self.match('TRACE'):
-            return self.parse_trace_statement()
-        elif self.match('IDENTIFIER'):
-            next_token = self.peek(1)
-            if next_token and next_token.type == 'ASSIGN':
-                return self.parse_assignment()
-        
-        # Could be a boundary condition or other statement
-        expr = self.parse_expression()
-        
-        if self.match('ARROW'):
-            # Boundary condition
-            self.consume('ARROW')
-            consequence = self.parse_statement()
-            # Ensure consequence is Assignment or Action
-            if isinstance(consequence, (Assignment, Action)):
-                return Boundary(condition=expr, consequence=consequence)
-            else:
-                raise ParseError("Boundary consequence must be Assignment or Action")
+        if self.match('IDENTIFIER'):
+            return self.parse_assignment()
         else:
-            # Standalone expression - convert to action
-            match expr:
-                case Variable():
-                    return Action(name=expr.name)
-                case _:
-                    raise ParseError("Expected statement")
+            raise ParseError("Expected statement")
     
     def parse_verify_statement(self) -> Union[VerifyArithmetic, VerifyStrings]:
         """Parse a verify statement."""
@@ -370,17 +353,12 @@ class Parser:
         target = Variable(self.consume('IDENTIFIER').value)
         self.consume('ASSIGN')
         
-        if self.match('GRAMMAR'):
-            # Grammar assignment
-            grammar = self.parse_grammar_def()
-            return GrammarAssignment(target=target, grammar=grammar)
+        expr = self.parse_expression()
+        
+        if self.is_matrix_expression(expr):
+            return MatrixAssignment(target=target, value=expr)
         else:
-            # Regular or matrix assignment
-            value = self.parse_expression()
-            if self.is_matrix_expression(value):
-                return MatrixAssignment(target=target, value=value)
-            else:
-                return Assignment(target=target, value=value)
+            return Assignment(target=target, value=expr)
     
     def parse_grammar_def(self) -> GrammarDef:
         """Parse a grammar definition."""
@@ -424,12 +402,12 @@ class Parser:
     
     def parse_expression(self) -> Expression:
         """Parse an expression."""
-        
+        print(f"Parsing expression. Current token: {self.peek()}")
         return self.parse_binary_op()
     
     def parse_binary_op(self) -> Expression:
         """Parse binary operations with precedence."""
-        
+        print(f"Parsing binary op. Current token: {self.peek()}")
         left = self.parse_unary_op()
         
         while self.match('PLUS', 'MULTIPLY', 'CONCAT'):
@@ -447,7 +425,7 @@ class Parser:
     
     def parse_unary_op(self) -> Expression:
         """Parse unary operations."""
-        
+        print(f"Parsing unary op. Current token: {self.peek()}")
         if self.match('WILD_OP'):
             self.consume('WILD_OP')
             operand = self.parse_primary()
@@ -488,7 +466,7 @@ class Parser:
     
     def parse_primary(self) -> Expression:
         """Parse primary expressions."""
-        
+        print(f"Parsing primary. Current token: {self.peek()}")
         if self.match('NUMBER'):
             value = self.consume('NUMBER').value
             if '.' in value:
@@ -503,32 +481,37 @@ class Parser:
         elif self.match('IDENTIFIER'):
             name = self.consume('IDENTIFIER').value
             
+            # Is it a function call? (e.g., D(var), C(var, binary))
             if self.match('LPAREN'):
-                # Function call
                 self.consume('LPAREN')
                 args = []
                 
-                while not self.match('RPAREN'):
-                    args.append(self.parse_expression())
-                    if self.match('COMMA'):
-                        self.consume('COMMA')
+                # Parse arguments
+                if not self.match('RPAREN'):
+                    while True:
+                        # Check for containment type as an argument
+                        token = self.peek()
+                        if token and token.type.endswith('_TYPE'):
+                            args.append(self.parse_containment_type())
+                        else:
+                            args.append(self.parse_expression())
+                        
+                        if self.match('COMMA'):
+                            self.consume('COMMA')
+                        else:
+                            break
                 
                 self.consume('RPAREN')
                 return FunctionCall(name=name, args=args)
-            else:
-                return Variable(name)
+            
+            # Otherwise, it's just a variable
+            return Variable(name)
         
         elif self.is_glyph_token():
             return GlyphLiteral(glyph=self.parse_glyph())
         
         elif self.match('MATRIX_START'):
             return self.parse_matrix_literal()
-        
-        elif self.match('LPAREN'):
-            self.consume('LPAREN')
-            expr = self.parse_expression()
-            self.consume('RPAREN')
-            return expr
         
         elif self.match('SEED'):
             return self.parse_string_from_seed()
@@ -606,7 +589,7 @@ class Parser:
             return MatrixLiteral(rows=rows, cols=cols, values=values)
     
     def parse_containment_type(self) -> ContainmentType:
-        """Parse a containment type."""
+        """Parse a containment type specifier."""
         
         if self.match('BINARY_TYPE'):
             self.consume('BINARY_TYPE')
@@ -621,7 +604,7 @@ class Parser:
             self.consume('GENERAL_TYPE')
             return ContainmentType.GENERAL
         else:
-            raise ParseError("Expected containment type: binary, decimal, string, or general")
+            raise ParseError("Expected containment type (binary, decimal, string, general)")
     
     def parse_string_from_seed(self) -> StringFromSeed:
         """Parse a string generation from seed."""

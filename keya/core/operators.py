@@ -12,6 +12,8 @@ from typing import Any, Callable, Dict, List, Tuple
 import jax
 import jax.numpy as jnp
 
+from keya.dsl.ast import Glyph
+
 # --- Foundational Attractors ---
 
 def get_pi() -> float:
@@ -26,15 +28,17 @@ def get_golden_ratio() -> float:
 
 # --- Glyph System ---
 
+# Mapping from symbolic glyphs to integer representation for computation
+GLYPH_TO_INT: Dict[Glyph, int] = {
+    Glyph.VOID: 0,
+    Glyph.DOWN: 1,
+    Glyph.UP: 2,
+    Glyph.UNITY: 3,
+    Glyph.FLOW: 4,
+}
 
-class Glyph(Enum):
-    """The fundamental symbols in the resonance field."""
-
-    VOID = 0  # ∅ - emptiness
-    DOWN = 1  # ▽ - primal glyph
-    UP = 2  # △ - transformed glyph
-    UNITY = 3  # ⊙ - contained/stable glyph
-    FLOW = 4  # ⊕ - dynamic glyph
+# Reverse mapping for converting back to symbolic glyphs
+INT_TO_GLYPH: Dict[int, Glyph] = {v: k for k, v in GLYPH_TO_INT.items()}
 
 
 # Glyph transformation function ω
@@ -57,7 +61,7 @@ def omega(glyph: Glyph) -> Glyph:
 
 def create_glyph_matrix(shape: Tuple[int, int], fill_glyph: Glyph = Glyph.VOID) -> jnp.ndarray:
     """Create a matrix filled with a specific glyph."""
-    return jnp.full(shape, fill_glyph.value, dtype=jnp.int32)
+    return jnp.full(shape, GLYPH_TO_INT[fill_glyph], dtype=jnp.int32)
 
 
 def apply_glyph_transform(matrix: jnp.ndarray, transform_fn: Callable[[int], int]) -> jnp.ndarray:
@@ -69,9 +73,9 @@ def apply_glyph_transform(matrix: jnp.ndarray, transform_fn: Callable[[int], int
 # --- Fundamental Operators ---
 
 
-def D_operator(matrix: jnp.ndarray) -> jnp.ndarray:
+def Wild_operator(matrix: jnp.ndarray) -> jnp.ndarray:
     """
-    The Dissonance operator (𝔻): Breaks symmetry by applying ω to diagonal elements.
+    The Wild operator (Ϟ): Breaks symmetry by applying ω to diagonal elements.
 
     This is the fundamental symmetry-breaking operation that seeds asymmetry
     in uniform glyph fields, creating the potential for pattern formation.
@@ -82,18 +86,19 @@ def D_operator(matrix: jnp.ndarray) -> jnp.ndarray:
 
     # Apply ω transformation to diagonal elements
     for i in range(min_dim):
-        diagonal_glyph = Glyph(matrix[i, i])
+        diagonal_int = int(matrix[i, i])
+        diagonal_glyph = INT_TO_GLYPH[diagonal_int]
         transformed_glyph = omega(diagonal_glyph)
-        result = result.at[i, i].set(transformed_glyph.value)
+        result = result.at[i, i].set(GLYPH_TO_INT[transformed_glyph])
 
     return result
 
 
-def C_operator(matrix: jnp.ndarray, containment_rule: str = "binary") -> jnp.ndarray:
+def Tame_operator(matrix: jnp.ndarray, containment_rule: str = "binary") -> jnp.ndarray:
     """
-    The Containment operator (ℂ): Creates resonance by organizing dissonance into stable patterns.
+    The Tame operator (Ϙ): Creates resonance by organizing wildness into stable patterns.
 
-    This operator heals the fractures created by D, establishing equilibrium
+    This operator heals the fractures created by the Wild operator, establishing equilibrium
     and generating attractor patterns (like number bases, strings, etc.).
 
     Args:
@@ -117,7 +122,8 @@ def _binary_containment(matrix: jnp.ndarray) -> jnp.ndarray:
 
     # Create 2×2 binary attractor pattern
     binary_attractor = jnp.array(
-        [[Glyph.UNITY.value, Glyph.DOWN.value], [Glyph.DOWN.value, Glyph.UNITY.value]]
+        [[GLYPH_TO_INT[Glyph.UNITY], GLYPH_TO_INT[Glyph.DOWN]], 
+         [GLYPH_TO_INT[Glyph.DOWN], GLYPH_TO_INT[Glyph.UNITY]]]
     )
 
     # Tile the attractor across the matrix
@@ -136,9 +142,9 @@ def _decimal_containment(matrix: jnp.ndarray) -> jnp.ndarray:
     result = jnp.zeros_like(matrix)
 
     # Create 10×10 decimal attractor (simplified - diagonal pattern)
-    decimal_attractor = jnp.full((10, 10), Glyph.DOWN.value)
+    decimal_attractor = jnp.full((10, 10), GLYPH_TO_INT[Glyph.DOWN])
     for k in range(10):
-        decimal_attractor = decimal_attractor.at[k, k].set(Glyph.UNITY.value)
+        decimal_attractor = decimal_attractor.at[k, k].set(GLYPH_TO_INT[Glyph.UNITY])
 
     # Tile across matrix
     for i in range(0, rows, 10):
@@ -158,7 +164,9 @@ def _string_containment(matrix: jnp.ndarray) -> jnp.ndarray:
     for i in range(rows):
         # Start from diagonal and propagate right using string grammar
         if i < cols:
-            current_glyph = Glyph(matrix[i, i])
+            current_glyph_int = int(matrix[i, i])
+            current_glyph = INT_TO_GLYPH[current_glyph_int]
+            
             for j in range(i + 1, cols):
                 # Simple string grammar: DOWN → UP → FLOW → DOWN...
                 if current_glyph == Glyph.DOWN:
@@ -168,7 +176,7 @@ def _string_containment(matrix: jnp.ndarray) -> jnp.ndarray:
                 elif current_glyph == Glyph.FLOW:
                     current_glyph = Glyph.DOWN
 
-                result = result.at[i, j].set(current_glyph.value)
+                result = result.at[i, j].set(GLYPH_TO_INT[current_glyph])
 
     return result
 
@@ -183,7 +191,7 @@ def _general_containment(matrix: jnp.ndarray) -> jnp.ndarray:
     result = jax.scipy.signal.convolve2d(padded, kernel, mode="valid")
 
     # Quantize back to glyph values
-    return jnp.round(jnp.clip(result, 0, len(Glyph) - 1)).astype(jnp.int32)
+    return jnp.round(jnp.clip(result, 0, len(GLYPH_TO_INT) - 1)).astype(jnp.int32)
 
 
 # --- Resonance Analysis ---
@@ -202,7 +210,7 @@ def compute_resonance_trace(matrix: jnp.ndarray) -> float:
     # Check diagonal-neighbor dissonance
     min_dim = min(rows, cols)
     for i in range(min_dim):
-        diagonal_glyph = Glyph(matrix[i, i])
+        diagonal_glyph = INT_TO_GLYPH[int(matrix[i, i])]
         expected_glyph = omega(diagonal_glyph)
 
         # Check if neighbors match expected transformation
@@ -213,7 +221,7 @@ def compute_resonance_trace(matrix: jnp.ndarray) -> float:
             neighbors.append(matrix[i + 1, i])
 
         for neighbor_val in neighbors:
-            if neighbor_val != expected_glyph.value:
+            if neighbor_val != GLYPH_TO_INT[expected_glyph]:
                 total_dissonance += 1.0
 
     # Normalize by total number of checked positions
@@ -224,9 +232,9 @@ def compute_resonance_trace(matrix: jnp.ndarray) -> float:
 # --- Composite Operations ---
 
 
-def DC_cycle(matrix: jnp.ndarray, containment_rule: str = "binary", max_iterations: int = 100) -> jnp.ndarray:
+def Wild_closure(matrix: jnp.ndarray, containment_rule: str = "binary", max_iterations: int = 100) -> jnp.ndarray:
     """
-    Apply cycles until resonance equilibrium is reached.
+    Apply Wild-Tame cycles until resonance equilibrium is reached.
 
     This is the fundamental process that generates stable symbolic structures
     from initial uniform fields.
@@ -234,19 +242,20 @@ def DC_cycle(matrix: jnp.ndarray, containment_rule: str = "binary", max_iteratio
     current = matrix
 
     for iteration in range(max_iterations):
-        # Apply dissonance
-        dissonant = D_operator(current)
+        # Apply wildness
+        wild = Wild_operator(current)
 
         # Apply containment
-        contained = C_operator(dissonant, containment_rule)
+        tamed = Tame_operator(wild, containment_rule)
 
         # Check for equilibrium
-        resonance = compute_resonance_trace(contained)
-        if resonance < 1e-6:  # Equilibrium reached
-            break
+        if jnp.array_equal(tamed, current):
+            print(f"Equilibrium reached after {iteration + 1} iterations.")
+            return tamed
+        
+        current = tamed
 
-        current = contained
-
+    print(f"Max iterations ({max_iterations}) reached without equilibrium.")
     return current
 
 
@@ -369,7 +378,7 @@ def extract_binary_blocks(matrix: jnp.ndarray) -> List[Tuple[int, int, int]]:
 
                 # Convert to binary (⊙=0, ▽=1, others=0)
                 binary_block = jnp.where(
-                    block == Glyph.UNITY.value, 0, jnp.where(block == Glyph.DOWN.value, 1, 0)
+                    block == GLYPH_TO_INT[Glyph.UNITY], 0, jnp.where(block == GLYPH_TO_INT[Glyph.DOWN], 1, 0)
                 )
 
                 # Interpret as 2-bit binary number (row-major order)
@@ -403,7 +412,7 @@ def matrix_to_binary_number(matrix: jnp.ndarray) -> int:
     for col in range(cols):
         bit_position = cols - 1 - col  # Rightmost column = position 0
 
-        if matrix[0, col] == Glyph.DOWN.value:
+        if matrix[0, col] == GLYPH_TO_INT[Glyph.DOWN]:
             binary_value += 2 ** bit_position
         # UNITY and others count as 0, so no addition needed
 
@@ -426,7 +435,7 @@ def binary_number_to_matrix(number: int, rows: int, cols: int) -> jnp.ndarray:
     for i, bit_char in enumerate(reversed(binary_str)):
         if i < cols:  # Don't exceed matrix width
             bit_value = int(bit_char)
-            glyph_value = Glyph.DOWN.value if bit_value == 1 else Glyph.UNITY.value
+            glyph_value = GLYPH_TO_INT[Glyph.DOWN] if bit_value == 1 else GLYPH_TO_INT[Glyph.UNITY]
 
             # Fill entire column with this bit pattern
             # For simplicity, just set the first row
@@ -541,12 +550,12 @@ def generate_string_from_seed(seed_glyph: Glyph, grammar: Grammar,
     
     # Start with seed glyph
     current_glyph = seed_glyph
-    result = result.at[0, 0].set(current_glyph.value)
+    result = result.at[0, 0].set(GLYPH_TO_INT[current_glyph])
     
     # Generate string by applying grammar rules
     for pos in range(1, min(length, matrix_width)):
         current_glyph = grammar.apply_rule(current_glyph)
-        result = result.at[0, pos].set(current_glyph.value)
+        result = result.at[0, pos].set(GLYPH_TO_INT[current_glyph])
     
     return result
 
@@ -560,7 +569,7 @@ def extract_string_from_matrix(matrix: jnp.ndarray, row: int = 0) -> List[Glyph]
     for col in range(cols):
         glyph_value = int(matrix[row, col])
         try:
-            glyph = Glyph(glyph_value)
+            glyph = INT_TO_GLYPH[glyph_value]
             string.append(glyph)
         except ValueError:
             string.append(Glyph.VOID)  # Default for invalid values
@@ -589,11 +598,12 @@ def apply_string_grammar_matrix(matrix: jnp.ndarray, grammar: Grammar) -> jnp.nd
     
     for i in range(rows):
         # Start from diagonal and propagate right using grammar
-        if i < cols and matrix[i, i] != Glyph.VOID.value:
-            current_glyph = Glyph(matrix[i, i])
+        if i < cols and matrix[i, i] != GLYPH_TO_INT[Glyph.VOID]:
+            current_glyph_int = int(matrix[i, i])
+            current_glyph = INT_TO_GLYPH[current_glyph_int]
             for j in range(i + 1, cols):
                 current_glyph = grammar.apply_rule(current_glyph)
-                result = result.at[i, j].set(current_glyph.value)
+                result = result.at[i, j].set(GLYPH_TO_INT[current_glyph])
     
     return result
 

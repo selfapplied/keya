@@ -35,9 +35,9 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
     print(f"Grid size: {orbital.grid_size}x{orbital.grid_size}x{orbital.grid_size}")
     
     # Get orbital info
-    info = orbital.get_orbital_info()
-    print(f"Max probability density: {info['max_probability_density']:.6f}")
-    print(f"Most probable radius: {info['most_probable_radius']:.3f} Bohr")
+    orbital_info = orbital.get_orbital_info()
+    print(f"Max probability density: {np.max(orbital.probability_density):.6f}")
+    print(f"Most probable radius: {orbital_info['most_probable_radius']:.3f} Bohr")
     
     # Create visualizations
     # Create a figure with multiple panels
@@ -96,7 +96,7 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
     
     # Panel 6: After evolution
     print("Evolving with operators...")
-    success = orbital.evolve_with_dc_operators(steps=20)
+    success = orbital.evolve_with_wild_tame_operators(steps=20)
     
     if success:
         prob_flat_after = orbital.probability_density.flatten()
@@ -118,6 +118,7 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
         print(f"  Variance before: {variance_before:.6f}")
         print(f"  Variance after: {variance_after:.6f}")
         print(f"  Variance ratio: {variance_after/variance_before:.3f}")
+        print("✅ Orbital evolution successful")
     else:
         axes[1, 2].text(0.5, 0.5, 'Evolution\nFailed', 
                         ha='center', va='center', transform=axes[1, 2].transAxes,
@@ -131,8 +132,8 @@ def demo_single_orbital(orbital_type: OrbitalType, title: str):
     
     # Save to output directory
     os.makedirs('.out/visualizations', exist_ok=True)
-    filename = f".out/visualizations/orbital_{orbital_type.value}.png"
-    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    filename = f".out/visualizations/orbital_{orbital_type.value}.svg"
+    plt.savefig(filename, format='svg', bbox_inches='tight', dpi=300)
     print(f"Saved visualization: {filename}")
     plt.close()
 
@@ -194,8 +195,8 @@ def demo_orbital_comparison():
     
     # Save comparison
     os.makedirs('.out/visualizations', exist_ok=True)
-    filename = ".out/visualizations/orbital_comparison.png"
-    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    filename = ".out/visualizations/orbital_comparison.svg"
+    plt.savefig(filename, format='svg', bbox_inches='tight', dpi=300)
     print(f"Saved comparison: {filename}")
     plt.close()
 

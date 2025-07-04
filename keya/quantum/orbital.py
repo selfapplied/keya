@@ -56,7 +56,7 @@ class ElectronOrbital:
         self._normalize()
         
         # Set up evolution for orbital dynamics
-        self.dc_wave_function = self._create_dc_wave_function()
+        self.evolution_wave_function = self._create_evolution_wave_function()
         
     def _parse_quantum_numbers(self, orbital_type: OrbitalType) -> Tuple[int, int, int]:
         """Parse quantum numbers (n, l, m) from orbital type."""
@@ -160,32 +160,32 @@ class ElectronOrbital:
             self.wave_function /= np.sqrt(norm_squared)
             self.probability_density = np.abs(self.wave_function)**2
     
-    def _create_dc_wave_function(self) -> QuantumWaveFunction:
+    def _create_evolution_wave_function(self) -> QuantumWaveFunction:
         """Create a keya wave function for orbital evolution."""
         
         # Use a smaller grid for evolution
-        dc_size = min(50, self.grid_size)
+        evolution_size = min(50, self.grid_size)
         
-        dc_wave = QuantumWaveFunction(
+        evolution_wave = QuantumWaveFunction(
             wave_type=WaveFunctionType.HYDROGEN,
-            dimensions=(dc_size, dc_size, dc_size),
+            dimensions=(evolution_size, evolution_size, evolution_size),
             containment_type=ContainmentType.GENERAL,
             energy_level=self.n
         )
         
         # Initialize with current orbital data (downsampled)
-        self._copy_to_dc_wave_function(dc_wave)
+        self._copy_to_evolution_wave_function(evolution_wave)
         
-        return dc_wave
+        return evolution_wave
     
-    def _copy_to_dc_wave_function(self, dc_wave: QuantumWaveFunction):
+    def _copy_to_evolution_wave_function(self, evolution_wave: QuantumWaveFunction):
         """Copy orbital data to wave function."""
         # Downsample the orbital to fit grid
-        skip = max(1, self.grid_size // dc_wave.nx)
+        skip = max(1, self.grid_size // evolution_wave.nx)
         
-        for i in range(dc_wave.nx):
-            for j in range(dc_wave.ny):
-                for k in range(dc_wave.nz):
+        for i in range(evolution_wave.nx):
+            for j in range(evolution_wave.ny):
+                for k in range(evolution_wave.nz):
                     # Map to original grid
                     orig_i = min(i * skip, self.grid_size - 1)
                     orig_j = min(j * skip, self.grid_size - 1)
@@ -193,41 +193,41 @@ class ElectronOrbital:
                     
                     # Set real and imaginary parts
                     if np.isrealobj(self.wave_function):
-                        dc_wave.psi_real[i, j, k] = self.wave_function[orig_i, orig_j, orig_k]
-                        dc_wave.psi_imag[i, j, k] = 0.0
+                        evolution_wave.psi_real[i, j, k] = self.wave_function[orig_i, orig_j, orig_k]
+                        evolution_wave.psi_imag[i, j, k] = 0.0
                     else:
-                        dc_wave.psi_real[i, j, k] = np.real(self.wave_function[orig_i, orig_j, orig_k])
-                        dc_wave.psi_imag[i, j, k] = np.imag(self.wave_function[orig_i, orig_j, orig_k])
+                        evolution_wave.psi_real[i, j, k] = np.real(self.wave_function[orig_i, orig_j, orig_k])
+                        evolution_wave.psi_imag[i, j, k] = np.imag(self.wave_function[orig_i, orig_j, orig_k])
     
-    def evolve_with_dc_operators(self, steps: int = 10) -> bool:
+    def evolve_with_wild_tame_operators(self, steps: int = 10) -> bool:
         """Evolve the orbital using keya operators."""
         
         print(f"🌀 Evolving {self.orbital_type.value} orbital with operators...")
         
-        success = self.dc_wave_function.apply_dc_evolution(steps)
+        success = self.evolution_wave_function.apply_wild_tame_evolution(steps)
         
         if success:
             print(f"✅ evolution completed ({steps} steps)")
             # Update main orbital from evolved state
-            self._copy_from_dc_wave_function()
+            self._copy_from_evolution_wave_function()
             return True
         else:
             print("❌ evolution failed")
             return False
     
-    def _copy_from_dc_wave_function(self):
+    def _copy_from_evolution_wave_function(self):
         """Copy evolved state back to main orbital."""
         # This is a simplified version - in practice you'd want proper interpolation
-        dc_prob = self.dc_wave_function.get_probability_density_3d()
+        evolution_prob = self.evolution_wave_function.get_probability_density_3d()
         
         # Update the central region of the orbital
-        scale_factor = np.max(self.probability_density) / (np.max(dc_prob) + 1e-10)
+        scale_factor = np.max(self.probability_density) / (np.max(evolution_prob) + 1e-10)
         
         # Simple update of central region
-        skip = max(1, self.grid_size // self.dc_wave_function.nx)
-        for i in range(self.dc_wave_function.nx):
-            for j in range(self.dc_wave_function.ny):
-                for k in range(self.dc_wave_function.nz):
+        skip = max(1, self.grid_size // self.evolution_wave_function.nx)
+        for i in range(self.evolution_wave_function.nx):
+            for j in range(self.evolution_wave_function.ny):
+                for k in range(self.evolution_wave_function.nz):
                     orig_i = self.grid_size//4 + i * skip
                     orig_j = self.grid_size//4 + j * skip
                     orig_k = self.grid_size//4 + k * skip
@@ -236,9 +236,29 @@ class ElectronOrbital:
                         orig_j < 3*self.grid_size//4 and 
                         orig_k < 3*self.grid_size//4):
                         
-                        new_prob = dc_prob[i, j, k] * scale_factor
+                        new_prob = evolution_prob[i, j, k] * scale_factor
                         self.probability_density[orig_i, orig_j, orig_k] = new_prob
     
+    def plot_orbital(self, ax, title=""):
+        """Plot the orbital as an isosurface."""
+        from skimage import measure
+
+        # Generate isosurface
+        verts, faces, _, _ = measure.marching_cubes(
+            self.probability_density,
+            level=0.001,
+            spacing=(self.resolution, self.resolution, self.resolution)
+        )
+
+        # Plot the surface
+        ax.plot_trisurf(verts[:, 0], verts[:, 1], faces, verts[:, 2],
+                        cmap='viridis', lw=1)
+
+        ax.set_title(title)
+        ax.set_xlabel("X (Bohr radii)")
+        ax.set_ylabel("Y (Bohr radii)")
+        ax.set_zlabel("Z (Bohr radii)")
+
     def get_probability_density_2d(self, plane: str = "xy", z_slice: Optional[int] = None) -> np.ndarray:
         """Get 2D slice of probability density."""
         
@@ -320,9 +340,10 @@ class ElectronOrbital:
             'quantum_numbers': {'n': self.n, 'l': self.l, 'm': self.m},
             'grid_size': self.grid_size,
             'max_radius': self.max_radius,
-            'total_probability': float(total_prob),
+            'resolution': self.resolution,
+            'is_normalized': np.isclose(np.sum(self.probability_density) * (self.resolution**3), 1.0),
             'most_probable_radius': float(most_probable_r),
             'max_probability_density': float(np.max(self.probability_density)),
             'energy_level': -13.6 / (self.n**2),  # eV
-            'dc_evolution_available': True
+            'evolution_available': True
         } 

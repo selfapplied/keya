@@ -256,11 +256,11 @@ class WidgetRenderer:
         # Save animation
         anim.save(filename, writer='pillow', fps=fps)
         
-        # Restore evolution state
+        # Stop evolution if it wasn't running before
         if not was_evolving:
             self.widget.stop_evolution()
             
-        print(f"✅ Animation exported to {filename}")
+        print(f"✅ Animation export complete!")
 
 
 def create_demo_widget(widget_type: str = "ripple") -> Tuple[CellularWidget, WidgetRenderer]:

@@ -79,3 +79,7 @@ This project follows a specific set of conventions to maintain clarity and consi
     -   Instead of littering code with print statements, try aspect oriented
         approaches like tracing or writing a test.
     -   Create tools that are adaptable to many scenarios to iron out issues.
+
+## License
+
+Kéya is released under the [MIT License](LICENSE). This means you can use, modify, and distribute the code freely, including for commercial purposes, as long as you include the original copyright notice.

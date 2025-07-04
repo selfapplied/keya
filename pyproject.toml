@@ -1,8 +1,9 @@
 [project]
 name = "keya"
 version = "0.1.0"
-description = "Add your description here"
+description = "Experimental programming language based on the Σ-Calculus"
 readme = "README.md"
+license = {text = "AGPL-3.0-or-later"}
 requires-python = ">=3.13"
 dependencies = [
     "jax>=0.4.35",

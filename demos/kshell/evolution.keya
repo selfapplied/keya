@@ -1,8 +1,0 @@
-#!/usr/bin/env python kshell.py
-matrix test_evolution {
-  ops {
-    grid = [3, 3, ∅]
-    evolved = W grid
-    result = WT(grid, binary, 5)
-  }
-} 

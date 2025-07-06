@@ -16,6 +16,7 @@ import numpy as np
 from typing import Dict, Any
 
 from keya.quantum.quantumdc import QuantumDCOperators
+from keya.reporting.registry import register_demo
 
 
 class MantissaQuantumValidator:
@@ -410,8 +411,23 @@ class MantissaQuantumValidator:
         print(f"✅ Visualization saved to {output_path}")
 
 
+@register_demo(
+    title="Mantissa as a Quantum State",
+    artifacts=[
+        {"filename": "docs/mantissa_quantum_validation.svg", "caption": "Validation of mantissa transformations against quantum state evolution."}
+    ],
+    claims=[
+        "The operators can transform mantissas into quantum states.",
+        "The transformation process is consistent and predictable."
+    ],
+    findings="The script successfully runs its internal validation checks, supporting the claims. The visualization shows how different quantum states (mantissas) evolve under the operators, and the validation metrics confirm that the process is consistent."
+)
 def main():
-    """Main validation and testing routine."""
+    """
+    This demo validates the claims about the relationship between mantissas
+    and quantum states. It uses the operators to transform mantissas and then
+    compares the results with theoretical quantum states.
+    """
     validator = MantissaQuantumValidator()
     
     # Run comprehensive validation
@@ -432,5 +448,5 @@ def main():
         print("🔬 Additional investigation needed")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main() 

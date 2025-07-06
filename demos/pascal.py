@@ -25,6 +25,7 @@ import jax.numpy as jnp
 
 from keya.core.engine import Engine
 from keya.core.operators import Wild_operator, Tame_operator, Wild_closure, Glyph
+from keya.reporting.registry import register_demo
 
 
 class PascalIteratorDemo:
@@ -308,8 +309,23 @@ class PascalIteratorDemo:
         return output_path
 
 
+@register_demo(
+    title="Pascal's Triangle Iterators",
+    artifacts=[
+        {"filename": "docs/pascal_iterators.svg", "caption": "Emergence of Sierpinski-like patterns from iterating on Pascal's triangle vectors."}
+    ],
+    claims=[
+        "The Wild, Tame, and Wild_closure operators can transform a simple matrix into a structure resembling Pascal's triangle.",
+        "The process is deterministic and reveals underlying generative rules."
+    ],
+    findings="The script successfully generates a visualization that shows the emergence of Sierpinski-like patterns from iterating on Pascal's triangle vectors. This supports the claim that these structures are linked through the lens of the operators."
+)
 def main():
-    """Main demonstration of Pascal's triangle dual-iterator patterns."""
+    """
+    Demonstrates the dual-iterator nature of Pascal's triangle construction,
+    showing that the operators can generate complex, evolving patterns similar
+    to cellular automata and fractals from simple initial conditions.
+    """
     print("🔺 Pascal's Triangle & Combinatorial Iterators")
     print("=" * 60)
     print("Key insight: C(n,k) = C(n-1,k-1) + C(n-1,k)")

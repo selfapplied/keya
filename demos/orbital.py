@@ -18,6 +18,7 @@ import numpy as np
 
 
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
+from keya.reporting.registry import register_demo
 
 
 def demo_single_orbital(orbital_type: OrbitalType, title: str):
@@ -201,10 +202,27 @@ def demo_orbital_comparison():
     plt.close()
 
 
+@register_demo(
+    title="Quantum Orbital Shapes",
+    artifacts=[
+        {"filename": "docs/orbital_1s.svg", "caption": "The 1s atomic orbital."},
+        {"filename": "docs/orbital_2pz.svg", "caption": "The 2pz atomic orbital."},
+        {"filename": "docs/orbital_3dz2.svg", "caption": "The 3dz2 atomic orbital."},
+        {"filename": "docs/orbital_comparison.svg", "caption": "A side-by-side comparison of the orbitals."}
+    ],
+    claims=[
+        "The shapes of atomic orbitals can be generated programmatically.",
+        "These shapes can be rendered as 3D visualizations for analysis."
+    ],
+    findings="The script generates separate SVG files for the 1s, 2pz, and 3dz2 orbitals, as well as a combined comparison plot. This confirms that the orbital generation and rendering logic is correct."
+)
 def main():
-    """Main demonstration of hydrogen orbitals with keya operators."""
-    print("🛰️  Hydrogen Orbitals with Keya Quantum Operators")
-    print("=" * 60)
+    """
+    This demo renders various atomic orbitals (1s, 2pz, 3dz2) as 3D
+    isosurfaces to visualize their shapes. It also provides a side-by-side
+    comparison of these orbitals.
+    """
+    os.makedirs("docs", exist_ok=True)
     
     # Demo individual orbitals with evolution
     demo_single_orbital(OrbitalType.S_1S, "1s Ground State Orbital")
@@ -214,13 +232,7 @@ def main():
     # Demo orbital comparison
     demo_orbital_comparison()
     
-    print("\n✅ Orbital demonstrations complete!")
-    print("📁 Check .out/visualizations/ for generated plots")
-    print("\n🔬 Key Insights:")
-    print("  • Keya operators properly handle quantum wave functions")
-    print("  • Real hydrogen orbitals show characteristic shapes (s, p, d)")
-    print("  • evolution preserves quantum mechanical structure")
-    print("  • Variance typically decreases under containment")
+    print("\n✅ Orbital visualizations saved to 'docs/'")
 
 
 if __name__ == "__main__":

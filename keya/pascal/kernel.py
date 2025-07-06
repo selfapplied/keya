@@ -4,13 +4,13 @@ The Pascal-Sierpinski Computational Kernel.
 This module implements the core computational substrate based on the
 combinatorial and fractal properties of Pascal's triangle.
 """
-from typing import NamedTuple
+from typing import NamedTuple, Callable, List
 from dataclasses import dataclass, field
 from math import comb
 import jax
 import jax.numpy as jnp
 from jax import jit
-from functools import partial
+from functools import partial, lru_cache
 
 # A simple GF(2) field for binary operations
 GF2 = jnp.array([0, 1], dtype=jnp.uint8)
@@ -45,42 +45,37 @@ class CombinatorialPosition:
 
 class PascalKernel:
     """
-    A computational kernel inspired by Pascal's triangle, built with JAX.
+    A parameter-free computational kernel inspired by Pascal's triangle,
+    operating on the fundamental binary logic of modulus 2.
     """
-    def __init__(self, depth: int = 7):
-        self.depth = depth
+    def __init__(self):
+        """The kernel is now parameter-free."""
         self.modulus = 2
-        # The triangle is now a list of JAX arrays
-        self.triangle = self._build_pascal_triangle_jit(depth)
 
     @staticmethod
-    @partial(jit, static_argnames=['depth'])
-    def _build_pascal_triangle_jit(depth: int) -> list[jnp.ndarray]:
+    @lru_cache(maxsize=None)
+    def _get_pascal_row(n: int) -> jnp.ndarray:
         """
-        Builds a ragged list of JAX arrays representing Pascal's triangle.
+        Computes the n-th row of Pascal's triangle modulo 2.
+        Uses a cache to avoid re-computation.
         """
-        triangle = []
-        row = jnp.array([1], dtype=jnp.int64)
-        triangle.append(row)
-
-        for n in range(1, depth):
-            prev_row = triangle[n-1]
-            # Pad with zeros to create the next row
-            padded_prev = jnp.pad(prev_row, (1, 0))
-            padded_next = jnp.pad(prev_row, (0, 1))
-            new_row = padded_prev + padded_next
-            triangle.append(new_row)
+        if n == 0:
+            return jnp.array([1], dtype=jnp.int64)
         
-        return triangle
+        prev_row = PascalKernel._get_pascal_row(n - 1)
+        padded_prev = jnp.pad(prev_row, (1, 0))
+        padded_next = jnp.pad(prev_row, (0, 1))
+        new_row = (padded_prev + padded_next) % 2
+        return new_row
 
     def binomial_transform(self, vector: jnp.ndarray) -> jnp.ndarray:
-        """Applies the binomial transform using the kernel's triangle."""
+        """Applies the binomial transform using dynamically generated rows."""
         n = len(vector)
         result = jnp.zeros(n, dtype=jnp.int64)
         
         def body_fun(k, res):
             def inner_fun(i, inner_res):
-                transform_coeff = self.triangle[k][i]
+                transform_coeff = self._get_pascal_row(k)[i]
                 return inner_res.at[k].add(transform_coeff * vector[i])
 
             return jax.lax.fori_loop(0, k + 1, inner_fun, res)
@@ -102,15 +97,20 @@ class PascalKernel:
         # A full implementation would call reduce_with_carries here.
         return convolved
 
+    @partial(jit, static_argnums=(0, 2))
+    def apply_elementwise(self, state: jnp.ndarray, func: Callable[[jnp.ndarray], jnp.ndarray]) -> jnp.ndarray:
+        """Applies a function element-wise to the state vector."""
+        return func(state)
+
     def reduce_with_carries(self, vector: jnp.ndarray) -> jnp.ndarray:
-        """Propagates carries using combinatorial rules from the triangle."""
+        """Propagates carries using combinatorial rules from the triangle (mod 2)."""
         
         def body_fun(i, vec):
             carry_amount = vec[i] // self.modulus
             new_val = vec[i] % self.modulus
             vec = vec.at[i].set(new_val)
 
-            pascal_row = self.triangle[i]
+            pascal_row = self._get_pascal_row(i)
             
             def carry_fun(j, inner_vec):
                 pascal_coeff = pascal_row[j]

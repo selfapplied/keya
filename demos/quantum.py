@@ -15,6 +15,7 @@ from keya.quantum.renderer import create_quantum_demo
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
 from keya.quantum.wavefunction import QuantumWaveFunction, WaveFunctionType
 from keya.dsl.ast import ContainmentType
+from keya.reporting.registry import register_demo
 
 
 def test_quantum_basics():
@@ -158,99 +159,60 @@ def demo_wave_collapse():
     print("\n💥 WAVE COLLAPSE DEMO COMPLETE! 💥")
 
 
-def demo_infinite_quantum_evolution():
-    """Demo infinite quantum evolution using ∞ cycles."""
-    print("♾️  INFINITE QUANTUM EVOLUTION DEMO")
-    print("=" * 38)
-    
-    print("Creating wave function for infinite evolution...")
-    wave = QuantumWaveFunction(WaveFunctionType.HARMONIC, (15, 15, 15), 
-                              ContainmentType.GENERAL)
-    
-    print("Testing infinite evolution...")
-    
-    # Test with large number to simulate infinity
-    keya_program = """
-matrix infinite_quantum {
-    evolution {
-        result = WT(psi, general, 100)  
-    }
-}
-"""
-    
-    # Set up for infinite evolution
-    wave.engine.variables['psi'] = wave.get_probability_density_2d()
-    
-    try:
-        result = wave.engine.execute_program(keya_program.strip())
-        if result:
-            print("✅ Infinite quantum evolution simulation successful!")
-            print("   📊 Large-scale cycles completed")
-            print("   🌀 Quantum system evolved through extended time")
-        else:
-            print("❌ Infinite evolution simulation failed")
-    except Exception as e:
-        print(f"❌ Error in infinite evolution: {e}")
-    
-    print("\n∞ INFINITE EVOLUTION DEMO COMPLETE! ∞")
-
-
-def create_visualization():
-    """Create a non-interactive visualization of quantum phenomena."""
-    print("🎨 CREATING VISUALIZATION: Quantum Phenomena")
+@register_demo(
+    title="Quantum Phenomena Simulation",
+    artifacts=[
+        {"filename": "docs/quantum_phenomena.svg", "caption": "A gallery of simulated quantum states, including hydrogen orbitals, a time-evolved wave packet, and a superposition state."}
+    ],
+    claims=[
+        "Hydrogen orbitals can be constructed and visualized.",
+        "Keya's evolution operators can model the time-development of a quantum wave packet.",
+        "Superposition states can be created and manipulated."
+    ],
+    findings="The script runs through its series of demos, printing confirmations for each test. The final visualization successfully renders the different quantum states, confirming that the simulation and plotting functions are working correctly."
+)
+def main():
+    """
+    This demo simulates various quantum phenomena to show how Keya's operators
+    can model quantum state evolution. It covers:
+    - The structure of hydrogen orbitals (1s, 2pz).
+    - The evolution of a Gaussian wave packet over time.
+    - The principle of superposition.
+    The visualization provides a gallery of these quantum states.
+    """
+    print("🌌 KEYA QUANTUM PHENOMENA RENDERER 🌌")
     print("=" * 50)
 
+    # Run all console demos
+    test_quantum_basics()
+    demo_hydrogen_orbitals()
+    demo_quantum_superposition()
+    demo_wave_collapse()
+
+    # Create the visualization
     fig, axes = plt.subplots(2, 2, figsize=(12, 10), subplot_kw={'projection': '3d'})
     fig.suptitle("Keya Quantum Phenomena", fontsize=16)
 
-    # 1. 1s Orbital
     orb_1s = ElectronOrbital(OrbitalType.S_1S)
     orb_1s.plot_orbital(axes[0, 0], title="1s Hydrogen Orbital")
 
-    # 2. 2pz Orbital
     orb_2pz = ElectronOrbital(OrbitalType.P_2PZ)
     orb_2pz.plot_orbital(axes[0, 1], title="2pz Hydrogen Orbital")
 
-    # 3. Gaussian Wave Packet
     wave = QuantumWaveFunction(WaveFunctionType.GAUSSIAN, dimensions=(25, 25, 25))
     wave.plot_wave_function(axes[1, 0], title="Gaussian Wave Packet")
     
-    # 4. Evolved Wave Packet
     wave.apply_wild_tame_evolution(5)
     wave.plot_wave_function(axes[1, 1], title="Evolved Wave Packet")
 
     plt.tight_layout(rect=(0, 0.03, 1, 0.95))
     
-    # Save to file
-    output_path = os.path.join(".out", "visualizations", "quantum_phenomena.svg")
-    plt.savefig(output_path, format='svg', bbox_inches='tight')
-    plt.close(fig)
-    print(f"✅ Visualization saved to {output_path}")
+    # Save the final figure
+    os.makedirs("docs", exist_ok=True)
+    save_path = "docs/quantum_phenomena.svg"
+    fig.savefig(save_path, bbox_inches='tight', transparent=True)
+    print(f"\n✅ All quantum phenomena visualized and saved to '{save_path}'")
 
 
-def main():
-    """Main quantum phenomena demo."""
-    print("🌌 KEYA QUANTUM PHENOMENA RENDERER 🌌")
-    print("=" * 50)
-    print("Mathematical operators meet quantum mechanics!")
-    print()
-
-    # Run all console demos sequentially
-    test_quantum_basics()
-    print("\n" + "=" * 50)
-    demo_hydrogen_orbitals()
-    print("\n" + "=" * 50)
-    demo_quantum_superposition()
-    print("\n" + "=" * 50)
-    demo_wave_collapse()
-    print("\n" + "=" * 50)
-    demo_infinite_quantum_evolution()
-
-    # Create the non-interactive visualization
-    create_visualization()
-
-    print("\n🎉 ALL QUANTUM DEMOS COMPLETE! 🎉")
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main() 

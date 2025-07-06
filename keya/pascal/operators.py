@@ -6,6 +6,7 @@ as a polynomial. These operators are applied via convolution by the PascalKernel
 """
 from __future__ import annotations
 import jax.numpy as jnp
+from typing import Union
 
 class Operator:
     """
@@ -13,17 +14,20 @@ class Operator:
     The operator's action is defined by the convolution of its polynomial
     representation with a state's polynomial representation.
     """
-    def __init__(self, name: str, coefficients: list[int]):
+    def __init__(self, name: str, coefficients: Union[list[int], jnp.ndarray]):
         """
         Initializes an operator with a name and its polynomial coefficients.
         
         Args:
             name: The human-readable name of the operator.
-            coefficients: A list of integers representing the polynomial,
-                          e.g., [1, 0, 1] for x^2 + 1.
+            coefficients: A list of integers (for 1D) or a JAX array (for 2D)
+                          representing the polynomial, e.g., [1, 0, 1] for x^2 + 1.
         """
         self.name = name
-        self.coeffs = jnp.array(coefficients, dtype=jnp.int64)
+        if isinstance(coefficients, list):
+            self.coeffs = jnp.array(coefficients, dtype=jnp.int64)
+        else:
+            self.coeffs = coefficients
 
     def __repr__(self) -> str:
         return f"Operator({self.name}, coeffs={self.coeffs})"
@@ -37,7 +41,7 @@ def Fuse() -> Operator:
     is equivalent to adding the state to a shifted version of itself,
     which creates a fusion or superposition of neighboring states.
     """
-    return Operator(name="Fuse", coefficients=[1, 1])
+    return Operator("Fuse", [1, 1])
 
 def Diff() -> Operator:
     """
@@ -45,8 +49,8 @@ def Diff() -> Operator:
     Its polynomial is `x - 1`. Applying it is equivalent to taking a
     finite difference of the state's components.
     """
-    return Operator(name="Diff", coefficients=[-1, 1])
+    return Operator("Diff", [-1, 1])
 
 def Identity() -> Operator:
     """The Identity operator, which causes no change. Its polynomial is `1`."""
-    return Operator(name="Identity", coefficients=[1]) 
+    return Operator("Identity", [1]) 

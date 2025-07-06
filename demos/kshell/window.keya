@@ -1,7 +1,0 @@
-matrix test_symbols {
-  ops {
-    grid = [2, 2, ▽]
-    evolved = D(grid)
-    result = DC(grid, string, 3)
-  }
-} 

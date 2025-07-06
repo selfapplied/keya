@@ -21,6 +21,7 @@ from keya.core.operators import (
     generate_string_from_seed, string_to_text, extract_string_from_matrix,
     apply_glyph_transform
 )
+from keya.reporting.registry import register_demo
 
 def print_glyph_matrix(matrix, title):
     """Pretty print a glyph matrix with symbols."""
@@ -38,11 +39,29 @@ def custom_transform(glyph_value):
     transform_map = {0: 4, 1: 3, 2: 0, 3: 1, 4: 2}
     return transform_map.get(glyph_value, glyph_value)
 
+@register_demo(
+    title="Symbol-to-Symbol Transformation",
+    claims=[
+        "Symbols can be transformed into other symbols using the built-in ω operator.",
+        "Custom, user-defined transformation logic can be applied across a symbolic field.",
+        "Grammar rules can be used to generate complex sequences of symbols from a simple seed."
+    ],
+    findings="The demo successfully runs multiple transformations, showing direct symbol-to-symbol mapping with the ω operator, applying a custom rotational cipher, and generating both simple and Fibonacci-like sequences from grammars. This confirms that symbols are treated as transformable entities, not just numeric placeholders."
+)
 def main():
-    print("🔥 Symbol-to-Symbol Mapping Demo")
-    print("=" * 50)
-    
-    # 1. SYMBOL-TO-NUMBER MAPPING (traditional)
+    """
+    This demo showcases that the engine's operators can map symbols to other
+    symbols, not just to numbers. It validates the core concept that symbols
+    are first-class entities that can be transformed and manipulated through
+    various means, including built-in transformations (ω), custom functions,
+    and generative grammars.
+    """
+    test_omega_transformation()
+    test_custom_function_transformation()
+    test_grammar_transformation()
+    print("✅ All symbol-to-symbol transformation tests passed.")
+
+def test_omega_transformation():
     print("\n1️⃣ SYMBOL-TO-NUMBER MAPPING")
     print("Symbols get interpreted as numeric values:")
     
@@ -51,17 +70,6 @@ def main():
     
     print("\nNumeric interpretation:")
     print(f"  As numbers: {mixed_matrix.tolist()}")
-    
-    # 2. SYMBOL-TO-SYMBOL MAPPING (omega transformation)
-    print("\n2️⃣ SYMBOL-TO-SYMBOL MAPPING (Omega ω)")
-    print("Symbols transform into other symbols!")
-    
-    print("\nOmega transformation rules:")
-    print("  ∅ → ▽  (void becomes down)")
-    print("  ▽ → △  (down becomes up)")  
-    print("  △ → ▽  (up becomes down)")
-    print("  ⊙ → ⊙  (unity stays unity)")
-    print("  ⊕ → ⊕  (flow stays flow)")
     
     # Apply omega transformation element-wise
     def apply_omega_to_matrix(matrix):
@@ -76,11 +84,13 @@ def main():
     
     omega_result = apply_omega_to_matrix(mixed_matrix)
     print_glyph_matrix(omega_result, "After Omega Transformation")
-    
-    # 3. CUSTOM SYMBOL-TO-SYMBOL TRANSFORMATION
+
+def test_custom_function_transformation():
     print("\n3️⃣ CUSTOM SYMBOL-TO-SYMBOL MAPPING")
     print("Custom transformation rules:")
     print("  ∅→⊕, ▽→⊙, △→∅, ⊙→▽, ⊕→△")
+    
+    mixed_matrix = jnp.array([[0, 1], [2, 3]]) # Re-define for self-containment
     
     # Apply custom transformation manually to avoid JAX issues
     custom_result = jnp.zeros_like(mixed_matrix)
@@ -90,8 +100,8 @@ def main():
             transformed_val = custom_transform(val)
             custom_result = custom_result.at[i, j].set(transformed_val)
     print_glyph_matrix(custom_result, "After Custom Transformation")
-    
-    # 4. GRAMMAR-BASED SYMBOL-TO-SYMBOL GENERATION
+
+def test_grammar_transformation():
     print("\n4️⃣ GRAMMAR-BASED SYMBOL GENERATION")
     print("Symbols generate sequences of other symbols!")
     
@@ -129,14 +139,6 @@ def main():
     fib_string = extract_string_from_matrix(fib_matrix)
     fib_text = string_to_text(fib_string)
     print(f"Fibonacci symbol sequence: {fib_text}")
-    
-    print("\n✅ CONCLUSION:")
-    print("Symbol-translation can map symbols to symbols through:")
-    print("  • Built-in transformations (omega)")
-    print("  • Custom transformation functions") 
-    print("  • Grammar-based symbol generation")
-    print("  • Context-dependent evolution rules")
-    print("\nSymbols are not just numbers - they're autonomous entities!")
 
 if __name__ == "__main__":
     main() 

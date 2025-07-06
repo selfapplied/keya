@@ -7,8 +7,9 @@ from enum import Enum
 from typing import Any, Dict, Tuple
 
 import numpy as np
+import jax.numpy as jnp
 
-from ..core.engine import Engine
+from ..core.operators import Wild_closure
 from ..dsl.ast import ContainmentType
 
 
@@ -52,9 +53,6 @@ class QuantumWaveFunction:
         self.dimensions = dimensions
         self.containment_type = containment_type
         self.energy_level = energy_level
-        
-        # Initialize keya engine for quantum evolution
-        self.engine = Engine()
         
         # 3D grid for wave function
         self.nx, self.ny, self.nz = dimensions
@@ -216,31 +214,25 @@ class QuantumWaveFunction:
         # Convert wave function to matrix for processing
         # Use probability density as the basis for evolution
         prob_density = self.get_probability_density_2d()
-        
-        # Create keya program for quantum evolution
-        keya_program = f"""
-matrix quantum_evolution {{
-    time_step {{
-        evolved_psi = ∮(psi_matrix, {self.containment_type.value}, {time_steps})
-    }}
-}}
-"""
-        
+
+        # --- Refactored to use JAX operators directly ---
         try:
-            # Set wave function as engine variable
-            self.engine.variables['psi_matrix'] = prob_density
-            
-            # Execute evolution
-            self.engine.execute_program(keya_program.strip())
-            
-            # Get evolved state
-            if 'evolved_psi' in self.engine.variables:
-                evolved = self.engine.variables['evolved_psi']
-                if isinstance(evolved, np.ndarray):
-                    # Update wave function based on evolved probability
-                    self._update_from_evolved_matrix(evolved)
-                    self.time += time_steps * self.dt
-                    return True
+            # 1. Convert probability density to a glyph-like integer matrix for the operator
+            # We quantize the float values into a few integer levels (e.g., 0-6)
+            quantized_prob = (prob_density / prob_density.max() * 6).astype(jnp.int32)
+            psi_matrix = jnp.array(quantized_prob)
+
+            # 2. Apply the JAX-based Wild_closure operator
+            evolved_matrix = Wild_closure(
+                psi_matrix, 
+                containment_rule=self.containment_type.value, 
+                max_iterations=time_steps
+            )
+
+            # 3. Update wave function based on the evolved matrix
+            self._update_from_evolved_matrix(np.array(evolved_matrix))
+            self.time += time_steps * self.dt
+            return True
                     
         except Exception as e:
             print(f"Quantum evolution error: {e}")

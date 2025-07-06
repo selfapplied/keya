@@ -28,7 +28,12 @@ DEMO_SECTIONS = [
             "The process reduces the overall variance of the prime distribution, indicating a convergence towards a more ordered state."
         ],
         "findings": "The demo successfully validates its claims. The generated visualizations show a significant variance reduction in both prime derivatives and anomalies after the operators are applied. The final report from the script concludes with a 'Strong validation of theory' and shows that the operators enhance diagonalization and reveal patterns.",
-        "artifacts": ["prime_sierpinski.svg"]
+        "artifacts": [
+            "prime_sparks.svg",
+            "prime_histograms.svg",
+            "prime_growth.svg",
+            "prime_analysis.svg"
+        ]
     },
     {
         "title": "Floating-Point Arithmetic as an Operator System",
@@ -112,21 +117,49 @@ HTML_TEMPLATE = """
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6; margin: 0; padding: 20px; background: #f8f9fa; color: #343a40;
+            line-height: 1.6; margin: 0; padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }}
+        :root {{
+            --bg-color: #f8f9fa;
+            --text-color: #343a40;
+            --container-bg: #ffffff;
+            --header-color: #2c3e50;
+            --border-color: #e9ecef;
+            --link-color: #3498db;
+            --code-bg: #e9ecef;
+            --artifact-bg: #f8f9fa;
+        }}
+        @media (prefers-color-scheme: dark) {{
+            :root {{
+                --bg-color: #1a1a1b;
+                --text-color: #d7dadc;
+                --container-bg: #272729;
+                --header-color: #d7dadc;
+                --border-color: #49494d;
+                --link-color: #5db0e4;
+                --code-bg: #3a3a3c;
+                --artifact-bg: #2a2a2c;
+            }}
+            .artifact-container svg, .modal-content svg {{
+                filter: invert(1) hue-rotate(180deg);
+            }}
         }}
         .container {{
-            max-width: 1200px; margin: 20px auto; padding: 40px; background: #ffffff;
+            max-width: 1200px; margin: 20px auto; padding: 40px; background: var(--container-bg);
             border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
         }}
         h1, h2, h3, h4 {{
-            color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 12px; margin-top: 40px;
+            color: var(--header-color); border-bottom: 3px solid var(--link-color); padding-bottom: 12px; margin-top: 40px;
         }}
         h1 {{ font-size: 2.8em; text-align: center; border: none; }}
         h2 {{ font-size: 2.2em; }}
         h3 {{ font-size: 1.6em; margin-top: 30px; border-bottom-width: 2px; }}
         h4 {{ font-size: 1.2em; margin-top: 25px; border-bottom: 1px dashed #ced4da; }}
         code {{
-            background: #e9ecef; padding: 0.2em 0.4em; margin: 0; font-size: 85%;
+            background: var(--code-bg); padding: 0.2em 0.4em; margin: 0; font-size: 85%;
             border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
         }}
         ul, ol {{ padding-left: 25px; }}
@@ -134,9 +167,10 @@ HTML_TEMPLATE = """
         .demo-section {{
             margin-bottom: 60px;
             padding: 30px;
-            border: 1px solid #e9ecef;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             background: #fdfdff;
+            background: var(--container-bg);
         }}
         .artifact-grid {{
             display: grid;
@@ -145,7 +179,7 @@ HTML_TEMPLATE = """
             margin-top: 20px;
         }}
         .artifact-container {{
-            border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; background: #f8f9fa;
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; background: var(--artifact-bg);
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;
             display: flex; flex-direction: column; justify-content: space-between;
         }}
@@ -153,9 +187,29 @@ HTML_TEMPLATE = """
             max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 15px;
             max-height: 600px;
             object-fit: contain;
+            cursor: pointer;
         }}
         .artifact-container footer {{
             font-size: 0.9em; color: #6c757d; margin-top: auto;
+        }}
+        .modal {{
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8);
+            align-items: center; justify-content: center;
+        }}
+        .modal-content {{
+            margin: auto; padding: 20px; max-width: 90%; max-height: 90%;
+        }}
+        .modal-content svg {{
+             width: 100%; height: 100%;
+             object-fit: contain;
+        }}
+        .modal.is-open {{
+            display: flex;
+        }}
+        .close {{
+            position: absolute; top: 20px; right: 35px; color: #f1f1f1;
+            font-size: 40px; font-weight: bold; cursor: pointer;
         }}
     </style>
 </head>
@@ -164,9 +218,39 @@ HTML_TEMPLATE = """
         <h1>{title}</h1>
         {demo_sections_html}
     </div>
+    <div id="myModal" class="modal">
+        <span class="close">&times;</span>
+        <div class="modal-content" id="modal-content-host"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {{
+            const modal = document.getElementById('myModal');
+            const modalContentHost = document.getElementById('modal-content-host');
+            const closeModal = document.querySelector('.close');
+
+            document.querySelectorAll('.artifact-container svg').forEach(svg => {{
+                svg.addEventListener('click', () => {{
+                    modalContentHost.innerHTML = '';
+                    const clonedSvg = svg.cloneNode(true);
+                    modalContentHost.appendChild(clonedSvg);
+                    modal.classList.add('is-open');
+                }});
+            }});
+
+            const close = () => modal.classList.remove('is-open');
+            closeModal.addEventListener('click', close);
+            modal.addEventListener('click', (event) => {{
+                if (event.target === modal) {{
+                    close();
+                }}
+            }});
+        }});
+    </script>
 </body>
 </html>
 """
+
+HTML_TEMPLATE = HTML_TEMPLATE.replace("{{{{", "{{").replace("}}}}", "}}")
 
 def ensure_artifact_exists(demo_script, asset_path):
     """Checks if an artifact exists, and if not, runs the demo script to create it."""

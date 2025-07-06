@@ -33,11 +33,16 @@ class Operator(Enum):
 class Glyph(Enum):
     """The fundamental symbols in the resonance field."""
     
-    VOID = "∅"     # emptiness
-    DOWN = "▽"     # primal glyph  
-    UP = "△"       # transformed glyph
-    UNITY = "⊙"    # contained/stable glyph
-    FLOW = "⊕"     # dynamic glyph
+    VOID = "∘"     # emptiness
+    DOWN = "∇"     # primal glyph  
+    UP = "∆"       # transformed glyph
+    UNITY = "I"    # contained/stable glyph
+    FLOW = "∿"     # dynamic glyph
+    FLUX = "↯"
+    STASIS = "⌽"
+
+    def __str__(self):
+        return self.value
 
 
 class ContainmentType(Enum):

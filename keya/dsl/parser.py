@@ -66,7 +66,7 @@ class Token:
 
 
 class Lexer:
-    """Tokenizes keya  source code."""
+    """Tokenizes keya source code."""
     
     # Token patterns
     TOKENS = [
@@ -315,9 +315,10 @@ class Parser:
     
     def parse_statement(self) -> Statement:
         """Parse a single statement."""
-        
         if self.match('IDENTIFIER'):
             return self.parse_assignment()
+        elif self.match('TRACE'):
+            return self.parse_trace_statement()
         else:
             raise ParseError("Expected statement")
     

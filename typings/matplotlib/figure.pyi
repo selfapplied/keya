@@ -7,6 +7,8 @@ from typing import Any
 class Figure:
     """Type stub for matplotlib Figure with 3D support."""
     
+    def __init__(self, *args: Any, **kwargs: Any) -> None: ...
+    
     def add_subplot(
         self, 
         *args: Any,
@@ -19,3 +21,7 @@ class Figure:
         When projection='3d', returns Axes3D with all 3D methods available.
         """
         ... 
+
+    def get_axes(self) -> list[Any]: ...
+    def tight_layout(self, **kwargs: Any) -> None: ...
+    def savefig(self, *args: Any, **kwargs: Any) -> None: ... 

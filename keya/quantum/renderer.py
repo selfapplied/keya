@@ -249,7 +249,7 @@ class QuantumRenderer:
             
             # Evolve one step using operators
             if frame > 0:
-                self.wave_function.apply_dc_evolution(1)
+                self.wave_function.apply_wild_tame_evolution(1)
             
             # Get current probability density
             prob_2d = self.wave_function.get_probability_density_2d()
@@ -301,7 +301,7 @@ class QuantumRenderer:
             
             # Apply evolution every few frames
             if frame > 0 and frame % 3 == 0:
-                self.orbital.evolve_with_dc_operators(1)
+                self.orbital.evolve_with_wild_tame_operators(1)
             
             # Get current 2D slices
             xy_slice = self.orbital.get_probability_density_2d("xy")
@@ -321,7 +321,7 @@ class QuantumRenderer:
             
             # Update title
             info = self.orbital.get_orbital_info()
-            dc_stats = self.orbital.dc_wave_function.get_quantum_stats()
+            dc_stats = self.orbital.evolution_wave_function.get_quantum_stats()
             
             self.ax.set_title(f"{info['orbital_type']} Evolution - Frame {frame}\n"
                              f"DC Time: {dc_stats['time']:.3f}, "

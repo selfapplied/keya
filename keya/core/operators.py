@@ -35,6 +35,8 @@ GLYPH_TO_INT: Dict[Glyph, int] = {
     Glyph.UP: 2,
     Glyph.UNITY: 3,
     Glyph.FLOW: 4,
+    Glyph.FLUX: 5,
+    Glyph.STASIS: 6,
 }
 
 # Reverse mapping for converting back to symbolic glyphs
@@ -48,6 +50,8 @@ OMEGA_TRANSFORMS: Dict[Glyph, Glyph] = {
     Glyph.UP: Glyph.DOWN,
     Glyph.UNITY: Glyph.UNITY,  # Fixed point
     Glyph.FLOW: Glyph.FLOW,  # Fixed point
+    Glyph.FLUX: Glyph.STASIS, # New transformation
+    Glyph.STASIS: Glyph.FLUX, # New transformation
 }
 
 
@@ -362,37 +366,32 @@ def taylorphasewalk_multivariate(f: Callable,
 
 def extract_binary_blocks(matrix: jnp.ndarray) -> List[Tuple[int, int, int]]:
     """
-    Extract 2x2 binary blocks from a matrix and convert to decimal values.
-
-    Returns list of (row, col, decimal_value) tuples for each 2x2 block.
-    ⊙ = 0, ▽ = 1 in binary interpretation.
+    Scans a glyph matrix for 2x2 binary attractor patterns.
+    Recognizes any checkerboard of UNITY and DOWN as a valid block.
     """
     rows, cols = matrix.shape
-    blocks = []
+    results = []
 
-    for i in range(0, rows, 2):
-        for j in range(0, cols, 2):
-            if i + 1 < rows and j + 1 < cols:
-                # Extract 2x2 block
-                block = matrix[i : i + 2, j : j + 2]
+    # Define the two possible checkerboard patterns
+    pattern1 = jnp.array(
+        [[GLYPH_TO_INT[Glyph.UNITY], GLYPH_TO_INT[Glyph.DOWN]], 
+         [GLYPH_TO_INT[Glyph.DOWN], GLYPH_TO_INT[Glyph.UNITY]]]
+    )
+    pattern2 = jnp.array(
+        [[GLYPH_TO_INT[Glyph.DOWN], GLYPH_TO_INT[Glyph.UNITY]],
+         [GLYPH_TO_INT[Glyph.UNITY], GLYPH_TO_INT[Glyph.DOWN]]]
+    )
 
-                # Convert to binary (⊙=0, ▽=1, others=0)
-                binary_block = jnp.where(
-                    block == GLYPH_TO_INT[Glyph.UNITY], 0, jnp.where(block == GLYPH_TO_INT[Glyph.DOWN], 1, 0)
-                )
-
-                # Interpret as 2-bit binary number (row-major order)
-                # [[a,b], [c,d]] -> a*8 + b*4 + c*2 + d*1
-                decimal_value = (
-                    int(binary_block[0, 0]) * 8
-                    + int(binary_block[0, 1]) * 4
-                    + int(binary_block[1, 0]) * 2
-                    + int(binary_block[1, 1]) * 1
-                )
-
-                blocks.append((i, j, int(decimal_value)))
-
-    return blocks
+    for i in range(rows - 1):
+        for j in range(cols - 1):
+            window = jax.lax.dynamic_slice(matrix, (i, j), (2, 2))
+            
+            # Check for either pattern
+            if jnp.array_equal(window, pattern1) or jnp.array_equal(window, pattern2):
+                # For now, we'll assign all valid blocks the same type (1)
+                results.append((i, j, 1))
+                
+    return results
 
 
 def matrix_to_binary_number(matrix: jnp.ndarray) -> int:

@@ -1,9 +1,7 @@
 """Modern Keya  REPL - Language-first interactive shell."""
 
-import json
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion
@@ -16,100 +14,43 @@ from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.styles import Style
 
 from ..core.engine import Engine
-from ..dsl.parser import ParseError
-from ..dsl.ast import (
-    Definition
-)
-
-# Shared glyph and operator replacements - used by both tab completion and space replacement
-SYMBOL_REPLACEMENTS = {
-    # Core glyphs
-    'void': '∅', 'empty': '∅',
-    'down': '▽', 'primal': '▽',
-    'up': '△', 'transformed': '△',
-    'unity': '⊙', 'contained': '⊙', 'stable': '⊙',
-    'flow': '⊕', 'dynamic': '⊕',
-    
-    # Operator symbols
-    'tensor': '⊗',
-    'growth': '↑',
-    'descent': 'ℓ',
-    'reflect': '~', 'reflection': '~',
-    'wild': 'Ϟ',
-    'tame': '§',
-    'wildtame': '∮', 'cycle': '∮'
-}
-
-
-@dataclass
-class WorkspaceState:
-    """Represents the current workspace/session state."""
-    name: str = "default"
-    variables: Dict[str, Any] = field(default_factory=dict)
-    programs: Dict[str, Definition] = field(default_factory=dict)
-    history: List[str] = field(default_factory=list)
-    
-    def save_to_file(self, path: Path):
-        """Save workspace state to file."""
-        try:
-            data = {
-                'name': self.name,
-                'variables': {k: str(v) for k, v in self.variables.items()},
-                'history': self.history[-50:]  # Last 50 commands
-            }
-            path.write_text(json.dumps(data, indent=2))
-        except (OSError, PermissionError, UnicodeEncodeError):
-            # Ignore filesystem and encoding errors during workspace save
-            pass
-    
-    def load_from_file(self, path: Path):
-        """Load workspace state from file."""
-        if path.exists():
-            try:
-                data = json.loads(path.read_text())
-                self.name = data.get('name', 'default')
-                self.history = data.get('history', [])
-            except (json.JSONDecodeError, OSError, UnicodeDecodeError, KeyError):
-                # Ignore corrupted or malformed workspace files
-                pass
+from .patterns import PatternLibrary
+from .router import CommandRouter
+from .symbols import SymbolExpander
+from .workspace import WorkspaceState
 
 
 class KeyaDCCompleter(Completer):
     """Advanced completer for keya  language."""
-    
-    def __init__(self, engine: Engine, workspace: WorkspaceState):
+
+    def __init__(self, engine: Engine, workspace: WorkspaceState, symbol_expander: SymbolExpander, pattern_library: PatternLibrary):
         self.engine = engine
         self.workspace = workspace
-        
+        self.symbol_expander = symbol_expander
+        self.pattern_library = pattern_library
+
         # Core language keywords
         self.keywords = {
             'matrix', 'grammar', 'resonance', 'verify', 'trace',
             'arithmetic', 'strings', 'pattern', 'match', 'concat',
             'from', 'seed', 'length', 'rule'
         }
-        
+
         # Operators and types
         self.operators = {'Ϟ', '§', '∮', 'W', 'T', 'WT'}
         self.containment_types = {'binary', 'decimal', 'string', 'general'}
-        
+
         # Use shared symbol replacements
-        self.symbol_replacements = SYMBOL_REPLACEMENTS
-        
+        self.symbol_replacements = self.symbol_expander.get_replacements()
+
         # Common patterns
-        self.patterns = {
-            'matrix_dims': '[{rows}, {cols}, {fill}]',
-            'wildtame_cycle': '∮({matrix}, {type}, {iterations})',
-            'wild': 'Ϟ({matrix})',
-            'tame': '§({matrix}, {type})',
-            'matrix_program': 'matrix {name} {\n  ops {\n    {content}\n  }\n}',
-            'grammar_program': 'grammar {name} {\n  rules {\n    {content}\n  }\n}',
-        }
-    
+        self.patterns = self.pattern_library.get_all_patterns()
+
     def get_completions(self, document: Document, complete_event):
         """Generate completions based on context."""
         word = document.get_word_before_cursor(WORD=True)
         line = document.current_line_before_cursor
-        
+
         # Symbol replacements (glyphs and operators) - exact matches first
         if word in self.symbol_replacements:
             yield Completion(
@@ -117,7 +58,7 @@ class KeyaDCCompleter(Completer):
                 start_position=-len(word),
                 display_meta="symbol"
             )
-        
+
         # Symbol replacements - prefix matches
         for symbol_word in self.symbol_replacements:
             if symbol_word.startswith(word.lower()) and symbol_word != word.lower():
@@ -126,7 +67,7 @@ class KeyaDCCompleter(Completer):
                     start_position=-len(word),
                     display_meta=f"symbol → {self.symbol_replacements[symbol_word]}"
                 )
-        
+
         # Keywords
         for keyword in self.keywords:
             if keyword.startswith(word.lower()):
@@ -135,7 +76,7 @@ class KeyaDCCompleter(Completer):
                     start_position=-len(word),
                     display_meta="keyword"
                 )
-        
+
         # Operators
         for op in self.operators:
             if op.startswith(word.upper()):
@@ -144,7 +85,7 @@ class KeyaDCCompleter(Completer):
                     start_position=-len(word),
                     display_meta="operator"
                 )
-        
+
         # Containment types
         for ctype in self.containment_types:
             if ctype.startswith(word.lower()):
@@ -153,7 +94,7 @@ class KeyaDCCompleter(Completer):
                     start_position=-len(word),
                     display_meta="type"
                 )
-        
+
         # Session variables
         for var_name in self.workspace.variables:
             if var_name.startswith(word):
@@ -166,7 +107,7 @@ class KeyaDCCompleter(Completer):
                     start_position=-len(word),
                     display_meta=meta
                 )
-        
+
         # Context-aware pattern suggestions
         if 'matrix' in line and not word:
             yield Completion(
@@ -178,30 +119,32 @@ class KeyaDCCompleter(Completer):
 
 class KeyaDCAutoSuggest(AutoSuggest):
     """Intelligent auto-suggestions for keya ."""
-    
-    def __init__(self, engine: Engine, workspace: WorkspaceState):
+
+    def __init__(self, engine: Engine, workspace: WorkspaceState, symbol_expander: SymbolExpander):
         self.engine = engine
         self.workspace = workspace
-    
+        self.symbol_expander = symbol_expander
+        self.symbol_replacements = self.symbol_expander.get_replacements()
+
     def get_suggestion(self, buffer: Buffer, document: Document) -> Optional[Suggestion]:
         """Generate smart suggestions based on context and history."""
         text = document.text
         word = document.get_word_before_cursor(WORD=True)
-        
+
         # Symbol suggestions - show glyph when there's one match
         if word:
             symbol_matches = []
-            
+
             # Exact matches
-            if word.lower() in SYMBOL_REPLACEMENTS:
-                symbol_matches.append((word.lower(), SYMBOL_REPLACEMENTS[word.lower()]))
-            
+            if word.lower() in self.symbol_replacements:
+                symbol_matches.append((word.lower(), self.symbol_replacements[word.lower()]))
+
             # Prefix matches (only if no exact match)
             if not symbol_matches:
-                for symbol_word in SYMBOL_REPLACEMENTS:
+                for symbol_word in self.symbol_replacements:
                     if symbol_word.startswith(word.lower()) and symbol_word != word.lower():
-                        symbol_matches.append((symbol_word, SYMBOL_REPLACEMENTS[symbol_word]))
-            
+                        symbol_matches.append((symbol_word, self.symbol_replacements[symbol_word]))
+
             # If exactly one symbol match, suggest the completion
             if len(symbol_matches) == 1:
                 symbol_word, symbol = symbol_matches[0]
@@ -212,38 +155,47 @@ class KeyaDCAutoSuggest(AutoSuggest):
                     # Prefix match - suggest completing the word and show glyph
                     remaining = symbol_word[len(word.lower()):]
                     return Suggestion(f'{remaining} → {symbol}')
-        
+
         # Suggest closing braces
         if text.count('{') > text.count('}'):
             return Suggestion(' }')
-        
-        # Suggest closing brackets  
+
+        # Suggest closing brackets
         if text.count('[') > text.count(']'):
             return Suggestion(']')
-        
+
         # Suggest common patterns from history
         for cmd in reversed(self.workspace.history):
             if cmd.startswith(text) and cmd != text:
                 return Suggestion(cmd[len(text):])
-        
+
         return None
 
 
 class KeyaDCREPL:
     """Modern, language-first REPL for keya ."""
-    
+
     def __init__(self, engine: Engine):
         self.engine = engine
         self.workspace = WorkspaceState()
+        self.symbol_expander = SymbolExpander()
+        self.pattern_library = PatternLibrary()
+        self.command_router = CommandRouter(
+            engine=self.engine,
+            workspace=self.workspace,
+            display_result=self._display_result,
+            display_error=self._display_error,
+            handle_meta_command=self._handle_meta_command,
+        )
         self._setup_session()
         self._buffer = ""  # For multi-line input
         self._in_multiline = False
-    
+
     def _setup_session(self):
         """Initialize the prompt session with all modern features."""
-        completer = KeyaDCCompleter(self.engine, self.workspace)
-        auto_suggest = KeyaDCAutoSuggest(self.engine, self.workspace)
-        
+        completer = KeyaDCCompleter(self.engine, self.workspace, self.symbol_expander, self.pattern_library)
+        auto_suggest = KeyaDCAutoSuggest(self.engine, self.workspace, self.symbol_expander)
+
         self.session = PromptSession(
             completer=completer,
             auto_suggest=auto_suggest,
@@ -252,11 +204,11 @@ class KeyaDCREPL:
             multiline=False,
             wrap_lines=True,
         )
-    
+
     def _create_keybindings(self) -> KeyBindings:
         """Create enhanced key bindings."""
         kb = KeyBindings()
-        
+
         @kb.add('c-c')
         def _(event):
             """Cancel multi-line input."""
@@ -266,80 +218,82 @@ class KeyaDCREPL:
                 event.app.output.write("\nCancelled.\n")
             else:
                 event.app.exit(exception=KeyboardInterrupt)
-        
+
         @kb.add('c-d')
         def _(event):
             """Exit on Ctrl+D."""
             event.app.exit()
-        
+
         @kb.add('tab')
         def _(event):
             """Smart tab completion - accept suggestions or show menu."""
             buffer = event.app.current_buffer
             doc = buffer.document
             word = doc.get_word_before_cursor(WORD=True)
-            
+
             if word:
                 # Find all symbol matches
                 symbol_matches = []
-                
+                symbol_replacements = self.symbol_expander.get_replacements()
+
                 # Exact matches
-                if word.lower() in SYMBOL_REPLACEMENTS:
-                    symbol_matches.append((word.lower(), SYMBOL_REPLACEMENTS[word.lower()]))
-                
+                if word.lower() in symbol_replacements:
+                    symbol_matches.append((word.lower(), symbol_replacements[word.lower()]))
+
                 # Prefix matches (only if no exact match)
                 if not symbol_matches:
-                    for symbol_word in SYMBOL_REPLACEMENTS:
+                    for symbol_word in symbol_replacements:
                         if symbol_word.startswith(word.lower()):
-                            symbol_matches.append((symbol_word, SYMBOL_REPLACEMENTS[symbol_word]))
-                
+                            symbol_matches.append((symbol_word, symbol_replacements[symbol_word]))
+
                 # If exactly one symbol match, accept the autosuggestion
                 if len(symbol_matches) == 1:
                     symbol_word, symbol = symbol_matches[0]
                     buffer.delete_before_cursor(count=len(word))
                     buffer.insert_text(symbol + ' ')
                     return
-            
+
             # Default tab behavior - show completion menu
             buffer.start_completion()
-        
+
 # Removed custom enter handling - using default behavior
-        
+
         # Quick glyph insertions
         glyph_shortcuts = {
             'c-v': '∅',  # Ctrl+V for void
-            'c-u': '△',  # Ctrl+U for up  
+            'c-u': '△',  # Ctrl+U for up
             'c-d': '▽',  # Ctrl+D for down
             'c-o': '⊙',  # Ctrl+O for unity
             'c-f': '⊕',  # Ctrl+F for flow
         }
-        
+
         for key, glyph in glyph_shortcuts.items():
             @kb.add(key)
             def _(event, g=glyph):
                 event.app.current_buffer.insert_text(g)
-        
+
         # Symbol replacements on space (glyphs and operators)
         @kb.add(' ')
         def _(event):
             """Handle space key with symbol replacement."""
             buffer = event.app.current_buffer
             doc = buffer.document
-            
+
             # Get the word before the cursor
             word_before = doc.get_word_before_cursor(WORD=True)
-            
+
             # Check if it matches a symbol replacement
-            if word_before.lower() in SYMBOL_REPLACEMENTS:
+            replacement = self.symbol_expander.expand_word(word_before)
+            if replacement:
                 # Delete the word and insert the symbol + space
                 buffer.delete_before_cursor(count=len(word_before))
-                buffer.insert_text(SYMBOL_REPLACEMENTS[word_before.lower()] + ' ')
+                buffer.insert_text(replacement + ' ')
             else:
                 # Insert regular space
                 buffer.insert_text(' ')
-        
+
         return kb
-    
+
     def _needs_continuation(self, text: str) -> bool:
         """Determine if input needs continuation."""
         if not text:
@@ -468,44 +422,7 @@ class KeyaDCREPL:
     
     def _process_input(self, line: str):
         """Process a complete input line or program."""
-        # Add to history
-        self.workspace.history.append(line)
-        
-        # Handle meta-commands
-        if line.startswith(':'):
-            self._handle_meta_command(line[1:])
-            return
-        
-        # Handle simple commands
-        if line.lower() in ['exit', 'quit']:
-            raise EOFError()
-        
-        # Try to parse and execute as language
-        try:
-            # Check if it's a simple expression or full program
-            if any(keyword in line for keyword in ['matrix', 'grammar', 'resonance']):
-                # Full program
-                result = self.engine.execute_program(line)
-                if result:
-                    self._display_result(result)
-            else:
-                # Simple expression - wrap in a minimal program
-                wrapped = f"matrix temp {{ ops {{ result = {line} }} }}"
-                try:
-                    result = self.engine.execute_program(wrapped)
-                    if result and 'result' in result:
-                        self._display_result(result['result'])
-                except Exception:
-                    # Fallback: try as variable lookup
-                    if line in self.workspace.variables:
-                        self._display_result(self.workspace.variables[line])
-                    else:
-                        raise ParseError(f"Unknown variable or invalid expression: {line}")
-        
-        except ParseError as e:
-            self._display_error("Parse Error", str(e), line)
-        except Exception as e:
-            self._display_error("Execution Error", str(e), line)
+        self.command_router.process_input(line)
     
     def _handle_meta_command(self, cmd: str):
         """Handle meta-commands like :help, :show, etc."""

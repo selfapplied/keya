@@ -169,4 +169,6 @@ def gcf() -> Any:
     figure : Figure
         The current figure.
     """
-    ... 
+    ...
+
+rcParams: dict[str, Any] 

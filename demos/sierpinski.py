@@ -13,6 +13,7 @@ import sys
 import os
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 import numpy as np
@@ -21,12 +22,49 @@ from scipy.special import binom
 from matplotlib.colors import LogNorm
 from matplotlib.gridspec import GridSpec
 import jax.numpy as jnp
-from typing import Dict, Any
-from matplotlib import cm
+from typing import Dict, Any, List, Tuple
+from dataclasses import dataclass, field
+from pathlib import Path
+from sympy import isprime, primerange
 
 
 from keya.core.engine import Engine
 from keya.core.operators import Wild_operator, Tame_operator, Wild_closure
+
+
+@dataclass(slots=True)
+class PrimeAnalysisData:
+    """Holds the raw data from prime number analysis."""
+    prime_counts: Dict[int, int]
+    log_derivatives: Dict[int, float]
+    anomalies: Dict[int, float]
+    fractional_derivatives: Dict[int, float]
+
+@dataclass(slots=True)
+class OperatorProcessedData:
+    """Holds data after applying Keya operators."""
+    original_primes: np.ndarray
+    original_anomalies: np.ndarray
+    d_primes: np.ndarray
+    d_anomalies: np.ndarray
+    c_primes: np.ndarray
+    c_anomalies: np.ndarray
+    wild_closure_primes: np.ndarray
+    wild_closure_anomalies: np.ndarray
+    primes_variance_reduction: float
+    anomalies_variance_reduction: float
+
+@dataclass(slots=True)
+class ConvergenceStep:
+    """Represents a single step in convergence analysis."""
+    step: int
+    variance: float
+    mean_abs: float
+
+@dataclass(slots=True)
+class ConvergenceAnalysis:
+    """Holds results of convergence analysis for different rules."""
+    results: Dict[str, List[ConvergenceStep]]
 
 
 class PrimeSierpinskiAnalyzer:
@@ -39,19 +77,30 @@ class PrimeSierpinskiAnalyzer:
         print(f"📊 Initializing prime analysis for depths 1 to {max_depth}")
         print(f"   This will analyze prime counting π(2^k) for k = {self.depths[0]} ... {self.depths[-1]}")
         
-        self.prime_counts = self.compute_prime_counts()
-        self.log_derivatives = self.compute_log_derivatives()
-        self.anomalies = self.compute_anomalies()
-        self.fractional_derivatives = self.compute_fractional_derivative()
+        self.prime_data = self._compute_prime_data()
+        self.validate_initial_computations(self.prime_data)
         
-        # Initialize Keya engine
         self.engine = Engine()
-        self.processed_data = {}
-        
-        # Validate initial computations
-        self.validate_initial_computations()
+        self.processed_data = self.apply_operators_to_primes(self.prime_data)
+        self.convergence_analysis = self.analyze_prime_convergence(self.prime_data)
 
-    def validate_initial_computations(self) -> None:
+    def _compute_prime_data(self) -> PrimeAnalysisData:
+        """Computes all fundamental prime-related data."""
+        prime_counts = {int(k): int(primepi(2**k)) for k in self.depths}
+        log_derivatives = {k: float(prime_counts[k + 1] - prime_counts[k]) for k in self.depths[:-1]}
+        anomalies = {k: float(log_derivatives[k] - (2**k) / k) for k in self.depths[:-1]}
+        
+        # Pass log_derivatives to the fractional derivative calculation
+        fractional_derivatives = self.compute_fractional_derivative(log_derivatives)
+        
+        return PrimeAnalysisData(
+            prime_counts=prime_counts,
+            log_derivatives=log_derivatives,
+            anomalies=anomalies,
+            fractional_derivatives=fractional_derivatives
+        )
+
+    def validate_initial_computations(self, prime_data: PrimeAnalysisData) -> None:
         """Validate the basic prime counting and derivative computations."""
         print("\n🔍 VALIDATION: Basic prime counting computations")
         print("-" * 50)
@@ -59,7 +108,7 @@ class PrimeSierpinskiAnalyzer:
         # Check prime counting function π(2^k)
         print("Prime counts π(2^k):")
         for k in list(self.depths[:8]):  # Show first 8 for readability
-            count = self.prime_counts[k]
+            count = prime_data.prime_counts[k]
             expected_approx = (2**k) / np.log(2**k)  # Prime number theorem approximation
             error_pct = abs(count - expected_approx) / count * 100
             print(f"  k={k:2d}: π(2^{k}) = {count:5d} primes, PNT approx: {expected_approx:7.1f} (error: {error_pct:5.1f}%)")
@@ -68,7 +117,7 @@ class PrimeSierpinskiAnalyzer:
         print("\nLog derivatives Δₜπ(k) = π(2^{k+1}) - π(2^k):")
         total_derivative = 0
         for k in list(self.depths[:-1])[:7]:  # Show first 7
-            derivative = self.log_derivatives[k]
+            derivative = prime_data.log_derivatives[k]
             total_derivative += derivative
             print(f"  k={k:2d}: Δₜπ({k}) = {derivative:7.1f}")
         
@@ -79,7 +128,7 @@ class PrimeSierpinskiAnalyzer:
         positive_anomalies = 0
         negative_anomalies = 0
         for k in list(self.depths[:-1])[:7]:
-            anomaly = self.anomalies[k]
+            anomaly = prime_data.anomalies[k]
             if anomaly > 0:
                 positive_anomalies += 1
                 sign = "+"
@@ -91,25 +140,13 @@ class PrimeSierpinskiAnalyzer:
         print(f"Positive anomalies: {positive_anomalies}, Negative anomalies: {negative_anomalies}")
         
         # Statistical properties
-        anomaly_values = list(self.anomalies.values())
+        anomaly_values = list(prime_data.anomalies.values())
         print("\nAnomaly statistics:")
         print(f"  Mean: {np.mean(anomaly_values):8.2f}")
         print(f"  Std:  {np.std(anomaly_values):8.2f}")
         print(f"  Range: [{np.min(anomaly_values):8.1f}, {np.max(anomaly_values):8.1f}]")
 
-    def compute_prime_counts(self) -> Dict[int, int]:
-        """Compute prime counts π(2^k) for k=1..max_depth."""
-        return {int(k): int(primepi(2**k)) for k in self.depths}
-
-    def compute_log_derivatives(self) -> Dict[int, float]:
-        """Compute log-derivatives Δₜπ(k) = π(2^{k+1}) - π(2^k)."""
-        return {k: float(self.prime_counts[k + 1] - self.prime_counts[k]) for k in self.depths[:-1]}
-
-    def compute_anomalies(self) -> Dict[int, float]:
-        """Compute anomalies = actual - expected prime density (2^k / k)."""
-        return {k: float(self.log_derivatives[k] - (2**k) / k) for k in self.depths[:-1]}
-
-    def compute_fractional_derivative(self, alpha: float = 0.5) -> dict[int, float]:
+    def compute_fractional_derivative(self, log_derivatives: Dict[int, float], alpha: float = 0.5) -> dict[int, float]:
         """Fractional derivative via Grünwald–Letnikov definition."""
         print(f"\n🧮 Computing fractional derivative (α={alpha})...")
         fd: dict[int, float] = {}
@@ -119,25 +156,26 @@ class PrimeSierpinskiAnalyzer:
             total = 0.0
             for j in range(k):
                 weight = binom(alpha, j) * (-1) ** j
-                total += weight * self.log_derivatives.get(k - j, 0)
+                total += weight * log_derivatives.get(k - j, 0)
                 total_weight += abs(weight)
             fd[k] = total
             
         print(f"     Computed for {len(fd)} depth values")
         print(f"     Total weight magnitude: {total_weight:.2f}")
-        print(f"     Result range: [{min(fd.values()):.3f}, {max(fd.values()):.3f}]")
+        if fd:
+            print(f"     Result range: [{min(fd.values()):.3f}, {max(fd.values()):.3f}]")
         
         return fd
 
-    def apply_operators_to_primes(self) -> Dict[str, Any]:
+    def apply_operators_to_primes(self, prime_data: PrimeAnalysisData) -> OperatorProcessedData:
         """Apply Keya operators to prime distribution data."""
         print("\n🧮 APPLYING OPERATORS TO PRIME DISTRIBUTIONS")
         print("-" * 50)
         print("Testing claim: 'operators diagonalize prime gaps and irregularities'")
         
         # Convert prime data to matrix format for processing
-        prime_values = np.array([self.log_derivatives[k] for k in self.depths[:-1]])
-        anomaly_values = np.array([self.anomalies[k] for k in self.depths[:-1]])
+        prime_values = np.array(list(prime_data.log_derivatives.values()))
+        anomaly_values = np.array(list(prime_data.anomalies.values()))
         
         print(f"Original prime derivatives range: [{np.min(prime_values):.1f}, {np.max(prime_values):.1f}]")
         print(f"Original anomaly range: [{np.min(anomaly_values):.1f}, {np.max(anomaly_values):.1f}]")
@@ -149,10 +187,10 @@ class PrimeSierpinskiAnalyzer:
         
         # Fill diagonal with prime/anomaly data
         for i, val in enumerate(prime_values[:size]):
-            prime_matrix = prime_matrix.at[i, i].set(int(abs(val) * 100) % 5)  # Convert to glyph range [0-4]
+            prime_matrix = prime_matrix.at[i, i].set(int(abs(val)) % 7)  # BUG FIX: Use a better distribution
         
         for i, val in enumerate(anomaly_values[:size]):
-            anomaly_matrix = anomaly_matrix.at[i, i].set(int(abs(val) * 100) % 5)  # Convert to glyph range [0-4]
+            anomaly_matrix = anomaly_matrix.at[i, i].set(int(abs(val)) % 7) # BUG FIX: Use a better distribution
         
         print(f"Matrix size for processing: {size}x{size}")
         
@@ -222,42 +260,42 @@ class PrimeSierpinskiAnalyzer:
         else:
             print("❓ CLAIM UNCERTAIN: Diagonalization effect unclear")
         
-        return {
-            'original_primes': prime_values,
-            'original_anomalies': anomaly_values,
-            'd_primes': d_prime_vals,
-            'd_anomalies': d_anomaly_vals,
-            'c_primes': c_prime_vals,
-            'c_anomalies': c_anomaly_vals,
-            'wild_closure_primes': wild_closure_prime_vals,
-            'wild_closure_anomalies': wild_closure_anomaly_vals,
-            'primes_variance_reduction': primes_variance_reduction,
-            'anomalies_variance_reduction': anomalies_variance_reduction
-        }
+        return OperatorProcessedData(
+            original_primes=prime_values,
+            original_anomalies=anomaly_values,
+            d_primes=d_prime_vals,
+            d_anomalies=d_anomaly_vals,
+            c_primes=c_prime_vals,
+            c_anomalies=c_anomaly_vals,
+            wild_closure_primes=wild_closure_prime_vals,
+            wild_closure_anomalies=wild_closure_anomaly_vals,
+            primes_variance_reduction=primes_variance_reduction,
+            anomalies_variance_reduction=anomalies_variance_reduction
+        )
 
-    def analyze_prime_convergence(self) -> dict[str, Any]:
+    def analyze_prime_convergence(self, prime_data: PrimeAnalysisData) -> ConvergenceAnalysis:
         """Analyze how operators affect prime distribution convergence."""
         print("\n📈 ANALYZING CONVERGENCE PROPERTIES")
         print("-" * 50)
         print("Testing claim: 'cycles reveal hidden prime number patterns'")
         
         # Test different containment rules
-        containment_results = {}
+        containment_results: Dict[str, List[ConvergenceStep]] = {}
         
         for containment_rule in ["binary", "decimal", "string"]:
             print(f"\n  🔍 Testing {containment_rule} containment...")
             
             # Create prime matrix
-            prime_values = np.array([self.log_derivatives[k] for k in self.depths[:-1]])
+            prime_values = np.array(list(prime_data.log_derivatives.values()))
             size = max(8, len(prime_values))
             matrix = jnp.zeros((size, size))
             
             # Fill with prime data
             for i, val in enumerate(prime_values[:size]):
-                matrix = matrix.at[i, i].set(int(abs(val) * 100) % 5)
+                matrix = matrix.at[i, i].set(int(abs(val)) % 7) # BUG FIX: Use a better distribution
             
             # Apply multiple cycles
-            steps_data = []
+            steps_data: List[ConvergenceStep] = []
             current_matrix = matrix
             initial_variance = float(np.var(np.diag(matrix)))
             
@@ -271,82 +309,81 @@ class PrimeSierpinskiAnalyzer:
                 variance = float(np.var(diag_vals))
                 mean_abs = float(np.mean(np.abs(diag_vals)))
                 
-                steps_data.append({
-                    'step': step,
-                    'variance': variance,
-                    'mean_abs': mean_abs,
-                    'values': diag_vals.copy()
-                })
-                
-                if step <= 5:  # Show first 5 steps in detail
-                    print(f"     Step {step}: variance = {variance:.6f}, mean_abs = {mean_abs:.3f}")
+                steps_data.append(ConvergenceStep(step=step, variance=variance, mean_abs=mean_abs))
+                print(f"     Step {step:2d}: variance = {variance:.6f}, mean_abs = {mean_abs:.3f}")
+
+                # Check for equilibrium
+                if step > 1 and abs(steps_data[-1].variance - steps_data[-2].variance) < 1e-9:
+                    print("     Equilibrium reached.")
+                    break
+            else:
+                 print("     Max iterations reached without equilibrium.")
+
+            final_variance = steps_data[-1].variance
+            convergence_ratio = initial_variance / max(final_variance, 1e-9)
             
-            final_variance = steps_data[-1]['variance']
-            convergence_ratio = initial_variance / max(final_variance, 1e-10)
             print(f"     Final variance: {final_variance:.6f}")
             print(f"     Convergence ratio: {convergence_ratio:.2f}x")
             
             # Check for monotonic convergence
-            variances = [d['variance'] for d in steps_data]
-            monotonic_decreasing = all(variances[i] >= variances[i+1] for i in range(len(variances)-1))
-            
-            if monotonic_decreasing:
+            variances = [s.variance for s in steps_data]
+            if all(v_next <= v_prev for v_prev, v_next in zip(variances, variances[1:])):
                 print(f"     ✅ {containment_rule}: Monotonic convergence observed")
             else:
-                print(f"     ❓ {containment_rule}: Non-monotonic behavior")
-            
+                print(f"     ⚠️ {containment_rule}: Non-monotonic convergence")
+
             containment_results[containment_rule] = steps_data
+
+        # Find best performing rule
+        best_rule = min(containment_results, key=lambda r: containment_results[r][-1].variance)
         
-        # Compare containment rules
         print("\n  📊 Containment rule effectiveness:")
         for rule, data in containment_results.items():
-            final_var = data[-1]['variance']
-            print(f"     {rule:8s}: final variance = {final_var:.2e}")
-        
-        best_rule = min(containment_results.keys(), 
-                       key=lambda k: containment_results[k][-1]['variance'])
+             print(f"     {rule:<8}: final variance = {data[-1].variance:.2e}")
         print(f"     🏆 Best performing rule: {best_rule}")
         
-        return containment_results
+        return ConvergenceAnalysis(results=containment_results)
 
     def validate_fractional_derivatives(self) -> None:
         """Validate the fractional derivative calculations."""
         print("\n🔍 VALIDATION: Fractional derivatives")
         print("-" * 50)
         
+        # Test with multiple alpha values
         alphas = [0.25, 0.5, 0.75, 1.0]
-        results = {}
-        
+        enhancements = []
         for alpha in alphas:
-            fd = self.compute_fractional_derivative(alpha)
+            f_deriv = self.compute_fractional_derivative(self.prime_data.log_derivatives, alpha=alpha)
             
-            if fd:
-                values = list(fd.values())
-                
-                # Apply processing to fractional derivatives
-                size = max(8, len(values))
-                fd_matrix = jnp.zeros((size, size))
-                for i, val in enumerate(values[:size]):
-                    fd_matrix = fd_matrix.at[i, i].set(int(abs(val) * 100) % 5)
-                
-                wild_closure_fd_matrix = Wild_closure(fd_matrix, "binary", max_iterations=3)
-                wild_closure_fd_vals = np.array([wild_closure_fd_matrix[i, i] for i in range(min(len(values), size))])
-                
-                # Calculate enhancement metrics
-                original_var = np.var(values)
-                dc_var = np.var(wild_closure_fd_vals[:len(values)])
-                enhancement_ratio = original_var / max(float(dc_var), 1e-10)
-                
-                results[alpha] = {
-                    'original_var': original_var,
-                    'dc_var': dc_var,
-                    'enhancement': enhancement_ratio
-                }
-                
-                print(f"α={alpha}: variance {original_var:.4f} → {dc_var:.4f} (enhancement: {enhancement_ratio:.2f}x)")
+            if not f_deriv:
+                continue
+            
+            # Apply processing to fractional derivatives
+            size = max(8, len(f_deriv.values()))
+            fd_matrix = jnp.zeros((size, size))
+            f_deriv_values = list(f_deriv.values())
+            for i, val in enumerate(f_deriv_values[:size]):
+                fd_matrix = fd_matrix.at[i, i].set(int(abs(val) * 100) % 5)
+            
+            wild_closure_fd_matrix = Wild_closure(fd_matrix, "binary", max_iterations=3)
+            wild_closure_fd_vals = np.array([wild_closure_fd_matrix[i, i] for i in range(min(len(f_deriv_values), size))])
+            
+            # Calculate enhancement metrics
+            original_var = np.var(f_deriv_values)
+            dc_var = np.var(wild_closure_fd_vals[:len(f_deriv_values)])
+            enhancement_ratio = original_var / max(float(dc_var), 1e-10)
+            
+            enhancements.append({
+                'alpha': alpha,
+                'original_var': original_var,
+                'dc_var': dc_var,
+                'enhancement': enhancement_ratio
+            })
+            
+            print(f"α={alpha}: variance {original_var:.4f} → {dc_var:.4f} (enhancement: {enhancement_ratio:.2f}x)")
         
         # Test claim about enhancement
-        avg_enhancement = np.mean([r['enhancement'] for r in results.values()])
+        avg_enhancement = np.mean([e['enhancement'] for e in enhancements])
         print(f"\nAverage enhancement ratio: {avg_enhancement:.2f}x")
         
         if avg_enhancement > 1.2:
@@ -389,192 +426,216 @@ class PrimeSierpinskiAnalyzer:
         if data.size > 0 and np.ptp(data) > 0:
             ax.set_yscale('log')
         else:
+            # For empty or constant data, use a linear scale
             ax.set_yscale('linear')
-            print(f"Warning: Using linear scale for data with min={np.min(data)}")
 
     def visualize_prime_analysis(self) -> None:
-        """Create comprehensive visualization with safeguards."""
-        import warnings
-        warnings.filterwarnings("ignore", category=UserWarning)
+        """Generates and saves all visualizations into separate, structured SVG files."""
+        print("📊 Generating comprehensive visualizations...")
+        
+        output_dir = Path(".out/visualizations")
+        os.makedirs(output_dir, exist_ok=True)
+
+        self._generate_sparks_visualization(output_dir)
+        self._generate_histograms_visualization(output_dir)
+        self._generate_growth_plots_visualization(output_dir)
+        self._generate_analysis_plots_visualization(output_dir)
+        
+        print("✅ All visualizations saved.")
+
+    def _save_fig(self, fig: Figure, path: Path):
+        """Helper to save a figure."""
+        is_sparks = path.name == "prime_sparks.svg"
+        original_params = plt.rcParams.copy() if is_sparks else None
         
         try:
-            # Initialize figure with enforced dimensions
-            fig = plt.figure(figsize=(20, 24))
-            fig.set_size_inches(20, 24, forward=True)
-            gs = GridSpec(6, 3, figure=fig)
+            if is_sparks:
+                dark_params = {
+                    "text.color": "white", "axes.labelcolor": "white",
+                    "xtick.color": "white", "ytick.color": "white", "axes.edgecolor": "white"
+                }
+                plt.rcParams.update(dark_params)
+                for ax in fig.get_axes():
+                    ax.set_title(ax.get_title(), color='white')
+                    ax.set_xlabel(ax.get_xlabel(), color='white')
+                    ax.set_ylabel(ax.get_ylabel(), color='white')
             
-            # Force tight layout early
-            plt.tight_layout(pad=0.5)
-            fig.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.1, hspace=0.4, wspace=0.3)
-            
-            # Convert and reshape prime counts (1D -> 2D)
-            prime_counts_array = np.array(list(self.prime_counts.values()))
-            prime_matrix = prime_counts_array.reshape(4, 4)  # Simple 4x4 reshape
-            
-            # Debug prints
-            print("\n=== DEBUG: Data Validation ===")
-            print(f"Prime matrix shape: {prime_matrix.shape}")
-            print(f"Range: {np.min(prime_matrix)} to {np.max(prime_matrix)}")
-            
-            # Plot with proper 2D data
-            ax1 = fig.add_subplot(gs[0, 0])
-            self.safe_render(ax1, prime_matrix, "Prime Distribution")
-            
-            # Save debug data
-            np.savetxt(".out/debug_prime_matrix.txt", prime_matrix)
-            
-            # Apply operators
-            self.processed_data = self.apply_operators_to_primes()
-            convergence_data = self.analyze_prime_convergence()
-            
-            # Main Sierpinski visualization with overlays
-            ax2 = fig.add_subplot(gs[0, 1])
-            self.plot_sierpinski_prime_sparks(ax2)
-
-            # operator effects on primes
-            ax3 = fig.add_subplot(gs[0, 2])
-            self.plot_operator_effects(ax3)
-            
-            ax4 = fig.add_subplot(gs[1, 0])
-            self.plot_prime_anomaly_evolution(ax4)
-            
-            ax5 = fig.add_subplot(gs[1, 1])
-            self.plot_variance_reduction(ax5)
-
-            # Traditional analysis enhanced with insights
-            ax6 = fig.add_subplot(gs[1, 2])
-            self.plot_log_derivative_comparison(ax6)
-
-            ax7 = fig.add_subplot(gs[2, 0])
-            self.plot_prime_anomalies(ax7)
-            
-            ax8 = fig.add_subplot(gs[2, 1])
-            self.plot_convergence_analysis(ax8, convergence_data)
-
-            # Fractional derivatives and evolution
-            ax9 = fig.add_subplot(gs[2, 2])
-            self.plot_fractional_derivatives(ax9)
-
-            # containment comparison
-            ax10 = fig.add_subplot(gs[3, :])
-            self.plot_containment_type_comparison(ax10, convergence_data)
-
-            # Spectral analysis with filtering
-            ax11 = fig.add_subplot(gs[4, :])
-            self.plot_filtered_spectrum(ax11)
-
-            # Save as SVG
-            output_path = ".out/visualizations/prime_sierpinski.svg"
-            fig.savefig(output_path, format='svg', bbox_inches="tight")
-            plt.close(fig)
-            print(f"✅ Visualization saved to {output_path}")
-
+            fig.tight_layout(rect=(0, 0.02, 1, 0.95))
+            fig.savefig(str(path), format='svg', bbox_inches='tight', pad_inches=0.1, transparent=True)
+            print(f"  -> Saved {path.name}")
         except Exception as e:
-            print(f"Visualization failed: {e}")
+            print(f"  -> Visualization failed for {path.name}: {e}")
+        finally:
+            if is_sparks and original_params:
+                plt.rcParams.update(original_params)
+            plt.close(fig)
 
-    def plot_sierpinski_prime_sparks(self, ax: Axes) -> None:
-        """Plot a Sierpinski-like pattern from prime counting log-derivatives."""
+    def _generate_sparks_visualization(self, output_dir: Path):
+        """Generates the 'Prime Sparks' visualization."""
+        fig, ax = plt.subplots(figsize=(10, 10))
+        self.plot_sierpinski_prime_sparks(ax, self.prime_data.log_derivatives, self.prime_data.prime_counts)
+        self._save_fig(fig, output_dir / "prime_sparks.svg")
+
+    def _generate_histograms_visualization(self, output_dir: Path):
+        """Generates a visualization of all histogram-style plots."""
+        fig = plt.figure(figsize=(24, 8))
+        gs = GridSpec(1, 3, wspace=0.3)
+        fig.suptitle("Histogram Analysis of Operator Effects", fontsize=16, weight='bold')
+
+        ax1 = fig.add_subplot(gs[0, 0])
+        self.plot_operator_effects(ax1, self.processed_data)
+
+        ax2 = fig.add_subplot(gs[0, 1])
+        self.plot_variance_reduction(ax2, self.processed_data)
+
+        ax3 = fig.add_subplot(gs[0, 2])
+        self.plot_containment_type_comparison(ax3, self.convergence_analysis)
         
-        log_derivatives = list(self.log_derivatives.values())
+        self._save_fig(fig, output_dir / "prime_histograms.svg")
+
+    def _generate_growth_plots_visualization(self, output_dir: Path):
+        """Generates a grid of plots showing 'up and to the right' growth trends."""
+        fig = plt.figure(figsize=(24, 16))
+        gs = GridSpec(2, 3, wspace=0.3, hspace=0.4)
+        fig.suptitle("Analysis of Prime Growth Characteristics", fontsize=16, weight='bold')
+
+        ax1 = fig.add_subplot(gs[0, 0])
+        self.plot_prime_distribution(ax1, self.prime_data)
+
+        ax2 = fig.add_subplot(gs[0, 1])
+        self.plot_prime_anomaly_evolution(ax2, self.processed_data)
+
+        ax3 = fig.add_subplot(gs[0, 2])
+        self.plot_log_derivative_comparison(ax3, self.processed_data)
         
-        if not self.safe_render(ax, log_derivatives, "Sierpinski Prime Sparks"):
+        ax4 = fig.add_subplot(gs[1, 0])
+        self.plot_prime_anomalies(ax4, list(self.prime_data.anomalies.values()))
+        
+        ax5 = fig.add_subplot(gs[1, 1])
+        self.plot_fractional_derivatives(ax5, self.prime_data.fractional_derivatives)
+        
+        ax6 = fig.add_subplot(gs[1, 2])
+        ax6.axis('off')
+
+        self._save_fig(fig, output_dir / "prime_growth.svg")
+
+    def _generate_analysis_plots_visualization(self, output_dir: Path):
+        """Generates a visualization for convergence and spectral analysis."""
+        fig = plt.figure(figsize=(24, 8))
+        gs = GridSpec(1, 2, wspace=0.3)
+        fig.suptitle("Advanced Convergence and Spectral Analysis", fontsize=16, weight='bold')
+
+        ax1 = fig.add_subplot(gs[0, 0])
+        self.plot_convergence_analysis(ax1, self.convergence_analysis)
+
+        ax2 = fig.add_subplot(gs[0, 1])
+        self.plot_filtered_spectrum(ax2, self.processed_data)
+        
+        self._save_fig(fig, output_dir / "prime_analysis.svg")
+
+    def plot_prime_distribution(self, ax: Axes, prime_data: PrimeAnalysisData) -> None:
+        """Plots the prime-counting function π(2^k)."""
+        depths = list(prime_data.prime_counts.keys())
+        counts = list(prime_data.prime_counts.values())
+
+        if not self.safe_render(ax, counts, "Prime Distribution (π(2^k))"):
             return
 
-        size = 2**6  # 64x64 grid
-        grid = np.zeros((size, size))
+        ax.plot(depths, counts, marker='o', linestyle='-', color='dodgerblue')
+        ax.set_yscale('log')
+        ax.set_title("Prime Distribution π(2^k)", fontsize=9)
+        ax.set_xlabel("Depth (k)", fontsize=8)
+        ax.set_ylabel("Number of Primes (log scale)", fontsize=8)
+        ax.grid(True, linestyle=':', alpha=1.0)
+        ax.tick_params(labelsize=7)
+
+    def plot_sierpinski_prime_sparks(self, ax: Axes, log_derivatives: Dict[int, float], prime_counts: Dict[int, int]) -> None:
+        """
+        Plot a Sierpinski-like pattern from prime counting log-derivatives
+        and overlay the golden spiral based on prime counts.
+        """
         
-        for k in self.depths:
-            n = 2**k
-            for i in range(0, n, 4):
-                grid[i, k - 1] = k
+        # Plot the background prime sparks
+        coords = self._generate_fractal_coords(log_derivatives)
+        if not self.safe_render(ax, coords, "Sierpinski Prime Sparks with φ-Spiral"):
+            return
 
-        # Add a small constant to prevent a completely empty image, which can cause blank SVGs
-        grid = grid + 1e-9
-
-        # Skip log-scale if data is invalid
-        if np.min(grid) > 0:
-            norm = LogNorm(vmin=1, vmax=self.max_depth)
-        else:
-            norm = None
-
-        ax.imshow(
-            grid.T,
-            aspect="auto",
-            origin="lower",
-            cmap="binary_r",
-            norm=norm,  # Use None for linear scaling
-            extent=(0, size, 1, self.max_depth),
-        )
-
-        # Original prime data
-        depths = list(self.log_derivatives.keys())
-        positions = [2**k for k in depths]
-        original_values = [self.log_derivatives[k] for k in depths]
+        x, y, colors = coords[:, 0], coords[:, 1], coords[:, 2]
         
-        # processed data
-        if 'wild_closure_primes' in self.processed_data:
-            processed_values = self.processed_data['wild_closure_primes']
-        else:
-            processed_values = original_values
-
-        # Plot both original and processed
-        # Ensure we have valid data and avoid divide by zero
-        if not original_values or max(original_values) == 0:
-            scale = 1.0
-        else:
-            scale = size / max(original_values)
+        ax.set_facecolor('#000000')
+        ax.scatter(x, y, s=5, c=colors, cmap='magma', alpha=0.5, edgecolors='none')
         
-        # Convert to numpy arrays to ensure proper typing for scatter
-        original_sizes = np.array([v * scale for v in original_values], dtype=float)
-        processed_sizes = np.array([v * scale for v in processed_values[:len(depths)]], dtype=float)
-
-        # Clip sizes to prevent overly large markers
-        max_marker_size = 500
-        original_sizes = np.clip(original_sizes, 0, max_marker_size)
-        processed_sizes = np.clip(processed_sizes, 0, max_marker_size)
+        # Overlay the Golden Spiral (φ-spiral)
+        # The spiral's radius is modulated by the prime counts π(2^k)
+        print("🌀 Rendering Golden φ-Spiral over prime sparks...")
+        phi = (1 + np.sqrt(5)) / 2
         
-        ax.scatter(positions, depths, s=original_sizes, 
-                  c=original_values, cmap="plasma", alpha=0.5, 
-                  edgecolors='white', linewidth=0.5, label='Original', zorder=8)
+        # Use the depths corresponding to the prime counts
+        depths = sorted(prime_counts.keys())
         
-        ax.scatter(positions, [d + 0.2 for d in depths], s=processed_sizes, 
-                  c=processed_values[:len(depths)], cmap="viridis", alpha=0.8,
-                  edgecolors='black', linewidth=0.5, marker='s', label='Processed', zorder=10)
+        # Generate spiral points
+        theta = np.linspace(0, 8 * np.pi, len(depths)) # More rotations for visibility
+        
+        # The core insight: radius is a function of prime density
+        radii = [np.log1p(prime_counts[k]) for k in depths]
+        
+        # Scale radii to fit the plot
+        if radii:
+            max_radius = np.max(radii)
+            scaled_radii = (radii / max_radius) * 0.8 # Scale to fit view
+        
+            # Apply the φ growth factor
+            spiral_radii = scaled_radii * (phi**(theta / (2*np.pi)))
 
-        ax.set_xscale("log")
-        ax.set_xlabel("n (log scale)")
-        ax.set_ylabel("Depth (k)")
-        ax.set_title("Sierpinski Sieve with Prime Analysis")
-        ax.grid(True, alpha=0.2)
-        ax.legend()
+            spiral_x = spiral_radii * np.cos(theta)
+            spiral_y = spiral_radii * np.sin(theta)
+            
+            # Plot the spiral with a distinct color
+            ax.plot(spiral_x, spiral_y, color='red', lw=1.5, alpha=0.8, label='φ-Spiral')
+
+        ax.set_title("Sierpinski Prime Sparks with φ-Spiral", fontsize=9)
+        ax.set_xlabel("Re(z)", fontsize=7)
+        ax.set_ylabel("Im(z)", fontsize=7)
         ax.tick_params(axis='both', which='major', labelsize=6)
-        
-        # Add a colorbar
-        combined = np.concatenate([original_values, processed_values[:len(depths)]])
-        sm = cm.ScalarMappable(cmap='hot', norm=LogNorm(vmin=np.min(combined[combined > 0]) if np.any(combined > 0) else 1, 
-                                                              vmax=np.max(combined) if np.any(combined > 0) else 1))
-        sm.set_array([])
-        cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
-        cbar.ax.tick_params(labelsize=6)
-        cbar.set_label('Spark Intensity', fontsize=7)
+        ax.legend(fontsize=7, labelcolor='white')
 
-    def plot_operator_effects(self, ax: Axes) -> None:
-        """Plot the effect of operators on prime distributions."""
-        if not self.safe_render(ax, self.processed_data, "Operator Effects on Prime Data"):
+    def _generate_fractal_coords(self, log_derivatives: Dict[int, float]) -> np.ndarray:
+        """Helper to generate fractal coordinates for the sparks plot."""
+        derivatives = list(log_derivatives.values())
+        if not derivatives:
+            return np.empty((0, 3))
+        
+        max_val = np.log1p(max(derivatives))
+        
+        coords = []
+        for i, val in enumerate(derivatives):
+            angle = 2 * np.pi * (np.log1p(val) / max_val)
+            radius = i / len(derivatives)
+            
+            x = radius * np.cos(angle)
+            y = radius * np.sin(angle)
+            color = np.log1p(val)
+            coords.append([x, y, color])
+
+        return np.array(coords)
+
+    def plot_operator_effects(self, ax: Axes, processed_data: OperatorProcessedData) -> None:
+        """Plot the variance reduction from operators."""
+        if not self.safe_render(ax, processed_data, "Operator Effects on Prime Data"):
             return
 
         labels = ['Original', 'Ϟ-Op', 'C-Op', 'Wild-Tame']
         prime_means = [
-            np.mean(self.processed_data['original_primes']),
-            np.mean(self.processed_data['d_primes']),
-            np.mean(self.processed_data['c_primes']),
-            np.mean(self.processed_data['wild_closure_primes'])
+            np.mean(processed_data.original_primes),
+            np.mean(processed_data.d_primes),
+            np.mean(processed_data.c_primes),
+            np.mean(processed_data.wild_closure_primes)
         ]
         anomaly_means = [
-            np.mean(self.processed_data['original_anomalies']),
-            np.mean(self.processed_data['d_anomalies']),
-            np.mean(self.processed_data['c_anomalies']),
-            np.mean(self.processed_data['wild_closure_anomalies'])
+            np.mean(processed_data.original_anomalies),
+            np.mean(processed_data.d_anomalies),
+            np.mean(processed_data.c_anomalies),
+            np.mean(processed_data.wild_closure_anomalies)
         ]
         
         x = np.arange(len(labels))
@@ -590,16 +651,16 @@ class PrimeSierpinskiAnalyzer:
         ax.legend(fontsize=7)
         ax.tick_params(axis='y', labelsize=7)
 
-    def plot_prime_anomaly_evolution(self, ax: Axes) -> None:
+    def plot_prime_anomaly_evolution(self, ax: Axes, processed_data: OperatorProcessedData) -> None:
         """Plot the evolution of prime anomalies under operator application."""
-        if not self.safe_render(ax, self.processed_data, "Prime Anomaly Evolution"):
+        if not self.safe_render(ax, processed_data, "Prime Anomaly Evolution"):
             return
 
         evolution_data = {
-            'Original': self.processed_data['original_anomalies'],
-            'Ϟ-Op': self.processed_data['d_anomalies'],
-            'C-Op': self.processed_data['c_anomalies'],
-            'Wild-Tame Cycle': self.processed_data['wild_closure_anomalies']
+            'Original': processed_data.original_anomalies,
+            'Ϟ-Op': processed_data.d_anomalies,
+            'C-Op': processed_data.c_anomalies,
+            'Wild-Tame Cycle': processed_data.wild_closure_anomalies
         }
         
         for label, data in evolution_data.items():
@@ -612,13 +673,13 @@ class PrimeSierpinskiAnalyzer:
         ax.grid(True, linestyle=':', alpha=0.6)
         ax.tick_params(labelsize=7)
 
-    def plot_variance_reduction(self, ax: Axes) -> None:
+    def plot_variance_reduction(self, ax: Axes, processed_data: OperatorProcessedData) -> None:
         """Plot the variance reduction achieved by Keya operators."""
-        if not self.safe_render(ax, self.processed_data, "Variance Reduction"):
+        if not self.safe_render(ax, processed_data, "Variance Reduction"):
             return
             
-        reduction_primes = self.processed_data.get('primes_variance_reduction', 1.0)
-        reduction_anomalies = self.processed_data.get('anomalies_variance_reduction', 1.0)
+        reduction_primes = processed_data.primes_variance_reduction
+        reduction_anomalies = processed_data.anomalies_variance_reduction
         
         labels = ['Primes', 'Anomalies']
         reductions = [reduction_primes, reduction_anomalies]
@@ -635,13 +696,13 @@ class PrimeSierpinskiAnalyzer:
         ax.tick_params(axis='y', labelsize=7)
         ax.set_ylim(bottom=0, top=max(2, max(reductions) * 1.1))
 
-    def plot_convergence_analysis(self, ax: Axes, convergence_data: dict) -> None:
+    def plot_convergence_analysis(self, ax: Axes, convergence_analysis: ConvergenceAnalysis) -> None:
         """Plot the convergence of variance under different containment rules."""
-        if not self.safe_render(ax, convergence_data, "Convergence Analysis"):
+        if not self.safe_render(ax, convergence_analysis.results, "Convergence Analysis"):
             return
 
-        for rule, data in convergence_data.items():
-            variances = data['variances']
+        for rule, data in convergence_analysis.results.items():
+            variances = [d.variance for d in data]
             ax.plot(range(1, len(variances) + 1), variances, marker='.', linestyle='-', label=f'{rule} rule')
             
         ax.set_title('Convergence of Variance', fontsize=9)
@@ -652,13 +713,13 @@ class PrimeSierpinskiAnalyzer:
         ax.grid(True, which='both', linestyle=':', alpha=0.5)
         ax.tick_params(labelsize=7)
 
-    def plot_log_derivative_comparison(self, ax: Axes) -> None:
+    def plot_log_derivative_comparison(self, ax: Axes, processed_data: OperatorProcessedData) -> None:
         """Compare raw log derivatives with operator-processed values."""
-        if not self.safe_render(ax, self.processed_data, "Log-Derivative Comparison"):
+        if not self.safe_render(ax, processed_data, "Log-Derivative Comparison"):
             return
             
-        original = self.processed_data['original_primes']
-        final = self.processed_data['wild_closure_primes']
+        original = processed_data.original_primes
+        final = processed_data.wild_closure_primes
         
         ax.plot(original, label='Original Δπ(2^k)', color='blue', alpha=0.7)
         ax.plot(final, label='Processed (Wild-Tame)', color='red', linestyle='--')
@@ -670,13 +731,12 @@ class PrimeSierpinskiAnalyzer:
         ax.grid(True, linestyle=':', alpha=0.6)
         ax.tick_params(labelsize=7)
 
-    def plot_prime_anomalies(self, ax: Axes) -> None:
+    def plot_prime_anomalies(self, ax: Axes, anomaly_values: List[float]) -> None:
         """Plot prime anomalies (actual - expected)."""
-        anomalies = list(self.anomalies.values())
-        if not self.safe_render(ax, anomalies, "Prime Anomalies"):
+        if not self.safe_render(ax, anomaly_values, "Prime Anomalies"):
             return
 
-        ax.plot(self.depths[:-1], anomalies, marker='o', markersize=3, linestyle='-', color='purple')
+        ax.plot(self.depths[:-1], anomaly_values, marker='o', markersize=3, linestyle='-', color='purple')
         ax.axhline(0, color='grey', linestyle='--', lw=1)
         
         ax.set_title("Prime Anomalies (Actual - PNT Approx)", fontsize=9)
@@ -685,9 +745,9 @@ class PrimeSierpinskiAnalyzer:
         ax.grid(True, linestyle=':', alpha=0.6)
         ax.tick_params(labelsize=7)
 
-    def plot_fractional_derivatives(self, ax: Axes) -> None:
+    def plot_fractional_derivatives(self, ax: Axes, fractional_derivatives: Dict[int, float]) -> None:
         """Plot fractional derivatives of prime counts."""
-        f_derivs = list(self.fractional_derivatives.values())
+        f_derivs = list(fractional_derivatives.values())
         if not self.safe_render(ax, f_derivs, "Fractional Derivatives (α=0.5)"):
             return
             
@@ -699,13 +759,13 @@ class PrimeSierpinskiAnalyzer:
         ax.grid(True, linestyle=':', alpha=0.6)
         ax.tick_params(labelsize=7)
 
-    def plot_containment_type_comparison(self, ax: Axes, convergence_data: dict) -> None:
+    def plot_containment_type_comparison(self, ax: Axes, convergence_analysis: ConvergenceAnalysis) -> None:
         """Compare the impact of different containment rules on variance."""
-        if not self.safe_render(ax, convergence_data, "Containment Rule Comparison"):
+        if not self.safe_render(ax, convergence_analysis.results, "Containment Rule Comparison"):
             return
         
-        rules = list(convergence_data.keys())
-        final_variances = [data['variances'][-1] for data in convergence_data.values()]
+        rules = list(convergence_analysis.results.keys())
+        final_variances = [data[-1].variance for data in convergence_analysis.results.values()]
         
         bars = ax.bar(rules, final_variances, color=['#1f77b4', '#ff7f0e', '#2ca02c'])
         
@@ -717,13 +777,13 @@ class PrimeSierpinskiAnalyzer:
         ax.tick_params(axis='x', labelsize=8)
         ax.tick_params(axis='y', labelsize=7)
 
-    def plot_filtered_spectrum(self, ax: Axes) -> None:
+    def plot_filtered_spectrum(self, ax: Axes, processed_data: OperatorProcessedData) -> None:
         """Plot the 'spectrum' of prime data after operator filtering."""
-        if not self.safe_render(ax, self.processed_data, "Filtered Prime Spectrum"):
+        if not self.safe_render(ax, processed_data, "Filtered Prime Spectrum"):
             return
 
-        original_spectrum = np.fft.fft(self.processed_data['original_primes'])
-        final_spectrum = np.fft.fft(self.processed_data['wild_closure_primes'])
+        original_spectrum = np.fft.fft(processed_data.original_primes)
+        final_spectrum = np.fft.fft(processed_data.wild_closure_primes)
         
         freq = np.fft.fftfreq(len(original_spectrum))
         
@@ -761,7 +821,7 @@ def main():
     # Test spectral properties claim
     print("\n🌊 SPECTRAL ANALYSIS VALIDATION")
     print("-" * 50)
-    vals_orig = [analyzer.anomalies[k] for k in analyzer.anomalies]
+    vals_orig = [analyzer.prime_data.anomalies[k] for k in analyzer.prime_data.anomalies]
     power_orig = np.abs(np.fft.rfft(vals_orig)) ** 2
     dominant_freq_orig = np.argmax(power_orig)
     total_power_orig = np.sum(power_orig)
@@ -776,8 +836,8 @@ def main():
     print("-" * 50)
     gaps = []
     for k in range(1, analyzer.max_depth):
-        if k in analyzer.log_derivatives and k+1 in analyzer.log_derivatives:
-            gap = analyzer.log_derivatives[k+1] / max(analyzer.log_derivatives[k], 1.0)
+        if k in analyzer.prime_data.log_derivatives and k+1 in analyzer.prime_data.log_derivatives:
+            gap = analyzer.prime_data.log_derivatives[k+1] / max(analyzer.prime_data.log_derivatives[k], 1.0)
             gaps.append(gap)
     
     if gaps:
@@ -810,8 +870,8 @@ def main():
     total_claims = 5
     
     if analyzer.processed_data:
-        prime_reduction = analyzer.processed_data['primes_variance_reduction']
-        anomaly_reduction = analyzer.processed_data['anomalies_variance_reduction']
+        prime_reduction = analyzer.processed_data.primes_variance_reduction
+        anomaly_reduction = analyzer.processed_data.anomalies_variance_reduction
         
         print("📊 Variance Reduction Results:")
         print(f"  • Prime variance reduction: {prime_reduction:.2f}x")

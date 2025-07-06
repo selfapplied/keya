@@ -24,10 +24,7 @@ def test_jax_backends():
         print(f"Basic operation test: {x} + {y} = {result}")
         print("✅ JAX basic operations working")
     except Exception as e:
-        print(f"❌ JAX basic operations failed: {e}")
-        return False
-    
-    return True
+        assert False, f"❌ JAX basic operations failed: {e}"
 
 def test_jax_acceleration():
     """Test JAX JIT compilation and acceleration."""
@@ -64,11 +61,8 @@ def test_jax_acceleration():
         speedup = numpy_time / jax_time
         print(f"JAX speedup: {speedup:.2f}x")
         
-        return True
-        
     except Exception as e:
-        print(f"❌ JAX JIT failed: {e}")
-        return False
+        assert False, f"❌ JAX JIT failed: {e}"
 
 def test_simple_operators():
     """Test simple JAX operations that we'll need for keya."""
@@ -91,28 +85,6 @@ def test_simple_operators():
         print(f"Array operations: ones + twos = \n{result}")
         
         print("✅ All JAX operations working")
-        return True
         
     except Exception as e:
-        print(f"❌ JAX operations failed: {e}")
-        return False
-
-if __name__ == "__main__":
-    print("Testing JAX setup for keya...")
-    
-    backends_ok = test_jax_backends()
-    if not backends_ok:
-        print("❌ JAX backends not working properly")
-        exit(1)
-    
-    acceleration_ok = test_jax_acceleration()
-    if not acceleration_ok:
-        print("⚠️  JAX acceleration may not be optimal")
-    
-    operations_ok = test_simple_operators()
-    if not operations_ok:
-        print("❌ JAX operations not working")
-        exit(1)
-    
-    print("\n🎉 JAX is ready for keya development!")
-    print("Hardware acceleration:", "✅" if acceleration_ok else "⚠️") 
+        assert False, f"❌ JAX operations failed: {e}" 

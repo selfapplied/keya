@@ -9,7 +9,6 @@ We show that prime-counting functions exhibit behavior through:
 - cycles that reveal hidden prime number patterns
 """
 
-import sys
 import os
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
@@ -19,18 +18,16 @@ from matplotlib.axes import Axes
 import numpy as np
 from sympy.ntheory import primepi
 from scipy.special import binom
-from matplotlib.colors import LogNorm
 from matplotlib.gridspec import GridSpec
 import jax.numpy as jnp
-from typing import Dict, Any, List, Tuple
-from dataclasses import dataclass, field
+from typing import Dict, List
+from dataclasses import dataclass
 from pathlib import Path
-from sympy import isprime, primerange
 
 
 from keya.core.engine import Engine
 from keya.core.operators import Wild_operator, Tame_operator, Wild_closure
-from keya.reporting.registry import register_demo
+from demos.reporting.registry import register_demo
 
 
 @dataclass(slots=True)
@@ -756,7 +753,7 @@ class PrimeSierpinskiAnalyzer:
         
         ax.set_title("Fractional Derivative of π(2^k)", fontsize=9)
         ax.set_xlabel("Depth (k)", fontsize=8)
-        ax.set_ylabel(f"D^0.5 π", fontsize=8)
+        ax.set_ylabel("D^0.5 π", fontsize=8)
         ax.grid(True, linestyle=':', alpha=0.6)
         ax.tick_params(labelsize=7)
 

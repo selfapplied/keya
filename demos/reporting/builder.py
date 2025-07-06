@@ -1,12 +1,10 @@
 import base64
 from pathlib import Path
-import subprocess
-import os
 import importlib
-from keya.reporting.registry import DEMO_REGISTRY, DemoInfo, Artifact
+from .registry import DEMO_REGISTRY, DemoInfo, Artifact
 
 # --- Configuration ---
-OUTPUT_DIR = Path(__file__).parent.parent / "docs"
+OUTPUT_DIR = Path(__file__).parent.parent.parent / ".out"
 REPORT_FILE = OUTPUT_DIR / "report.html"
 REPORT_TITLE = "Kéya Project Findings: A Comprehensive Overview"
 
@@ -19,9 +17,9 @@ def discover_and_load_demos():
     # Ensure we start with a clean registry
     DEMO_REGISTRY.clear()
     
-    demos_path = Path(__file__).parent
+    demos_path = Path(__file__).parent.parent
     for file_path in demos_path.glob("*.py"):
-        if file_path.name == "report.py" or file_path.name.startswith("_"):
+        if file_path.name.startswith("_") or file_path.name == "report.py":
             continue
         
         module_name = f"demos.{file_path.stem}"
@@ -41,11 +39,14 @@ def get_image_as_base64(path: str) -> str:
 
 def generate_artifact_html(artifact: Artifact) -> str:
     """Generates the HTML for a single demo artifact."""
-    base64_img = get_image_as_base64(artifact.filename)
+    # Ensure artifacts are saved in the output directory
+    artifact_path = OUTPUT_DIR / Path(artifact.filename).name
+    base64_img = get_image_as_base64(str(artifact_path))
+
     if not base64_img:
         return f"""
         <div class="artifact-missing">
-            <p><strong>Artifact not found:</strong> {artifact.filename}</p>
+            <p><strong>Artifact not found:</strong> {artifact_path}</p>
         </div>
         """
     return f"""
@@ -82,6 +83,16 @@ def generate_report():
     """Generates the full HTML report from the demo registry."""
     discover_and_load_demos() # This populates the registry
     
+    # Ensure the main output directory exists before demos run
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Run demos which might generate artifacts
+    for demo in DEMO_REGISTRY:
+        if demo.func:
+            print(f"Running demo: {demo.title}...")
+            # Demos are expected to save artifacts to OUTPUT_DIR
+            demo.func()
+
     if not DEMO_REGISTRY:
         print("No demos were found or registered. Report will be empty.")
         return
@@ -230,19 +241,12 @@ def generate_report():
     </script>
 </body>
 </html>
-    """
+"""
     
-    # Ensure the output directory exists
-    output_dir = os.path.dirname(REPORT_FILE)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    
-    output_path = os.path.join(output_dir, "report.html")
-    
-    with open(output_path, "w") as f:
+    with open(REPORT_FILE, "w") as f:
         f.write(html_content)
         
-    print(f"Report generated at {output_path}")
+    print(f"Report generated at {REPORT_FILE.resolve()}")
 
 if __name__ == "__main__":
     generate_report()

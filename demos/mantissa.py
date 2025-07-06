@@ -7,8 +7,6 @@ normalization and quantum wave function normalization are manifestations of the
 same underlying mathematical principle.
 """
 
-import sys
-import os
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
@@ -16,7 +14,7 @@ import numpy as np
 from typing import Dict, Any
 
 from keya.quantum.quantumdc import QuantumDCOperators
-from keya.reporting.registry import register_demo
+from demos.reporting.registry import register_demo
 
 
 class MantissaQuantumValidator:

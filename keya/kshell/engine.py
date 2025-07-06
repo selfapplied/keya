@@ -5,8 +5,8 @@ This module provides the execution engine for running declarative pipelines
 defined in the kshell AST.
 """
 from .ast import Pipeline, Step, OperatorType
-from keya.pascal.kernel import PascalKernel
-from keya.pascal.operators import Fuse, Diff, Identity, Operator
+from keya.kernel.kernel import PascalKernel
+from keya.kernel.operators import Fuse, Diff, Identity, Operator
 
 class KShellEngine:
     """

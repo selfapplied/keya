@@ -7,15 +7,12 @@ showcasing the deep mathematical connection between diagonalization-containment
 and quantum state evolution.
 """
 
-import sys
 import os
 import matplotlib.pyplot as plt
 
-from keya.quantum.renderer import create_quantum_demo
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
 from keya.quantum.wavefunction import QuantumWaveFunction, WaveFunctionType
-from keya.dsl.ast import ContainmentType
-from keya.reporting.registry import register_demo
+from demos.reporting.registry import register_demo
 
 
 def test_quantum_basics():

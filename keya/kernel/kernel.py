@@ -4,8 +4,8 @@ The Pascal-Sierpinski Computational Kernel.
 This module implements the core computational substrate based on the
 combinatorial and fractal properties of Pascal's triangle.
 """
-from typing import NamedTuple, Callable, List
-from dataclasses import dataclass, field
+from typing import Callable
+from dataclasses import dataclass
 from math import comb
 import jax
 import jax.numpy as jnp

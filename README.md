@@ -1,53 +1,41 @@
-# Kéya: A Universal Computational Engine
+# Kéya: An Engine for Symbolic Calculus
 
-Kéya is an experimental computational framework built on a profound and elegant insight: that a vast range of computational and mathematical systems—from number theory to quantum mechanics to floating-point arithmetic—can be modeled as emergent behaviors of a single, universal, symbolic system.
+Kéya is an experimental computational framework for exploring a core hypothesis: that a vast range of computational systems can be modeled as emergent behaviors of a single, universal, symbolic calculus.
 
-At its heart is the **`PascalKernel`**, a pure, parameter-free mathematical object based on the binary logic of Pascal's triangle modulo 2 (the Sierpinski triangle). This kernel is not just a tool; it is a hypothesis about the nature of computation itself. It asserts that complex systems can be understood by representing their states as symbolic vectors and applying the kernel's fundamental, combinatorial transformation rules.
+The philosophy of Kéya is not to build a specific tool for a specific problem, but to develop a fundamental "computational substrate" and then discover novel **representations** of problems that can be solved by the substrate's intrinsic rules.
 
-The philosophy of Kéya is not to change the engine to fit the problem, but to find a new **representation** of the problem that the engine can naturally solve.
+## The Σ-Calculus
 
-## Core Concepts
+The core theory behind Kéya is the "Σ-Calculus," a paradigm built on a few key principles:
 
-*   **Universal Kernel**: The `PascalKernel` is the unchanging core of the system. Its logic, based on the `modulus=2` properties of Pascal's triangle, is treated as a fundamental computational substrate.
-*   **Symbolic Representation**: All problems are approached by converting their states into symbolic vectors. A floating-point number becomes a vector of its binary digits; a cellular automaton becomes a grid of states.
-*   **Transformation as Computation**: Computation is the process of applying the kernel's built-in transformation rules (`apply_polynomial` for convolutions, `reduce_with_carries` for normalization) to these state vectors.
-*   **Emergent Behavior**: Complex, high-level behaviors (like rounding error cycles or the shapes of quantum orbitals) are shown to be emergent properties of the engine's simple, low-level binary rules.
+*   **Symbolic Fields**: The state of any system is represented not as a single value, but as a field or vector of symbolic units. A number can be a vector of its digits; a physical system can be a field of quantum states.
+*   **Universal Transformations**: A minimal set of universal operators are applied to these fields. These operators are not complex functions but fundamental, combinatorial transformations.
+*   **Computation as Normalization**: The result of a transformation is often an unstable, "un-normalized" state. The crucial step of computation is applying a universal "carry" or "reduction" rule that propagates through the state until it re-stabilizes.
+*   **Emergent Complexity**: Complex, high-level behaviors—the rules of arithmetic, the shapes of orbitals, the patterns of a cellular automaton—are hypothesized to be emergent properties of the simple, underlying normalization rules.
 
-## Getting Started: The Demos
+## The `PascalKernel`: A Concrete Implementation
 
-The best way to understand Kéya is to explore the demos. They are not just examples; they are rigorous, assertion-backed proofs of the engine's capabilities.
+The primary engine implementing the Σ-Calculus today is the `PascalKernel`.
 
-We have built a decorator-based reporting system that makes running and understanding these proofs simple.
+This is a pure, parameter-free mathematical object whose normalization rules are derived from the combinatorial properties of Pascal's triangle modulo 2 (the Sierpinski triangle). It provides a concrete, powerful, and surprisingly versatile foundation for testing the calculus's claims.
 
-### Generating the Demo Report
+## Exploring the Proofs
 
-To see a comprehensive overview of the engine's capabilities, generate the interactive HTML report:
+The best way to understand Kéya is to explore the demos. They are not just examples; they are rigorous, assertion-backed proofs that test the core hypothesis against real-world computational systems.
+
+To see a comprehensive overview, generate the interactive HTML report:
 
 ```bash
-python3 demos/report.py
+python -m keya.reporting.builder
 ```
 
-This will run all registered demos and produce a detailed report at `docs/report.html`, complete with visualizations, claims, and findings for each experiment.
+This command runs all registered demos and creates a detailed report in `.out/report.html`, complete with visualizations, claims, and findings for each experiment. The demos prove that the engine can successfully model:
 
-### Key Demonstrations
-
-*   **`demos/floatingpoint.py`**: Proves that the subtle behaviors of floating-point arithmetic (quantization, rounding cycles) can be perfectly simulated by the engine's binary logic.
-*   **`demos/cellular.py`**: Implements a high-performance 2D cellular automaton using JAX convolutions, demonstrating the engine's applicability to parallel systems.
-*   **`demos/quantum.py` & `demos/orbital.py`**: Show how the shapes and evolution of quantum wavefunctions and atomic orbitals can be modeled.
-*   **`demos/kshell.py`**: Introduces a declarative DSL for defining experimental pipelines, showcasing a higher-level way to interact with the engine.
+*   **Formal Arithmetic**: Simulating the subtle, emergent behaviors of floating-point arithmetic using the engine's fundamental binary logic.
+*   **Physical Phenomena**: Generating the shapes of quantum atomic orbitals and modeling the evolution of wavefunctions.
+*   **Complex Systems**: Running cellular automata and other generative models to show how complex patterns can emerge from simple, local rules.
+*   **Declarative Pipelines**: Executing high-level, declarative experimental pipelines via the K-Shell DSL.
 
 ## License
 
-Kéya is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). 
-
-### Why AGPL v3?
-
-We chose AGPL v3 to foster **reinvestment and locality** in software development:
-
-🔄 **Reinvestment**: Any improvements you make must be shared back with the community  
-🏘️ **Locality**: Network services using Kéya must provide source code to their users  
-🛡️ **Anti-Extraction**: Prevents "take and run" patterns that don't contribute back  
-🔬 **Research Friendly**: Academics and researchers can use Kéya freely  
-🤝 **Community Building**: Creates a commons-based ecosystem where everyone benefits
-
-**In Practice**: You can use Kéya for any purpose, but if you modify it or run it as a web service, you must share your source code. This ensures the knowledge stays in the commons and benefits everyone.
+Kéya is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0), chosen to foster community, sharing, and reinvestment in the project's development.

@@ -6,8 +6,8 @@ This script demonstrates how to use the new PascalKernel-based engine.
 import os
 os.environ['JAX_ENABLE_X64'] = 'True'
 
-from keya.pascal.field import PascalGaugeField
-from keya.pascal.operators import Fuse
+from keya.kernel.field import PascalGaugeField
+from keya.kernel.operators import Fuse
 
 def run_simulation():
     """

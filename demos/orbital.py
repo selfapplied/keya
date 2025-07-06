@@ -9,7 +9,6 @@ the sophisticated quantum module that properly implements:
 - Keya operator evolution of quantum states
 """
 
-import sys
 import os
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
@@ -18,7 +17,7 @@ import numpy as np
 
 
 from keya.quantum.orbital import ElectronOrbital, OrbitalType
-from keya.reporting.registry import register_demo
+from demos.reporting.registry import register_demo
 
 
 def demo_single_orbital(orbital_type: OrbitalType, title: str):

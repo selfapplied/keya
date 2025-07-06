@@ -2,11 +2,9 @@
 Type stubs for matplotlib 3D axes functionality.
 Fixes Pylance issues with 3D API method recognition.
 """
-from typing import Any, Optional, Union, Tuple, List
-from matplotlib.artist import Artist
+from typing import Any, Optional, Union, Tuple
 from matplotlib.text import Text
 from matplotlib.transforms import Transform
-import numpy as np
 from numpy.typing import ArrayLike
 
 class Axes3D:

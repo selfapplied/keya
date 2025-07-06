@@ -6,7 +6,7 @@ kshell AST and then runs it through the KShellEngine.
 """
 from keya.kshell.engine import KShellEngine
 from keya.kshell.ast import Pipeline, Step, OperatorType
-from keya.reporting.registry import register_demo
+from demos.reporting.registry import register_demo
 import jax.numpy as jnp
 
 @register_demo(

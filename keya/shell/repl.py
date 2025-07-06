@@ -1,7 +1,7 @@
 """Modern Keya  REPL - Language-first interactive shell."""
 
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Optional
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggest, Suggestion

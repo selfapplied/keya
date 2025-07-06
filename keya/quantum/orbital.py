@@ -346,4 +346,18 @@ class ElectronOrbital:
             'max_probability_density': float(np.max(self.probability_density)),
             'energy_level': -13.6 / (self.n**2),  # eV
             'evolution_available': True
+        }
+    
+    def get_expectation_values(self) -> Dict[str, float]:
+        """Calculates expectation values for position and momentum."""
+        # Calculate expectation values
+        np.sum(self.probability_density)
+        
+        return {
+            'position_x': self.get_position_expectation(),
+            'position_y': self.get_position_expectation(),
+            'position_z': self.get_position_expectation(),
+            'momentum_x': self.get_momentum_expectation(),
+            'momentum_y': self.get_momentum_expectation(),
+            'momentum_z': self.get_momentum_expectation()
         } 

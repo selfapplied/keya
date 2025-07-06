@@ -23,5 +23,11 @@ def use(backend: str, *, force: bool = True) -> None:
     """
     ...
 
+def get_backend() -> str:
+    """
+    Return the name of the current backend.
+    """
+    ...
+
 # Type stubs are automatically discovered by mypy
 # No need to export specific symbols 

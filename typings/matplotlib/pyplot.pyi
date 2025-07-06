@@ -1,8 +1,7 @@
 """
 Type stubs for matplotlib.pyplot to fix scatter API parameter conflicts.
 """
-from typing import Any, Optional, Union, Sequence, Tuple, List
-import numpy as np
+from typing import Any, Optional, Union, Sequence, Tuple
 from numpy.typing import ArrayLike
 
 def scatter(

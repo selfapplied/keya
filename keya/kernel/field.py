@@ -1,14 +1,7 @@
-from keya.pascal.kernel import PascalKernel, CombinatorialPosition
-from keya.pascal.cyclotomic import CyclotomicBinary
-from keya.pascal.operators import Operator, Fuse, Diff
+from keya.kernel.kernel import PascalKernel, CombinatorialPosition
+from keya.kernel.cyclotomic import CyclotomicBinary
+from keya.kernel.operators import Operator, Fuse, Diff
 from typing import TypeAlias
-
-"""
-Core implementation of the PascalGaugeField engine.
-
-This module defines the primary classes for the Pascal space simulation,
-including the hierarchical layers and the main engine that drives evolution.
-"""
 from math import comb, gcd
 import jax.numpy as jnp
 from jax import jit
@@ -18,6 +11,13 @@ from sympy.core.symbol import Symbol
 from typing import Type
 import os
 from tqdm import tqdm
+
+"""
+Core implementation of the PascalGaugeField engine.
+
+This module defines the primary classes for the Pascal space simulation,
+including the hierarchical layers and the main engine that drives evolution.
+"""
 
 # A type alias for clarity in function signatures
 SymbolicExpression: TypeAlias = CyclotomicBinary
@@ -37,8 +37,8 @@ class PascalGaugeField:
     This class uses a PascalKernel as its computational fabric and evolves
     states represented by CyclotomicBinary numbers.
     """
-    def __init__(self, depth: int = 16):
-        self.kernel = PascalKernel(depth=depth)
+    def __init__(self):
+        self.kernel = PascalKernel()
         # The state is now a list of CyclotomicBinary numbers.
         self.state: list[CyclotomicBinary] = []
         # The operators are now polynomial-based.
@@ -46,7 +46,7 @@ class PascalGaugeField:
 
     def initialize_state(self, values: list[int], operators: list[Operator]):
         """Initializes the field with values and a chain of operators."""
-        self.state = [CyclotomicBinary(v, self.kernel.depth) for v in values]
+        self.state = [CyclotomicBinary(v) for v in values]
         self.operators = operators
 
     def evolve(self, max_steps: int = 10) -> list[CyclotomicBinary]:
@@ -63,7 +63,7 @@ class PascalGaugeField:
                 current_coeffs = self.kernel.apply_polynomial(current_coeffs, op.coeffs)
             
             # Create a new CyclotomicBinary from the final coefficients
-            new_state = CyclotomicBinary.from_vector(current_coeffs, kernel_depth=self.kernel.depth)
+            new_state = CyclotomicBinary.from_vector(current_coeffs)
             final_states.append(new_state)
         
         self.state = final_states

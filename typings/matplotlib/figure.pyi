@@ -1,8 +1,7 @@
 """
 Type stubs for matplotlib.figure to ensure 3D functionality is properly recognized.
 """
-from typing import Any, Optional, Union, Tuple
-from typing import Any
+from typing import Any, Optional
 
 class Figure:
     """Type stub for matplotlib Figure with 3D support."""

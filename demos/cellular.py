@@ -1,308 +1,229 @@
 #!/usr/bin/env python3
 """
-🌟 KEYA CELLULAR AUTOMATA WIDGETS DEMO 🌟
+🌟 KEYA INTERACTIVE CELLULAR AUTOMATA 🌟
 
-This demonstrates the revolutionary cellular automata widget system 
-powered by the keya mathematical language!
-
-Features:
-- Real-time cellular evolution using keya operators
-- Interactive widgets with multiple interaction modes
-- Infinite iteration support (∞) for continuous evolution  
-- Mathematical harmonic transformations
-- Beautiful visual rendering with matplotlib
+This module demonstrates a cellular automata widget system, built following a
+Model-View-Controller (MVC) pattern. It combines a JAX-based simulation backend
+(the Model) with a Matplotlib-based interactive GUI (the View), mediated by
+a state management class (the Controller).
 """
-
-import sys
-import os
 import argparse
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Optional
+
 import jax
 import jax.numpy as jnp
-import jax.random as random
-from jax import lax
-from jax.scipy.signal import convolve2d
-import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+from jax.scipy.signal import convolve2d
+from matplotlib.colors import ListedColormap
 
-from keya.widgets.renderer import create_demo_widget, WidgetRenderer
-from keya.widgets.cellular import CellularWidget, InteractionMode
-from keya.dsl.ast import ContainmentType
-from keya.pascal.kernel import PascalKernel
-from keya.pascal.operators import Operator
-from keya.core.operators import Glyph, INT_TO_GLYPH
-from keya.reporting.registry import register_demo
+from demos.reporting.registry import register_demo
 
-# JAX setup for reproducibility
-key = random.PRNGKey(0)
+# --- 1. The Controller: State Management and Application Logic ---
 
-# Define the convolution kernel for Conway's Game of Life
-# It counts neighbors in a 3x3 grid, excluding the center.
-KERNEL = jnp.array([
-    [1, 1, 1],
-    [1, 0, 1],
-    [1, 1, 1]
-], dtype=jnp.int32)
+class InteractionMode(Enum):
+    """Defines how the user interacts with the grid."""
+    DRAW = "draw"
+    ERASE = "erase"
+    TOGGLE = "toggle"
 
-def step(grid):
-    """Performs a single step of the Game of Life."""
-    # Count neighbors using convolution
-    num_neighbors = lax.conv_general_dilated(
-        lhs=grid.astype(jnp.int32),
-        rhs=KERNEL[jnp.newaxis, jnp.newaxis, :, :],
-        window_strides=(1, 1),
-        padding='SAME'
-    )
+@dataclass
+class GridState:
+    """A simple dataclass to hold the UI's state."""
+    matrix: jnp.ndarray
+    generation: int
+    evolution_active: bool
 
-    # Apply the Game of Life rules:
-    # 1. A living cell with 2 or 3 neighbors survives.
-    # 2. A dead cell with 3 neighbors becomes a living cell.
-    # 3. All other living cells die, and all other dead cells stay dead.
-    survives = (grid == 1) & ((num_neighbors == 2) | (num_neighbors == 3))
-    born = (grid == 0) & (num_neighbors == 3)
+class CellularWidget:
+    """
+    The Controller. It connects the simulation (Model) to the GUI (View).
     
-    return (survives | born).astype(jnp.int32)
-
-def demo_ripple_widget():
-    """Demo the ripple interaction widget."""
-    print("🌊 RIPPLE WIDGET DEMO")
-    print("Click anywhere to create energy ripples that evolve via operators!")
-    print("Press SPACE to start/stop evolution, R to reset")
-    
-    widget, renderer = create_demo_widget("ripple")
-    renderer.show(auto_evolve=False)
-
-
-def demo_infinite_evolution():
-    """Demo infinite evolution with ∞ iterations."""
-    print("♾️  INFINITE EVOLUTION DEMO")
-    print("This widget uses DC(grid, binary, ∞) for continuous cellular evolution!")
-    
-    # Create widget with infinite evolution
-    widget = CellularWidget(
-        width=25,
-        height=25,
-        containment_type=ContainmentType.BINARY,
-        interaction_mode=InteractionMode.RIPPLE,
-        evolution_speed=0.1  # Fast evolution
-    )
-    
-    # Manually test infinite cycle
-    program = """
-matrix infinite_test {
-    cellular_evolution {
-        grid = [5, 5, △]
-        infinite_result = DC(grid, binary, ∞)  
-    }
-}
-"""
-    
-    print("Testing infinite cycles...")
-    result = widget.engine.execute_program(program.strip())
-    if result:
-        print("✅ Infinite cycles working!")
-    
-    renderer = WidgetRenderer(widget)
-    renderer.show(auto_evolve=True)
-
-
-def demo_multi_containment():
-    """Demo different containment types."""
-    print("🎛️  MULTI-CONTAINMENT DEMO")
-    print("Press 1-4 to switch interaction modes while evolution runs!")
-    
-    widget = CellularWidget(
-        width=20,
-        height=20,
-        containment_type=ContainmentType.DECIMAL,  # Different containment
-        interaction_mode=InteractionMode.DRAW,
-        evolution_speed=0.2
-    )
-    
-    renderer = WidgetRenderer(widget)
-    renderer.show(auto_evolve=True)
-
-
-def demo_console_widget():
-    """Demo a console-based widget for systems without GUI."""
-    print("💻 CONSOLE WIDGET DEMO")
-    print("Watch evolution in the terminal!")
-    
-    widget = CellularWidget(width=15, height=10)
-    
-    print("Initial state:")
-    display_console_grid(widget)
-    
-    # Add some manual interactions
-    widget.handle_interaction(7, 5)  # Center ripple
-    widget.handle_interaction(3, 2)  # Another ripple
-    
-    print("\nAfter interactions:")
-    display_console_grid(widget)
-    
-    # Start evolution and show a few steps
-    widget.start_evolution()
-    for step in range(5):
-        widget.step_evolution()
-        print(f"\nEvolution step {step + 1}:")
-        display_console_grid(widget)
+    It holds the application state (generation count, interaction mode) and
+    interprets user input to command the model and update the view.
+    """
+    def __init__(self, width: int, height: int, evolution_speed: float = 0.1):
+        self.width = width
+        self.height = height
+        self.evolution_speed = evolution_speed
+        self.interaction_mode = InteractionMode.DRAW
         
-        stats = widget.get_stats()
-        print(f"Gen: {stats['generation']} | Active cells: {stats['total_cells'] - stats['void_cells']}")
+        self.automaton = CellularAutomaton(height, width) # The Model
+        self.state = GridState(
+            matrix=self.automaton.create_random_grid(),
+            generation=0,
+            evolution_active=False,
+        )
 
+    def step_evolution(self):
+        """Commands the model to compute the next state."""
+        if self.state.evolution_active:
+            self.state.matrix = self.automaton.step(self.state.matrix)
+            self.state.generation += 1
 
-def demo_all_features():
-    """Run all console-based demos in sequence."""
-    print("🎉 Running all console demos in sequence!")
-    demo_console_widget()
-    print("\n" + "="*50)
-    print("✅ All demos completed successfully!")
+    def handle_interaction(self, x: int, y: int):
+        """Interprets raw user input and updates the model's grid."""
+        if not (0 <= y < self.height and 0 <= x < self.width):
+            return
 
+        if self.interaction_mode == InteractionMode.DRAW:
+            self.state.matrix = self.state.matrix.at[y, x].set(1)
+        elif self.interaction_mode == InteractionMode.ERASE:
+            self.state.matrix = self.state.matrix.at[y, x].set(0)
+        elif self.interaction_mode == InteractionMode.TOGGLE:
+            current_val = self.state.matrix[y, x]
+            self.state.matrix = self.state.matrix.at[y, x].set(1 - current_val)
 
-def display_console_grid(widget: CellularWidget):
-    """Display widget grid in console."""
-    grid = widget.get_display_grid()
-    for row in grid:
-        print(' '.join(row))
+    def start_evolution(self):
+        self.state.evolution_active = True
+    
+    def stop_evolution(self):
+        self.state.evolution_active = False
 
+    def reset(self):
+        self.state.matrix = self.automaton.create_random_grid()
+        self.state.generation = 0
+        self.state.evolution_active = False
+
+# --- 2. The Model: Pure Simulation Logic ---
 
 class CellularAutomaton:
     """
-    A JAX-based implementation of a 2D cellular automaton,
-    powered by the Keya PascalKernel.
+    The Model. A pure, headless, high-performance JAX implementation of
+    Conway's Game of Life. It knows nothing about GUIs or user interaction.
     """
-    def __init__(self, size: int, rule: str = 'game_of_life'):
-        self.size = size
-        self.grid = self.create_random_grid()
-        
-        # The Keya engine for applying polynomial operators (convolutions)
-        self.kernel = PascalKernel(depth=size) 
-        self.rule = self._get_rule_operator(rule)
+    def __init__(self, height: int, width: int):
+        self.height = height
+        self.width = width
+        # The 3x3 kernel to count neighbors
+        self.kernel = jnp.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]], dtype=jnp.int32)
 
     def create_random_grid(self) -> jax.Array:
         """Creates a grid with a random initial state."""
         key = jax.random.PRNGKey(0)
-        return jax.random.randint(key, (self.size, self.size), 0, 2, dtype=jnp.int32)
-
-    def _get_rule_operator(self, rule_name: str) -> Operator:
-        """Returns the Keya operator for a given rule."""
-        if rule_name == 'game_of_life':
-            # The kernel counts the number of neighbors for each cell.
-            # This is represented as a polynomial operator in the Keya engine.
-            coeffs = jnp.array([[1, 1, 1],
-                               [1, 0, 1],
-                               [1, 1, 1]], dtype=jnp.int32)
-            return Operator(name="GameOfLife", coefficients=coeffs)
-        else:
-            raise ValueError(f"Unknown rule: {rule_name}")
+        return jax.random.randint(key, (self.height, self.width), 0, 2, dtype=jnp.int32)
 
     @jax.jit
     def step(self, grid: jax.Array) -> jax.Array:
-        """Performs a single step of the simulation."""
-        # Count neighbors using the PascalKernel's convolution method
-        # Note: The PascalKernel's apply_polynomial is designed for 1D.
-        # We adapt it here for 2D by using JAX's convolve2d, but conceptually
-        # it's the kernel applying the operator.
-        num_neighbors = convolve2d(grid, self.rule.coeffs, mode='same', boundary='wrap')
-
-        # Apply Conway's Game of Life rules:
-        # 1. A living cell with 2 or 3 neighbors survives.
-        # 2. A dead cell with 3 neighbors becomes a living cell.
-        # 3. All other living cells die, and all other dead cells stay dead.
+        """Performs a single, JIT-compiled step of the simulation."""
+        num_neighbors = convolve2d(grid, self.kernel, mode='same', boundary='wrap')
         survives = (grid == 1) & ((num_neighbors == 2) | (num_neighbors == 3))
         born = (grid == 0) & (num_neighbors == 3)
-
         return (survives | born).astype(jnp.int32)
 
-    def run_simulation(self, steps: int):
-        """Runs the simulation for a given number of steps."""
-        history = [self.grid]
-        for _ in range(steps):
-            self.grid = self.step(self.grid)
-            history.append(self.grid)
-        return history
+# --- 3. The View: Rendering and Raw Input Handling ---
 
-    def run_to_convergence(self, max_steps: int = 1000) -> tuple[jax.Array, int]:
-        """
-        Runs the simulation until the grid state stabilizes or max_steps is reached.
-        """
-        for i in range(max_steps):
-            next_grid = self.step(self.grid)
-            if jnp.array_equal(next_grid, self.grid):
-                print(f"\n--- Convergence Test ---")
-                print(f"✅ Converged to a stable state after {i+1} steps.")
-                return self.grid, i + 1
-            self.grid = next_grid
+class WidgetRenderer:
+    """
+    The View. Renders the grid and captures raw user input.
+    
+    It knows how to draw a grid and report mouse/key events, but does not
+    know what those events mean.
+    """
+    def __init__(self, widget: CellularWidget):
+        self.widget = widget # A reference to the controller to send events to
+        self.fig, self.ax = plt.subplots(figsize=(12, 12))
+        self.colormap = ListedColormap(['#2E2E2E', '#F0F0F0']) # Dark grey for 0, Light grey for 1
+        self.image: Optional[Any] = None
+        self.animation: Optional[Any] = None
+        self.mouse_pressed = False
+
+    def _on_mouse_event(self, event):
+        """Generic handler for mouse press and move events."""
+        if event.inaxes != self.ax or event.xdata is None or event.ydata is None:
+            return
+        x, y = int(round(event.xdata)), int(round(event.ydata))
+        self.widget.handle_interaction(x, y) # Send raw coordinates to controller
+        self.update_display()
+
+    def _on_key_press(self, event):
+        """Handles keyboard shortcuts by changing the controller's state."""
+        if event.key == ' ':
+            if self.widget.state.evolution_active:
+                self.widget.stop_evolution()
+            else:
+                self.widget.start_evolution()
+        elif event.key == 'r':
+            self.widget.reset()
+        elif event.key == '1':
+            self.widget.interaction_mode = InteractionMode.DRAW
+        elif event.key == '2':
+            self.widget.interaction_mode = InteractionMode.ERASE
+        elif event.key == '3':
+            self.widget.interaction_mode = InteractionMode.TOGGLE
+        elif event.key == 'q':
+            self.stop()
+        self.update_display() # Redraw to reflect mode change
+
+    def update_display(self):
+        """Updates the matplotlib view from the controller's state."""
+        status_text = "▶️ EVOLVING" if self.widget.state.evolution_active else "⏸️ PAUSED"
+        title = (f"JAX Cellular Automata | Gen: {self.widget.state.generation} | "
+                 f"Mode: {self.widget.interaction_mode.name} (Keys: 1-3) | "
+                 f"{status_text}")
+        self.ax.set_title(title)
         
-        print(f"\n--- Convergence Test ---")
-        print(f"⚠️  Did not converge within {max_steps} steps.")
-        return self.grid, max_steps
+        if self.image is None:
+            self.image = self.ax.imshow(self.widget.state.matrix, cmap=self.colormap, interpolation='nearest')
+        else:
+            self.image.set_data(self.widget.state.matrix)
+        self.fig.canvas.draw_idle()
 
+    def _animation_func(self, frame):
+        """Function called by the animation timer."""
+        self.widget.step_evolution()
+        self.update_display()
+        return [self.image] if self.image else []
 
-def save_grid_as_image(grid, filename, title):
-    """Saves the grid as a PNG image."""
-    plt.figure(figsize=(8, 8))
-    plt.imshow(grid, cmap='binary')
-    plt.title(title)
-    plt.savefig(filename)
-    plt.close()
+    def show(self):
+        """Connects event handlers and shows the main window."""
+        self.fig.canvas.mpl_connect('button_press_event', lambda e: (setattr(self, 'mouse_pressed', True), self._on_mouse_event(e)))
+        self.fig.canvas.mpl_connect('button_release_event', lambda e: setattr(self, 'mouse_pressed', False))
+        self.fig.canvas.mpl_connect('motion_notify_event', lambda e: self.mouse_pressed and self._on_mouse_event(e))
+        self.fig.canvas.mpl_connect('key_press_event', self._on_key_press)
+        
+        self.update_display()
+        self.animation = animation.FuncAnimation(
+            self.fig, self._animation_func, interval=int(self.widget.evolution_speed * 1000), blit=True, cache_frame_data=False
+        )
+        plt.show()
 
-def render_as_glyphs(grid):
-    """Renders the grid to the console using symbolic glyphs."""
-    for row in grid:
-        # Ensure every item is a string before joining
-        print("".join([str(INT_TO_GLYPH.get(cell.item(), '?')) for cell in row]))
+    def stop(self):
+        if self.animation:
+            self.animation.event_source.stop()
+        plt.close(self.fig)
 
-def run_to_convergence(grid, max_steps=1000):
-    """Runs the automaton until it stabilizes."""
-    for i in range(max_steps):
-        next_grid = step(grid)
-        if jnp.array_equal(next_grid, grid):
-            print(f"Cellular automaton converged to a stable state at step {i+1}.")
-            return grid
-        grid = next_grid
-    print(f"Cellular automaton did not converge within {max_steps} steps.")
-    return grid
+# --- Demo Registration and Main Execution ---
 
 @register_demo(
-    title="Cellular Automata with JAX",
-    artifacts=[
-        {"filename": "docs/cellular_automaton_initial.png", "caption": "Initial state of the cellular automaton."},
-        {"filename": "docs/cellular_automaton_final.png", "caption": "Final, stable state of the cellular automaton after convergence."}
-    ],
+    title="Interactive Cellular Automata (MVC)",
+    artifacts=[],
     claims=[
-        "Cellular automata can be efficiently implemented using JAX convolutions.",
-        "The system can automatically detect convergence to a stable state.",
-        "The Pascal Kernel abstraction can operate on 2D grids for image-like data."
+        "A JAX backend (Model) can power a real-time interactive simulation.",
+        "A Matplotlib GUI (View) can be cleanly separated from the simulation logic.",
+        "A Controller class can mediate between the Model and View, managing application state."
     ],
-    findings="The use of JAX and the Pascal Kernel provides a powerful and efficient way to simulate and analyze cellular automata. The convergence detection works reliably, and the system is flexible enough to handle multi-dimensional data."
+    findings="This demo successfully implements a clean Model-View-Controller (MVC) architecture. The `CellularAutomaton` class handles the high-performance computation, the `WidgetRenderer` provides the interactive GUI, and the `CellularWidget` acts as the controller. This robust model proves the core logic is decoupled from its presentation."
 )
 def main():
     """
-    This demo showcases a 2D cellular automaton (similar to Conway's Game of Life)
-    implemented using JAX for high-performance computation. The automaton starts
-    from a random initial state and evolves step-by-step. The evolution is
-    implemented as a convolution operation, leveraging JAX's `lax.conv_general_dilated`.
-    The simulation runs until the automaton reaches a stable state (i.e., it no
-    longer changes between steps), demonstrating the run-to-convergence capability
-    of the Keya engine. The initial and final states are saved as images, providing
-    a clear visual representation of the automaton's evolution.
+    This demo showcases an interactive 2D cellular automaton (Conway's Game of Life)
+    built with a JAX backend and a Matplotlib frontend, following an MVC pattern.
+    Users can draw, erase, and toggle cells, and watch the simulation evolve in real time.
     """
-    # Create a random initial state
-    global key
-    key, subkey = random.split(key)
-    # Corrected call to jax.random.uniform
-    grid = random.uniform(subkey, (1, 1, 64, 64), dtype=jnp.float32)
-    grid = jnp.round(grid).astype(jnp.int32)
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Run the Interactive Cellular Automata Demo.")
+    parser.add_argument('--width', type=int, default=80, help='Width of the grid.')
+    parser.add_argument('--height', type=int, default=60, help='Height of the grid.')
+    parser.add_argument('--speed', type=float, default=0.05, help='Evolution speed in seconds per step.')
     
-    # Save the initial state
-    save_grid_as_image(grid[0, 0], 'docs/cellular_automaton_initial.png', 'Initial State')
-    
-    # Run the simulation to convergence
-    final_grid = run_to_convergence(grid)
-    
-    # Save the final state
-    save_grid_as_image(final_grid[0, 0], 'docs/cellular_automaton_final.png', 'Final State')
+    args = parser.parse_args()
 
+    # Create the components and run the application
+    widget = CellularWidget(width=args.width, height=args.height, evolution_speed=args.speed)
+    renderer = WidgetRenderer(widget)
+    renderer.show()
 
 if __name__ == "__main__":
     main() 

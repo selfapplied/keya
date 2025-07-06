@@ -6,9 +6,7 @@ by their decomposition into cyclotomic components. Arithmetic is performed
 using the PascalKernel for combinatorial convolution.
 """
 import jax.numpy as jnp
-from sympy import Poly, Symbol, cyclotomic_poly
-from typing import Self
-from keya.pascal.kernel import PascalKernel
+from keya.kernel.kernel import PascalKernel
 
 class CyclotomicBinary:
     """

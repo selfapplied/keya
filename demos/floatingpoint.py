@@ -6,13 +6,11 @@ can be understood as a system of symbolic operators with properties analogous
 to those in the Keya engine.
 """
 
-import jax
 import jax.numpy as jnp
-import numpy as np
 from decimal import Decimal, getcontext
-from keya.pascal.kernel import PascalKernel
-from keya.pascal.operators import Operator, Identity
-from keya.reporting.registry import register_demo
+from keya.kernel.kernel import PascalKernel
+from keya.kernel.operators import Identity
+from demos.reporting.registry import register_demo
 
 # Set precision for Decimal calculations
 getcontext().prec = 100
@@ -21,7 +19,8 @@ getcontext().prec = 100
 
 def decimal_to_binary_vector(d: Decimal, length: int) -> jnp.ndarray:
     """Converts the fractional part of a Decimal to a binary JAX array."""
-    if d >= 1: d -= int(d) # Work with fractional part
+    if d >= 1:
+        d -= int(d) # Work with fractional part
     
     binary_digits = []
     temp_d = d

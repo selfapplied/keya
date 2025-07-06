@@ -5,7 +5,7 @@ This module provides a decorator-based system for registering demos
 and their metadata for automatic inclusion in reports.
 """
 from dataclasses import dataclass, field
-from typing import List, Callable, Dict, Any, Optional
+from typing import List, Callable, Dict, Optional
 
 @dataclass
 class Artifact:
@@ -19,6 +19,7 @@ class DemoInfo:
     title: str
     script_path: str
     description: str
+    func: Optional[Callable] = None
     claims: List[str] = field(default_factory=list)
     findings: str = ""
     artifacts: List[Artifact] = field(default_factory=list)
@@ -54,6 +55,7 @@ def register_demo(title: str, artifacts: Optional[List[Dict[str, str]]] = None, 
             title=title,
             script_path=script_path,
             description=description,
+            func=func,
             claims=final_claims,
             findings=findings,
             artifacts=processed_artifacts

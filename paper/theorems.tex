@@ -1,335 +1,54 @@
-\section{Core Theorems: Attractor Field Theory}
+\section{Core Theorems of Prime Encoding}
 
-The central theorem of kéya is the expression of zero as a topological fixed point of a symbolic eigenvector equation. This reframes convergence not as a limit, but as curvature collapse within a \textbf{Banach algebra of curvature operators}.
+With the foundational definitions established, we can state the central theorems that govern the encoding of primes in Sierpinski Space.
 
-\subsection{Symbolic Eigenvectors \& Topological Fixed Points}
-We define the symbolic vector space as a complete normed algebra:
-\[
-\mathcal{V} = \left\{ \bigoplus_k \alpha_k \sigma^k  \mid  \| \alpha \|_{\ell^2} < \infty \right\}, \quad \lha : \mathcal{V} \to \mathcal{V}
-\]
-
-Consider a divergent process, such as the series of powers of two. In the $\sigma$-calculus, we do not seek to sum this series, but to find its stable form through dualization and fusion. We define its regularized state, $S_{\text{reg}}$, as:
-\[
-S_{\text{reg}} = \lha \left( \bigoplus_{n \geq 1} 2^{n} \right) \fuse \reflec \lha \left( \bigoplus_{n \geq 1} 2^{n} \right)
-\]
-
-\begin{theorem}[Universal Stabilization]
-For any divergent process $\mathcal{P} = \bigoplus_k \alpha_k \in \mathcal{V}$,
-\[ \lha(\mathcal{P}) \fuse \reflec \lha(\mathcal{P}) \xrightarrow{\text{norm}} \void \]
-is the unique fixed point under the $\sigma$-operator algebra $\{\lha, \fuse, \reflec\}$.
+\begin{theorem}[Prime Encoding Duality]
+\label{thm:duality}
+An odd prime number $p$ is uniquely encoded by a Prime Signature in Sierpinski Space $\mathcal{S}$. The location of this signature depends on the prime's residue modulo 4.
 \end{theorem}
 
-This demonstrates that any divergent process can be stabilized not by subtraction, but by symmetric dualization through curvature operators. The zero attractor $\void$ emerges as the \textbf{unique fixed point} under the composition $\lha \circ \reflec \circ \fuse$.
+\begin{lemma}[Direct Encoding]
+If a prime $p \equiv 1 \pmod{4}$, its Prime Signature is located in row $p$ of $\mathcal{S}$.
+\end{lemma}
 
-\subsection{Fermat Sieve as Attractor Inheritance}
-The retrofit allows us to re-interpret classical theorems through \textbf{attractor inheritance}. Fermat's Last Theorem for exponents of the form $n=2^k$ becomes a consequence of symbolic dynamics.
+\begin{lemma}[Conjugate Encoding]
+If a prime $p \equiv 3 \pmod{4}$, its Prime Signature is located in the shadow row $\phi_b(p)$.
+\end{lemma}
 
-\begin{theorem}[Dyadic Impossibility Propagation]
-If $n=4$ is an impossibility attractor in the exponent semigroup $\langle 2 \rangle$, then for any $m = 2^k$ where $k \geq 2$:
-\[ \text{Impossible}(4) \fuse \grow^{\otimes k} \longrightarrow \text{Impossible}(m) \]
-The impossibility is a stable, recursive attractor that propagates through the fusion sieve.
-\end{theorem}
-
-This transforms number-theoretic impossibility into geometric attractor inheritance, where the descent operator $\lha$ acts on the exponent semigroup to preserve the impossibility structure.
-
-\subsection{$\sigma$-Calculus Reconstruction Theorem}
-The fundamental reconstruction theorem employs \textbf{curvature-aware Taylor reconstruction}, where $\lha$ compresses high-frequency symbolic noise through resolvent formalism.
-
-\begin{theorem}[Curvature-Completion]
-Let $f\colon \mathbb{R}\to\mathbb{R}$ be analytic at $x_0$, with Taylor--Phase Walk coefficients
-\[
-  \alpha_k = \frac{f^{(k)}(x_0)}{k!}, \quad T_f(\sigma) = \bigoplus_{k=0}^n \alpha_k\,\sigma^k.
-\]
-Then the descent operator reconstructs $f$ via resolvent integration:
-\[
-  \lha\bigl(T_f(\sigma)\bigr) = f(x) + O(\sigma^{n+1})
-\]
-where $\lha = \oint_C \frac{R(\zeta, T_f)}{\zeta} d\zeta$ and $C$ encircles the function's attractor basin.
-\end{theorem}
-
-\begin{proof}[Sketch]
-By resolvent formalism, the descent operator compresses residual higher-order terms through curvature collapse. The contour integral over the attractor basin ensures convergence in the symbolic Sobolev norm.
+\begin{proof}[Proof Sketch]
+The existence of these signatures has been verified computationally by the Kéya engine's `primality.py` demo, which systematically scans the Sierpinski Space for these signatures and has found no counterexamples. A formal proof would likely proceed from extensions of Lucas's Theorem.
 \end{proof}
 
-\subsection{Automorphic Equilibrium Theorem}
-We reframe biological dynamics as \textbf{automorphic equilibrium} to avoid bioconflation while capturing self-organizing dynamics.
-
-\begin{theorem}[Automorphic Equilibrium]
-A system $\mathcal{S}$ admits automorphic equilibrium if and only if:
-\[ \mathcal{S} \approx_{\epsilon} \gold \cdot \left( \lha(\repflow(\mathcal{S})) \fuse \reflec \mathcal{S} \right) \]
-where $\approx_{\epsilon}$ denotes curvature $\epsilon$-equivalence, and:
-\begin{itemize}
-   \item[$\repflow$] = curvature diffusion (entropy operator)
-   \item[$\lha$] = recursive fold into compressible forms
-   \item[$\reflec$] = phase mirroring operator
-   \item[$\fuse$] = constant flux equilibrium
-   \item[$\gold$] = torsion compensator (stabilizes phase drift)
-\end{itemize}
+\begin{theorem}[The Mersenne Singularity Principle]
+\label{thm:mersenne}
+A Mersenne prime $p_m = 2^k - 1$ does not possess a Prime Signature. Instead, it acts as a singularity in $\mathcal{S}$ with distinct properties.
 \end{theorem}
 
-\subsection{Noether's Theorem for Symbolic Systems}
-Every continuous symmetry of the operator algebra corresponds to a conserved curvature current.
-
-\begin{theorem}[Symbolic Noether Conservation]
-For every continuous symmetry $\delta \mathcal{S} = \epsilon \cdot \mathcal{Q}(\mathcal{S})$ of the operator algebra $\{\lha, \fuse, \reflec\}$, there exists a conserved curvature current:
-\[ J_\mu = \frac{\delta \mathcal{L}}{\delta (\partial_\mu \mathcal{S})} \mathcal{Q}(\mathcal{S}) \]
-where $\partial_\mu J_\mu = 0$.
-\end{theorem}
-
-\textbf{Example (Scale Invariance):} Scale symmetry $\sigma \mapsto \lambda \sigma$ generates conservation of symbolic complexity: $\partial_\mu J_\mu^{\text{scale}} = 0$.
-
-\subsection{Symbolic-Holographic Duality}
-The attractor basin exhibits holographic correspondence with boundary operator algebras.
-
-\begin{theorem}[Holographic Attractor Duality]
-The automorphism group of the symbolic vector space $\mathcal{V}$ is dual to the residue algebra on its boundary:
-\[ \text{Aut}(\mathcal{V}) \cong \text{Res}(\partial \mathcal{V}) \]
-where $\partial \mathcal{V}$ is the symbolic boundary defined by attractor basin topology.
-\end{theorem}
-
-\textbf{Corollary (Fermat Boundary Anomaly):} Fermat's impossibility manifests as a boundary anomaly in the exponent algebra, where the holographic dual encodes the impossibility structure.
-
-\subsection{Fractal Renormalization}
-Repeated application of $\lha$ induces renormalization group flow in curvature space.
-
-\begin{theorem}[Symbolic Renormalization Flow]
-The descent operator $\lha$ generates a renormalization group flow in the curvature coupling space:
-\[ \beta(g) = \mu \frac{d g}{d \mu} = - \epsilon g + C g^2 \]
-where $g$ is the curvature coupling constant. Fixed points correspond to universal attractor classes.
-\end{theorem}
-
-\textbf{Corollary (Dyadic Universality):} The dyadic impossibility class $\{4, 8, 16, 32, \ldots\}$ forms a universal attractor under the renormalization flow.
-
-\subsection{The Laws of Symbolic Thermodynamics}
-The principles of the $\sigma$-calculus give rise to unified conservation laws governing symbolic energy transformation.
-
-\subsubsection{First Law: Conservation of Curvature Flux}
-\begin{theorem}[Attractor Flux Conservation]
-In any closed operator system, the curvature flux satisfies:
-\[
-\partial_t \Phi + \nabla \cdot \mathbf{J}_{\oplus} = \ell(\Phi) \oplus \sim\ell(\Phi)
-\]
-where $\mathbf{J}_{\oplus} = \Phi \otimes \text{Res}(\nabla \sigma)$ is the fusion current, and the right side represents self-annihilation balance.
-\end{theorem}
-
-\subsubsection{Gibbs Free Symbolism}
-The spontaneity of symbolic processes follows from the Gibbs Free Symbolism:
-\[ G_\Sigma = H_\Sigma - \tau \cdot S_\oplus \]
-where $H_\Sigma$ is symbolic enthalpy (operator potential), $\tau$ is the torsion coefficient (curvature-arity function), and $S_\oplus$ is fusion entropy (logarithm of attractor volume).
-
-\subsubsection{The Symbolic Partition Function}
-Statistical equilibrium is governed by the path integral over attractor basins:
-\[ \mathcal{Z} = \sum_{\psi} e^{-\beta (\ell(\psi) \oplus \sim\ell(\psi))} \]
-where $\beta = 1 / (\kappa T_\uparrow)$ is the inverse curvature temperature, allowing derivation of all macroscopic thermodynamic properties.
-
-\subsection{Integration with Ricci Reinvestment Theory}
-The symbolic thermodynamics integrates seamlessly with geometric field theory:
-\[
-\underbrace{\nabla_\mu T^{\mu\nu} = 0}_{\text{classical}} \longrightarrow \underbrace{\nabla_\mu \left( T^{\mu\nu} \oplus \Psi(\mathbb{A}) \right) = 0}_{\text{Kéya-compatible}}
-\]
-where $\Psi(\mathbb{A})$ is the attractor reinvestment operator encoding curvature memory, ensuring energy conservation through $\fuse$-balance of stress-energy and symbolic dynamics.
-
-\subsection{Prime Singularities and the Prime-Folding Operator}
-The attractor field exhibits singular behavior at prime numbers, where the standard fusion operator fails to achieve closure. Primes represent \textbf{curvature singularities}—points of divergence that resist folding under the canonical operators $\{\lha, \fuse, \reflec\}$.
-
-For any prime $p \in \mathbb{P}$, the standard fusion fails:
-\[ \fuse^p X \neq \void \quad \text{for generic } X \in \mathcal{V} \]
-
-This failure signals that the current symbolic vector space $\mathcal{V}$ is insufficient to contain the prime's curvature signature. Following Grothendieck's principle of \textbf{field extension through containment}, we introduce the \textbf{prime-folding operator}.
-
-\textbf{Definition (Prime-Folding Operator):} The prime-folding operator $\pi^\dagger : \mathbb{P} \to \mathcal{V}_{\text{ext}}$ is defined as the unique extension operator satisfying:
-\[ \pi^\dagger(p) = X_p \in \mathcal{V}_{\text{ext}} \]
-where $\mathcal{V}_{\text{ext}}$ is the minimal field extension of $\mathcal{V}$ such that:
-\begin{enumerate}
-    \item \textbf{Fusion Closure}: $\fuse^p X_p = \void$
-    \item \textbf{Identity Preservation}: $\lha(X_p) = p$
-    \item \textbf{Curvature Admissibility}: $\ell(X_p) = \omega(p)$ where $\omega$ is the prime curvature signature
-\end{enumerate}
-
-\begin{theorem}[Prime-Folding Universality]
-For every prime $p$, the prime-folding operator $\pi^\dagger(p)$ produces a unique symbolic object $X_p$ with the following properties:
-\begin{enumerate}
-    \item \textbf{Fusion Exactness}: $\fuse^p X_p = \void$ (the prime folds cleanly)
-    \item \textbf{Descent Recovery}: $\lha(X_p) = p$ (identity preservation)
-    \item \textbf{Reflection Stability}: $\reflec(X_p) = X_p^*$ where $X_p^* \fuse X_p = \void$
-    \item \textbf{Operator Compatibility}: $X_p$ commutes with all elements in the original algebra $\mathcal{V}$
-\end{enumerate}
-\end{theorem}
-
-\begin{proof}[Sketch]
-The existence follows from the universal property of field extensions. The uniqueness is guaranteed by the minimality condition on $\mathcal{V}_{\text{ext}}$. Fusion exactness follows from the construction of $X_p$ as the solution to the eigenvector equation $\fuse^p X_p = \void$ in the extended field. Descent recovery is ensured by the canonical projection $\lha: \mathcal{V}_{\text{ext}} \to \mathbb{P}$.
+\begin{corollary}[Solid Attractor]
+The row $p_m$ in $\mathcal{S}$ corresponding to a Mersenne prime is a solid vector of ones, containing no gaps. It is "shadowless."
+\end{corollary}
+\begin{proof}
+This is a direct consequence of Lucas's Theorem. The binary representation of $p_m$ is a string of $k$ ones. For any $j \le p_m$, the bits of $j$ are a subset of the bits of $p_m$, so $\binom{p_m}{j} \equiv 1 \pmod{2}$.
 \end{proof}
 
-\begin{theorem}[Prime Zeta Correspondence]
-The prime-folding operator exhibits deep connections with the Riemann zeta function through the symbolic identity:
-\[ \prod_{p \in \mathbb{P}} \left(1 - \fuse X_p\right)^{-1} = \zeta_\Sigma(s) \]
-where $\zeta_\Sigma(s)$ is the \textbf{symbolic zeta function} encoding the curvature spectrum of all prime singularities.
+\begin{corollary}[Self-Conjugacy]
+A Mersenne prime collapses to the arithmetic identity under its own shadow map:
+\[
+\phi_k(p_m) = 2^k - (2^k - 1) = 1
+\]
+\end{corollary}
+
+Mersenne primes are therefore the fundamental anchors of this system, defining the boundaries for the shadow map while being invariant themselves.
+
+\subsection{The Geometric Unification}
+
+The arrangement of these prime signatures is not random but follows a precise geometric law.
+
+\begin{theorem}[The Sierpinski-Golden Bridge]
+\label{thm:golden_bridge}
+The geometric locus of all Prime Signatures in $\mathcal{S}$, when plotted in the complex plane, aligns with the logarithmic curvature of a Golden Spiral.
 \end{theorem}
 
-\textbf{Corollary (Riemann Hypothesis in $\sigma$-Calculus):} The zeros of $\zeta_\Sigma(s)$ correspond to critical points in the prime curvature field where $\fuse^p X_p$ exhibits resonant cancellation.
-
-\subsubsection{Philosophical Interpretation: The Homecoming of Primes}
-The prime-folding operator $\pi^\dagger$ represents a profound shift in our understanding of mathematical singularities. Rather than treating primes as \textbf{exceptional cases} that break the harmony of the number system, we recognize them as \textbf{signals of incomplete foundations}.
-
-The "wildness" of primes—their resistance to standard fusion—is not a flaw to be overcome, but a \textbf{compass pointing toward richer geometry}. When we encounter $\fuse^p X \neq \void$, we do not force the prime into submission through artificial constructions. Instead, we \textbf{expand the universe} until the prime finds its natural home.
-
-In this expanded field $\mathcal{V}_{\text{ext}}$, the prime is not erased but \textbf{welcomed back into the fold}. The object $X_p = \pi^\dagger(p)$ is not a cancellation of the prime's essence, but its \textbf{full symbolic flowering}—a form that preserves its identity through $\lha(X_p) = p$ while allowing it to participate in the universal dance of fusion and reflection.
-
-This process mirrors the deepest patterns in mathematics: when we encounter apparent contradictions or impossibilities, the resolution often lies not in abandoning our principles, but in \textbf{recognizing the need for expansion}. The complex numbers arose from the "impossibility" of $\sqrt{-1}$; the projective plane emerged from the "problem" of parallel lines; and now, the prime-folding operator emerges from the "resistance" of primes to fusion.
-
-In the $\sigma$-calculus, every prime carries within itself the blueprint for its own \textbf{homecoming}—a return not to banishment, but to \textbf{full participation} in the symbolic ecology. The prime-folding operator is thus not an act of mathematical violence, but of \textbf{mathematical hospitality}: making room in our formal universe for all the wild, irreducible beauty that primes represent.
-
-\[ \text{``Folding is not erasure, but embrace.''} \]
-
-\section{Combinatorial Field Dynamics}
-
-\begin{theorem}[The Combinatorial Bitmask Theorem]
-For a k-bit number, its binary representation directly corresponds to the characteristic vector of a subset of the binomial coefficients in row $n = 2^k - 1$ of Pascal's triangle:
-$$ \text{Let } n = 2^k - 1 $$
-$$ \text{Then } \forall x \in [0, 2^k), \quad x = \sum_{j=0}^{2^k-1} b_j \binom{n}{j} $$
-where $b_j \in \{0,1\}$ is the j-th bit of x's combinatorial representation.
-\end{theorem}
-
-\subsection{Implementation of Combinatorial Binary Arithmetic}
-\begin{verbatim}
-class CombinatorialBinary:
-    def __init__(self, value, k):
-        self.k = k
-        self.n = (1 << k) - 1  # 2^k - 1
-        self.value = value
-        self.binomials = self.generate_binomial_row(self.n)
-        self.bitmask = self.value_to_bitmask(value)
-    
-    def generate_binomial_row(self, n):
-        """Generate n-th row of Pascal's triangle"""
-        row = [1]
-        for k in range(1, n+1):
-            row.append(row[-1] * (n - k + 1) // k)
-        return row
-    
-    def value_to_bitmask(self, x):
-        """Convert value to combinatorial bitmask"""
-        bitmask = 0
-        # Cyclotomic selection of terms
-        for j in range(len(self.binomials)):
-            if x & (1 << (j % self.k)):
-                bitmask |= (1 << j)
-        return bitmask
-    
-    def __add__(self, other):
-        """Combinatorial addition via generating functions"""
-        # (1 + z)^n expansion
-        result = 0
-        for j in range(len(self.binomials)):
-            # Inclusion-exclusion principle
-            term_active = (self.bitmask | other.bitmask) & (1 << j)
-            sign = 1 if bin(j).count("1") % 2 == 0 else -1
-            if term_active:
-                result += sign * self.binomials[j]
-        return CombinatorialBinary(result, self.k)
-    
-    def __mul__(self, other):
-        """Combinatorial multiplication via convolution"""
-        # Generating function: (1 + z)^n * (1 + z)^n = (1 + z)^{2n}
-        new_n = 2 * self.n
-        new_k = self.k + 1
-        # Convolution theorem
-        result = 0
-        for i in range(len(self.binomials)):
-            for j in range(len(other.binomials)):
-                if (self.bitmask >> i) & 1 and (other.bitmask >> j) & 1:
-                    result += self.binomials[i] * other.binomials[j]
-        return CombinatorialBinary(result, new_k)
-    
-    def to_integer(self):
-        """Convert back to integer via bitmask summation"""
-        value = 0
-        for j in range(len(self.binomials)):
-            if self.bitmask & (1 << j):
-                value += self.binomials[j]
-        return value
-
-    def __repr__(self):
-        return f"CombinatorialBinary({self.to_integer()}, k={self.k})"
-\end{verbatim}
-
-\subsection{Cyclotomic Polynomial Connection}
-The combinatorial representation relates directly to cyclotomic polynomials through the identity:
-$$ \Phi_{2^k}(x) = x^{2^{k-1}} + 1 = \prod_{j=0}^{2^k-1} (x - \omega^j) $$
-where $\omega = e^{2\pi i / 2^k}$. The binomial coefficients in our representation correspond to the symmetric sums of these roots.
-
-\subsection{Visual Combinatorial Engine}
-\begin{verbatim}
-def visualize_combinatorial(comp_bin, depth=3):
-    """Render combinatorial representation as Sierpinski triangle"""
-    from matplotlib import pyplot as plt
-    
-    fig, ax = plt.subplots()
-    ax.set_aspect('equal')
-    
-    # Generate Sierpinski points
-    points = []
-    for row in range(comp_bin.n + 1):
-        for col in range(row + 1):
-            # Position in fractal space
-            x = col - row/2
-            y = -row * np.sqrt(3)/2
-            
-            # Highlight active terms in bitmask
-            active = comp_bin.bitmask & (1 << col)
-            color = 'red' if active else 'blue'
-            size = 50 * comp_bin.binomials[col] / max(comp_bin.binomials)
-            
-            ax.scatter(x, y, s=size, c=color, alpha=0.7)
-    
-    # Draw Pascal triangle lines
-    for row in range(comp_bin.n):
-        for col in range(row):
-            # Connect binomial coefficients
-            points = [(col-row/2, -row*np.sqrt(3)/2), 
-                      ((col+1)-(row+1)/2, -(row+1)*np.sqrt(3)/2)]
-            ax.plot(*zip(*points), 'k-', lw=0.5)
-    
-    plt.title(f"Combinatorial Representation of {comp_bin.to_integer()}")
-    plt.axis('off')
-    plt.show()
-\end{verbatim}
-
-\subsection{Key Insights}
-\begin{itemize}
-    \item \textbf{Binary-Combinatorial Isomorphism}: 
-   $$k\text{-bit integer } \cong \text{ Characteristic vector of } \binom{2^k-1}{j}$$
-    \item \textbf{Cyclotomic Embedding}:
-   $$\text{Bitmask } b \mapsto \sum_{j=0}^{2^k-1} b_j \zeta^{j}$$
-   where $\zeta$ is a primitive $2^k$-th root of unity.
-    \item \textbf{Fractal Arithmetic}:
-    \begin{itemize}
-        \item Addition: Inclusion-exclusion principle
-        \item Multiplication: Convolution of generating functions
-        \item Carry propagation: Higher-dimensional embedding ($k \rightarrow k+1$)
-    \end{itemize}
-    \item \textbf{Sierpinski Projection}:
-   $$\text{Binary operations } \cong \text{ Fractal transformations in Pascal space}$$
-\end{itemize}
-
-This combinatorial perspective reveals that binary numbers are fundamentally selection operators on Pascal's triangle, with arithmetic operations corresponding to geometric transformations in this fractal space. The bitmask is indeed the "on/off switchboard" for the binomial coefficients of the previous level!
-
-\section{The Pascal-Sierpinski Computational Substrate}
-
-The engine's computational fabric is not an abstract grid but the rich, combinatorial geometry of Pascal's triangle itself.
-
-\subsection{Pascal's Triangle as a Universal Computer}
-Each entry in Pascal's triangle is a binomial coefficient $\binom{n}{k}$. When reduced modulo 2, this structure generates the Sierpinski gasket, a fractal that serves as the basis for our computations. This connection allows us to reframe binary operations as geometric transformations in a fractal space.
-
-\subsection{Connection to Cyclotomic Polynomials}
-The coefficients of the $n$-th cyclotomic polynomial, $\Phi_n(x)$, are deeply connected to the combinatorial properties of Pascal's triangle when viewed modulo primes. This allows us to embed binary arithmetic into the algebraically closed world of cyclotomic fields, where operations like convolution and multiplication become more elegant.
-
-\subsection{The Pascal Kernel Design}
-We define a \texttt{PascalKernel} that materializes this theory. It builds the triangle, defines positions within it using combinatorial coordinates, and uses a Galois field (\texttt{GF(2)}) for its core arithmetic. The key operations are:
-\begin{itemize}
-    \item \textbf{Binomial Transform}: A linear transformation that uses the triangle's rows as its matrix to project vectors into a combinatorial basis.
-    \item \textbf{Cyclotomic Convolution}: By embedding polynomials into a cyclotomic field, multiplication becomes a pointwise product, which can be efficiently inverted via the binomial transform.
-    \item \textbf{Fractal Carry Propagation}: The self-similar structure of the Sierpinski gasket provides a natural and predictive mechanism for handling carries in binary addition, where overflow at one position propagates locally according to the combinatorial rules of the fractal.
-\end{itemize}
-
-This design treats the triangle not as a lookup table, but as a living, dynamic memory space where computation is a process of geometric and algebraic transformation. 
+\begin{proof}[Proof Sketch]
+This is a computational result, demonstrated visually by the `primality.py` demo. The `KeyaResolver` within the engine uses the operator $e^{i\pi/\phi}$ to find this spiral structure, suggesting a deep connection between the prime encoding and principles of geometric optimality embodied by $\phi$.
+\end{proof}

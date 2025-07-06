@@ -1,0 +1,4 @@
+# Test pipeline for verifying the kshell runner.
+pipeline: simple_test
+initial_state: [1, 0, 1]
+step { op: FUSE } 

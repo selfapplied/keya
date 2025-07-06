@@ -14,7 +14,7 @@ class CyclotomicBinary:
     """
     def __init__(self, value: int, kernel_depth: int = 8):
         self.value = value
-        self.kernel = PascalKernel(depth=kernel_depth)
+        self.kernel = PascalKernel()
         # Components are now a JAX array
         self.components = self._int_to_binary_vector(value)
 
@@ -64,7 +64,7 @@ class CyclotomicBinary:
         reduced_vector = self.kernel.reduce_with_carries(sum_vector)
         
         new_value = self._binary_vector_to_int(reduced_vector)
-        return CyclotomicBinary(new_value, kernel_depth=self.kernel.depth)
+        return CyclotomicBinary(new_value)
 
     def __mul__(self, other: 'CyclotomicBinary') -> 'CyclotomicBinary':
         """
@@ -73,7 +73,7 @@ class CyclotomicBinary:
         """
         # Standard integer multiplication as a placeholder.
         new_value = self.value * other.value
-        return CyclotomicBinary(new_value, kernel_depth=self.kernel.depth)
+        return CyclotomicBinary(new_value)
 
     def __repr__(self) -> str:
         return f"CyclotomicBinary({self.value})" 

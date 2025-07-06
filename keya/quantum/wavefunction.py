@@ -9,8 +9,7 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import jax.numpy as jnp
 
-from ..core.operators import Wild_closure
-from ..dsl.ast import ContainmentType
+from keya.kernel.kernel import PascalKernel
 
 
 class WaveFunctionType(Enum):
@@ -46,12 +45,10 @@ class QuantumWaveFunction:
     def __init__(self,
                  wave_type: WaveFunctionType = WaveFunctionType.GAUSSIAN,
                  dimensions: Tuple[int, int, int] = (50, 50, 50),
-                 containment_type: ContainmentType = ContainmentType.GENERAL,
                  energy_level: int = 1):
         
         self.wave_type = wave_type
         self.dimensions = dimensions
-        self.containment_type = containment_type
         self.energy_level = energy_level
         
         # 3D grid for wave function
@@ -209,27 +206,35 @@ class QuantumWaveFunction:
         self.psi_imag = (self.psi_imag + temp_imag) / math.sqrt(2)
     
     def apply_wild_tame_evolution(self, time_steps: int = 1) -> bool:
-        """Evolve the wave function using keya operators."""
+        """Evolve the wave function using the PascalKernel to simulate dynamics."""
         
-        # Convert wave function to matrix for processing
-        # Use probability density as the basis for evolution
         prob_density = self.get_probability_density_2d()
 
-        # --- Refactored to use JAX operators directly ---
         try:
-            # 1. Convert probability density to a glyph-like integer matrix for the operator
-            # We quantize the float values into a few integer levels (e.g., 0-6)
+            # 1. Quantize the probability density to create an integer matrix for the kernel.
             quantized_prob = (prob_density / prob_density.max() * 6).astype(jnp.int32)
             psi_matrix = jnp.array(quantized_prob)
+            
+            # 2. Define a simple dissonance operator (diagonal matrix).
+            operator = jnp.eye(psi_matrix.shape[0], dtype=jnp.int32)
 
-            # 2. Apply the JAX-based Wild_closure operator
-            evolved_matrix = Wild_closure(
-                psi_matrix, 
-                containment_rule=self.containment_type.value, 
-                max_iterations=time_steps
-            )
+            # 3. Instantiate the kernel and apply the polynomial transform.
+            kernel = PascalKernel()
+            
+            # Flatten matrices for the convolution operation
+            state_vector = psi_matrix.flatten()
+            op_vector = operator.flatten()
+            
+            # Apply the evolution for the given number of steps
+            evolved_vector = state_vector
+            for _ in range(time_steps):
+                evolved_vector = kernel.apply_polynomial(evolved_vector, op_vector)
+            
+            # 4. Reshape the result and update the wave function
+            # The output of convolve is larger, so we truncate it back to the original shape.
+            final_size = psi_matrix.shape[0] * psi_matrix.shape[1]
+            evolved_matrix = evolved_vector[:final_size].reshape(psi_matrix.shape)
 
-            # 3. Update wave function based on the evolved matrix
             self._update_from_evolved_matrix(np.array(evolved_matrix))
             self.time += time_steps * self.dt
             return True
@@ -340,6 +345,9 @@ class QuantumWaveFunction:
             self.psi_imag[i, j, k] = 0.0
             
             print(f"⚡ Wave function collapsed at ({i}, {j}, {k})")
+            
+            # After collapse, wave function is localized
+            self._initialize_wave_function() # Re-create a packet at the measured position
     
     def normalize(self):
         """Normalize the wave function."""
@@ -350,20 +358,13 @@ class QuantumWaveFunction:
             self.psi_imag /= norm
     
     def get_quantum_stats(self) -> Dict[str, Any]:
-        """Get quantum mechanical statistics."""
-        prob_density = self.get_probability_density_3d()
-        total_prob = np.sum(prob_density)
-        
-        position_exp = self.measure_expectation("position")
+        """Get statistics about the quantum state."""
+        total_prob = self.get_probability_density_3d().sum()
         
         return {
-            'wave_type': self.wave_type.value,
-            'energy_level': self.energy_level,
-            'time': self.time,
-            'total_probability': float(total_prob),
-            'position_expectation': position_exp,
-            'max_probability': float(np.max(prob_density)),
-            'dimensions': self.dimensions,
-            'containment_type': self.containment_type.value,
-            'is_normalized': abs(total_prob - 1.0) < 0.01
+            "wave_type": self.wave_type.value,
+            "dimensions": self.dimensions,
+            "energy_level": self.energy_level,
+            "total_probability": float(total_prob),
+            "is_normalized": abs(total_prob - 1.0) < 1e-6
         } 

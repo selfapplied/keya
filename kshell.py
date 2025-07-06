@@ -16,8 +16,10 @@ from pathlib import Path
 # Ensure the src directory is on the path for local development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
-from keya.core.engine import Engine
-from keya.shell.repl import KeyaDCREPL, SYMBOL_REPLACEMENTS
+# The REPL is temporarily disabled as it's tied to the old DSL.
+# from keya.shell.repl import KeyaDCREPL
+from keya.kshell.parser import parse_kshell_file
+from keya.kshell.engine import KShellEngine
 
 
 def print_version():
@@ -25,42 +27,6 @@ def print_version():
     print("Kshell - Keya Language Shell")
     print("Version: 2.0.0 - Modern Language-First REPL")
     print("Features: Glyph matrices, grammar transformations")
-
-
-def test_completion(word: str):
-    """Test tab completion for a given word."""
-    if not word:
-        print("Error: No word provided for completion testing")
-        return 1
-    
-    # Find all symbol matches
-    symbol_matches = []
-    
-    # Exact matches
-    if word.lower() in SYMBOL_REPLACEMENTS:
-        symbol_matches.append((word.lower(), SYMBOL_REPLACEMENTS[word.lower()]))
-    
-    # Prefix matches (only if no exact match)
-    if not symbol_matches:
-        for symbol_word in SYMBOL_REPLACEMENTS:
-            if symbol_word.startswith(word.lower()) and symbol_word != word.lower():
-                symbol_matches.append((symbol_word, SYMBOL_REPLACEMENTS[symbol_word]))
-    
-    # Output results
-    if len(symbol_matches) == 0:
-        print(f"No symbol completions for '{word}'")
-        return 0
-    elif len(symbol_matches) == 1:
-        # Single match - output the symbol (like tab would do)
-        symbol_word, symbol = symbol_matches[0]
-        print(symbol)
-        return 0
-    else:
-        # Multiple matches - output column-style list
-        print(f"Multiple completions for '{word}':")
-        for symbol_word, symbol in sorted(symbol_matches):
-            print(f"  {symbol_word:<12} → {symbol}")
-        return 0
 
 
 # Extensible command definitions
@@ -135,12 +101,14 @@ def main():
         elif arg in ['--version', '-v']:
             print_version()
             return
-        elif arg in ['--tab', '-t']:
-            if len(sys.argv) < 3:
-                print("Error: --tab/-t requires a word argument")
-                print("Usage: python kshell.py --tab <word> OR python kshell.py -t <word>")
-                return 1
-            return test_completion(sys.argv[2])
+        # The --tab command was tied to the old REPL's symbol completer.
+        # It is disabled for now.
+        # elif arg in ['--tab', '-t']:
+        #     if len(sys.argv) < 3:
+        #         print("Error: --tab/-t requires a word argument")
+        #         print("Usage: python kshell.py --tab <word> OR python kshell.py -t <word>")
+        #         return 1
+        #     return test_completion(sys.argv[2])
         elif arg.startswith('--'):
             print(f"Unknown option: {arg}")
             print_usage()
@@ -153,23 +121,30 @@ def main():
                 return 1
             
             try:
-                engine = Engine()
-                repl = KeyaDCREPL(engine)
-                repl.run_script(str(script_path))
+                print(f"--- Running Script: {script_path.name} ---")
+                pipeline = parse_kshell_file(script_path)
+                engine = KShellEngine()
+                final_state = engine.run(pipeline)
+                print(f"\n--- Script Complete ---")
+                print(f"Final State: {final_state}")
+
             except Exception as e:
                 print(f"Error executing script: {e}")
                 return 1
     else:
-        # Interactive mode: start the REPL
-        try:
-            engine = Engine()
-            repl = KeyaDCREPL(engine)
-            repl.run()
-        except KeyboardInterrupt:
-            print("\nKshell interrupted by user.")
-        except Exception as e:
-            print(f"Error starting Kshell: {e}")
-            return 1
+        # Interactive mode is disabled pending a redesign for the new engine.
+        print_version()
+        print("\nInteractive REPL is temporarily disabled.")
+        print("Please run a script file instead, e.g.: python kshell.py demos/kshell/evolution.keya")
+        # try:
+        #     engine = Engine()
+        #     repl = KeyaDCREPL(engine)
+        #     repl.run()
+        # except KeyboardInterrupt:
+        #     print("\nKshell interrupted by user.")
+        # except Exception as e:
+        #     print(f"Error starting Kshell: {e}")
+        #     return 1
     
     return 0
 

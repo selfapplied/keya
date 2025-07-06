@@ -16,21 +16,35 @@
 % --- language/encoding setup ---
 \usepackage[T1]{fontenc}      % Latin font encoding
 \usepackage[utf8]{inputenc}   % UTF-8 file input
-\usepackage[greek,english]{babel}  % <-- this is the key line
+\usepackage[greek,english]{babel} 
 
 
 \theoremstyle{definition}
 \newtheorem{principle}{Principle}
 \newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}[theorem]
+\newtheorem{corollary}{Corollary}[theorem]
 
 \geometry{margin=0.5in}
 \definecolor{deepblue}{RGB}{0,30,100}
 \definecolor{deepred}{RGB}{150,0,50}
 
+% Define default padding for document elements
+\setlength{\parindent}{0pt} % No paragraph indentation
+\setlength{\parskip}{1em} % Space between paragraphs
+\setlength{\topsep}{0.5em} % Space above and below lists
+\setlength{\partopsep}{0.5em} % Extra space added to \topsep when environment starts a new paragraph
+\setlength{\itemsep}{0.5em} % Space between list items
+\setlength{\labelsep}{0.5em} % Space between label and text in lists
+\setlength{\tabcolsep}{0.5em} % Space between columns in tables
+
+
 % --- Custom Commands ---
 \newcommand{\op}[1]{\mathbf{\color{deepblue} #1}}
 \newcommand{\att}[1]{\boldsymbol{\color{deepred} #1}}
 \newcommand{\sym}[1]{\mathsf{\color{black} #1}}
+\newcommand{\subtitle}[1]{\par{\bigbreak\noindent\textbf{\large #1}}}
 
 % Operator shortcuts
 \newcommand{\lha}{\op{\ell}} % Descent operator
@@ -46,16 +60,29 @@
 \newcommand{\pirot}{\att{\pi}} % Rotational attractor
 \newcommand{\void}{\att{\emptyset}} % Void attractor
 
-\title{\bfseries Symbolic Operator Thermodynamics\\ \large 
-The Unified Calculus of Dynamic Equilibrium in kéya}
-\author{Joel Stover \\ \small \textgreek{μετὰ λόγου, μετὰ ἁρμονίας}}
+\title{
+    \bfseries Sigma Attractor Theory \LARGE \break
+    The Unified Calculus of Symbolic Dynamical Systems
+    \subtitle{And Introducing kéya, a symbolic cellular automata engine}
+}
+
+\author{
+    \small \textit envisioned by: \\
+    \large Joel Stover \\
+    \and \small \textit in partnership with: \\
+    \small Gemini 2.5 Pro \(\cdot\) GPT-4o \\
+    \small Deepseek \(\cdot\) Claude \\
+    \small \textgreek{μετὰ λόγου, μετὰ ἁρμονίας} \\
+}
+
 \date{\today}
 
 \begin{document}
 
 \maketitle
-
+2
 \begin{abstract}
+
 We present k\'{e}ya, a framework for symbolic computation that reframes operator dynamics as a form of \textbf{Symbolic Homotopy Algebra}. This approach models infinities and divergent processes not as analytical problems to be solved, but as non-trivial topological loops in symbolic space. We demonstrate that regularization is equivalent to a homotopic folding of these loops toward a basepoint, and that cancellation is the fusion of these paths with their duals, collapsing them into the zero class. The core result is the formulation of a symbolic eigenvector equation whose fixed-point attractor is zero---not as a void, but as a state of perfect topological interference. This recasts the foundations of physics and mathematics, unifying renormalization, biological stability, and computational equilibrium into a single, dynamic principle of curvature collapse.
 \end{abstract}
 
@@ -63,8 +90,8 @@ We present k\'{e}ya, a framework for symbolic computation that reframes operator
 
 \input{foundations.tex}
 \input{theorems.tex}
-\input{homology.tex}
 \input{results.tex}
+\input{homology.tex}
 \input{conclusion.tex}
 \input{appendix.tex}
 

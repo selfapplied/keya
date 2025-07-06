@@ -53,4 +53,17 @@ def Diff() -> Operator:
 
 def Identity() -> Operator:
     """The Identity operator, which causes no change. Its polynomial is `1`."""
-    return Operator("Identity", [1]) 
+    return Operator("Identity", [1])
+
+def GoldenCurvature() -> Operator:
+    """
+    The Golden Curvature operator, which rotates a state in the complex plane.
+
+    This action is defined by multiplication by the complex number e^(i*pi/phi),
+    representing the rotational force of the Golden Spiral's limit cycle.
+    """
+    phi = (1 + jnp.sqrt(5)) / 2
+    # The complex coefficient representing the rotation.
+    turn_angle = jnp.pi / phi
+    coeff = jnp.cos(turn_angle) + 1j * jnp.sin(turn_angle)
+    return Operator("GoldenCurvature", jnp.array([coeff], dtype=jnp.complex128)) 

@@ -15,7 +15,7 @@ def run_simulation():
     """
     print("Initializing kernel-based PascalGaugeField...")
     # The depth of the kernel determines the max size of numbers.
-    field = PascalGaugeField(depth=16)
+    field = PascalGaugeField()
 
     # 1. Initialize the state with a single value and a Fuse operator.
     initial_values = [5]

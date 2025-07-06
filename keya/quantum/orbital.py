@@ -7,7 +7,6 @@ import numpy as np
 from scipy.special import sph_harm, factorial, genlaguerre
 
 from .wavefunction import QuantumWaveFunction, WaveFunctionType
-from ..dsl.ast import ContainmentType
 
 
 class OrbitalType(Enum):
@@ -169,7 +168,6 @@ class ElectronOrbital:
         evolution_wave = QuantumWaveFunction(
             wave_type=WaveFunctionType.HYDROGEN,
             dimensions=(evolution_size, evolution_size, evolution_size),
-            containment_type=ContainmentType.GENERAL,
             energy_level=self.n
         )
         
@@ -348,16 +346,50 @@ class ElectronOrbital:
             'evolution_available': True
         }
     
+    def get_position_expectation(self) -> Tuple[float, float, float]:
+        """Calculates the expectation value for position."""
+        total_prob = np.sum(self.probability_density)
+        if total_prob < 1e-12:
+            return 0.0, 0.0, 0.0
+
+        exp_x = np.sum(self.X * self.probability_density) / total_prob
+        exp_y = np.sum(self.Y * self.probability_density) / total_prob
+        exp_z = np.sum(self.Z * self.probability_density) / total_prob
+
+        return exp_x, exp_y, exp_z
+
+    def get_momentum_expectation(self) -> Tuple[float, float, float]:
+        """Calculates the expectation value for momentum."""
+        total_prob = np.sum(self.probability_density)
+        if total_prob < 1e-12:
+            return 0.0, 0.0, 0.0
+
+        psi_conj = np.conj(self.wave_function)
+        
+        # The gradient needs to be calculated with respect to coordinate changes.
+        # The spacing is self.resolution for all axes.
+        grad_x, grad_y, grad_z = np.gradient(self.wave_function, self.resolution)
+
+        # Expectation value <p> = ∫ ψ* (-iħ∇) ψ dV / ∫ ψ*ψ dV
+        # The integral is approximated by sum * dV. dV cancels.
+        # atomic units: ħ=1.
+        exp_px = np.sum(psi_conj * (-1j) * grad_x) / total_prob
+        exp_py = np.sum(psi_conj * (-1j) * grad_y) / total_prob
+        exp_pz = np.sum(psi_conj * (-1j) * grad_z) / total_prob
+        
+        return exp_px.real, exp_py.real, exp_pz.real
+
     def get_expectation_values(self) -> Dict[str, float]:
         """Calculates expectation values for position and momentum."""
         # Calculate expectation values
-        np.sum(self.probability_density)
+        pos_x, pos_y, pos_z = self.get_position_expectation()
+        mom_x, mom_y, mom_z = self.get_momentum_expectation()
         
         return {
-            'position_x': self.get_position_expectation(),
-            'position_y': self.get_position_expectation(),
-            'position_z': self.get_position_expectation(),
-            'momentum_x': self.get_momentum_expectation(),
-            'momentum_y': self.get_momentum_expectation(),
-            'momentum_z': self.get_momentum_expectation()
+            'position_x': pos_x,
+            'position_y': pos_y,
+            'position_z': pos_z,
+            'momentum_x': mom_x,
+            'momentum_y': mom_y,
+            'momentum_z': mom_z
         } 

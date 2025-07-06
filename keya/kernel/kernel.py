@@ -52,6 +52,13 @@ class PascalKernel:
         """The kernel is now parameter-free."""
         self.modulus = 2
 
+    def get_sierpinski_row(self, n: int) -> jnp.ndarray:
+        """
+        Public method to compute the n-th row of Pascal's triangle modulo 2.
+        This is the primary interface for accessing the kernel's combinatorial space.
+        """
+        return self._get_pascal_row(n)
+
     @staticmethod
     @lru_cache(maxsize=None)
     def _get_pascal_row(n: int) -> jnp.ndarray:

@@ -30,7 +30,7 @@ class CyclotomicBinary:
     def _int_to_binary_vector(self, n: int) -> jnp.ndarray:
         """Converts an integer to a coefficient vector (LSB first)."""
         if n == 0:
-            return jnp.array([0], dtype=jnp.int64)
+            return jnp.array([0], dtype=jnp.int32)
         
         # This part is tricky to do in pure JAX, so we do it in numpy-like way
         # before converting to a JAX array for operations.
@@ -39,7 +39,7 @@ class CyclotomicBinary:
         while temp_n > 0:
             vec.append(temp_n % 2)
             temp_n //= 2
-        return jnp.array(vec, dtype=jnp.int64)
+        return jnp.array(vec, dtype=jnp.int32)
     
     def _binary_vector_to_int(self, vec: jnp.ndarray) -> int:
         """Converts a coefficient vector back to an integer."""
